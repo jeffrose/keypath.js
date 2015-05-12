@@ -2,8 +2,7 @@
 
 import EventEmitter from '../node_modules/ee.js/dist/ee';
 
-const root = Function( 'return this' )(),
-
+const 
     buffer = Symbol( '@@buffer' ),
     destroyed = Symbol( '@@destroyed' ),
     ignore = Symbol( '@@ignore' ),
@@ -35,8 +34,6 @@ Token.prototype.valueOf = function(){
 };
 
 function Rule( id, test ){
-    console.log( 'Rule', id, test );
-    
     var isFunction = typeof test === 'function';
     
     if( !isFunction && !( test instanceof RegExp ) ){
@@ -56,7 +53,6 @@ Rule.prototype = Object.create( null );
 Rule.prototype[ Symbol.toStringTag ] = 'Rule';
 
 Rule.prototype.execute = function( value ){
-    console.log( 'executing', value );
     return this.test( value );
 };
 
@@ -105,7 +101,7 @@ Tokenizer.prototype.ignore = function( id ){
 
 Tokenizer.prototype.match = function( value ){
     for( let rule of this[ rules ] ){
-        if( rule.test( value ) ){
+        if( rule.execute( value ) ){
             return rule;
         }
     }
@@ -121,7 +117,7 @@ Tokenizer.prototype.tokenize = function( data ){
         return;
     }
     
-    console.log( data );
+    console.log( 'DATA', data );
     
     var matchingRule = undefined,
     
@@ -132,10 +128,13 @@ Tokenizer.prototype.tokenize = function( data ){
         
         matchingRule = this.match( string );
         
-        console.log( string, matchingRule );
+        console.log( 'MATCH', string, matchingRule );
         
         return matchingRule !== null;
     }, this );
+    
+    // TODO handle data remaining in buffer
+    // TODO emit "finish" when tokenization is done.
     
     if( string.length === 0 ){
         throw new SyntaxError( `could not tokenize ${data}` );
