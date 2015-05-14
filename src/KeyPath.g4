@@ -1,6 +1,13 @@
 grammar KeyPath;
 
 //
+// Fragments
+//
+
+// 1, 2, 3, 4...
+fragment NATURAL_NUMBER : [1-9] [0-9]* ;
+
+//
 // Tokens
 //
 
@@ -12,9 +19,6 @@ INTEGER : '0' | NATURAL_NUMBER ;
 
 // foo, $bar, _qux
 NAME : [a-zA-Z_$]+ ;
-
-// 1, 2, 3, 4...
-NATURAL_NUMBER : [1-9] [0-9]* ;
 
 PARAM : NAME | INTEGER | DIRECTIVE;
 
