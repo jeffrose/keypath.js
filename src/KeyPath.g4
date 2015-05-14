@@ -6,13 +6,15 @@ NATURAL_NUMBER : [1-9] [0-9]* ;
 
 WILDCARD : '*' ;
 
+WHITESPACE : [ \t\n\r]+ -> skip ;
+
 keypath : segment segment* ;
 
-command : '@' NAME ;
+directive : '@' NAME ;
 
 segment : function | array | object ;
 
-array : NAME '[' (command | keypath | integer | WILDCARD) ']' ;
+array : NAME '[' (directive | keypath | integer | WILDCARD) ']' ;
 
 function : NAME '(' ')' | NAME '(' param (',' param)* ')' ;
 
@@ -23,5 +25,3 @@ object : (NAME | WILDCARD) ('.' | <EOF>) ;
 param : (NAME | integer)+ | var | keypath;
 
 var : '%' NATURAL_NUMBER ;
-
-WS :   [ \t\n\r]+ -> skip ;
