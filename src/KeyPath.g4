@@ -14,7 +14,7 @@ directive : '@' NAME ;
 
 segment : function | array | object ;
 
-array : NAME '[' (directive | keypath | integer | WILDCARD) ']' ;
+array : NAME '[' (directive | integer | WILDCARD) ']' ;
 
 function : NAME '(' ')' | NAME '(' param (',' param)* ')' ;
 
