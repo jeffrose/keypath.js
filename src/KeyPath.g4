@@ -1,6 +1,6 @@
 grammar KeyPath;
 
-NAME : [a-zA-Z_]+ ;
+NAME : [a-zA-Z_$]+ ;
 
 NATURAL_NUMBER : [1-9] [0-9]* ;
 
