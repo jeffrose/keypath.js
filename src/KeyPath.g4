@@ -1,27 +1,26 @@
 grammar KeyPath;
 
+DIRECTIVE : '%' NATURAL_NUMBER | '%' NAME;
+
+INTEGER : '0' | NATURAL_NUMBER ;
+
 NAME : [a-zA-Z_$]+ ;
 
 NATURAL_NUMBER : [1-9] [0-9]* ;
 
-WILDCARD : '*' ;
+PARAM : NAME | INTEGER | DIRECTIVE;
 
 WHITESPACE : [ \t\n\r]+ -> skip ;
 
-keypath : segment segment* ;
+keypath : command command* ;
 
-directive : '@' NAME ;
+command : execute | iterate | traverse ;
 
-segment : function | array | object ;
+// Arrays
+iterate : NAME '[' (DIRECTIVE | INTEGER | '*') ']' ;
 
-array : NAME '[' (directive | integer | WILDCARD) ']' ;
+// Functions
+execute : NAME '(' ')' | NAME '(' PARAM (',' PARAM)* ')' ;
 
-function : NAME '(' ')' | NAME '(' param (',' param)* ')' ;
-
-integer : '0' | NATURAL_NUMBER ;
-
-object : (NAME | WILDCARD) ('.' | <EOF>) ;
-
-param : (NAME | integer)+ | var | keypath;
-
-var : '%' NATURAL_NUMBER ;
+// Objects
+traverse : NAME ('.' | <EOF>) ;
