@@ -21,6 +21,13 @@ var gulp = require( 'gulp' ),
     mocha = require( 'gulp-mocha' );
 
 gulp.task( 'test', function( done ){
+    gulp.src( [ 'test/**/*.js' ] )
+        .pipe( debug() )
+        .pipe( mocha() )
+        .on( 'end', done );
+} );
+
+gulp.task( 'test-babel', function( done ){
     require( 'babel/register' )( {
         ignore: false
     } );
