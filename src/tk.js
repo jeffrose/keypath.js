@@ -40,12 +40,19 @@
 				match = match && str.substr(pos+1) === parts[1];
 			}
 			return match;
-		}
+		};
 
 		var isArray = function(object) {
 		  return object != null && typeof object === "object" &&
 		    'splice' in object && 'join' in object;
-		}
+		};
+
+		var flatten = function(ary){
+			ary = isArray(ary) ? ary : [ary];
+			return ary.reduce(function(a, b) {
+			  return a.concat(b);
+			},[]);
+		};
 
 		/*
 		 *  Scan input string from left to right, one character at a time. If a special character
@@ -56,6 +63,7 @@
 		 */
 		var tokenize = function (str){
 			var tokens = [],
+				strLength = str.length,
 				word = '',
 				substr = '',
 				i,
@@ -65,7 +73,7 @@
 
 			// console.log('Parsing:', str);
 
-			for (i = 0; i < str.length; i++){
+			for (i = 0; i < strLength; i++){
 				// console.log(i, str[i]);
 				if (depth > 0){
 					// Scan for closer
@@ -76,7 +84,17 @@
 						substr += str[i];
 					}
 					else {
-						tokens.push({'t':tokenize(substr), 'exec': closer.exec});
+						if (i+1 < strLength && separators[str[i+1]] && separators[str[i+1]].exec === 'collection'){
+							collection.push({'t':tokenize(substr), 'exec': closer.exec});
+						}
+						else if (collection[0]){
+							collection.push({'t':tokenize(substr), 'exec': closer.exec});
+							tokens.push(collection);
+							collection = [];
+						}
+						else {
+							tokens.push({'t':tokenize(substr), 'exec': closer.exec});
+						}
 						substr = '';
 					}
 				}
@@ -106,8 +124,6 @@
 					if (collection[0] !== undefined){
 						// we are gathering a collection, so add last word to collection and then store
 						word && collection.push(word);
-						tokens.push(collection);
-						collection = [];
 					}
 					else {
 						// word is a plain property
@@ -134,7 +150,7 @@
 			}
 			// console.log('returning:', tokens);
 			return depth === 0 ? tokens : undefined; // depth != 0 means mismatched containers
-		}
+		};
 
 		var resolvePath = function (obj, path, newValue){
 			var root = root ? root : obj,
@@ -144,7 +160,8 @@
 				preprev,
 				i;
 
-			tk = typeof path === 'string' ? tokenize(path) : path;
+			tk = typeof path === 'string' ? tokenize(path) : path.t;
+			// console.log('tokenized:', JSON.stringify(tk));
 
 			return tk.reduce(function(prev, curr, idx){
 				var ret;
@@ -169,31 +186,22 @@
 					else { return undefined; }
 				}
 				else if (isArray(curr)){
+					// call getPath again with base value as evaluated value so far and
+					// each element of array as the path. Concat all the results together.
 					ret = [];
 					for (i = 0; curr[i] !== undefined; i++){
-						if(prev[curr[i]]){
-							// repeat "string" parsing for each element of collection
-							if (prev[curr[i]]) {
-								if (change && idx === (tk.length - 1)){ prev[curr[i]] = newValue; }
-								ret.push(prev[curr[i]]);
-							}
-							else if (curr.indexOf('*') >-1){
-								for (var prop in prev){
-									if (prev.hasOwnProperty(prop) && wildCardMatch(curr[i], prop)){
-										if (change && idx === (tk.length -1)){ prev[prop] = newValue; }
-										ret.push(prev[prop]);
-									}
-								}
-							}
-							else { return undefined; }
+						if (curr[i].t && curr[i].exec === 'property'){
+							ret = ret.concat(prev[getPath(root, curr[i])]);
+						} else {
+							ret = ret.concat(getPath(prev, curr[i]));
 						}
 					}
 				}
 				else if (curr.exec === 'property'){
 					if (change && idx === (tk.length -1)){
-						prev[getPath(root, curr.t)] = newValue;
+						prev[getPath(root, curr)] = newValue;
 					}
-					ret = prev[getPath(root, curr.t)];
+					ret = prev[getPath(root, curr)];
 				}
 				else if (curr.exec === 'call'){
 					// TODO: handle params for function
@@ -202,7 +210,7 @@
 				preprev = prev;
 				return ret;
 			}.bind(this), obj);
-		}
+		};
 
 
 		// var Tk = function(opts){

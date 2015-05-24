@@ -11,6 +11,8 @@ var chai        = require( 'chai' ),
 describe( 'tk', function(){
     // console.log('c', containers);
     var data = {
+        'propA': 'one',
+        'propB': 'two',
         'accounts': [
             { 'ary': [9,8,7,6] },
             {
@@ -21,9 +23,18 @@ describe( 'tk', function(){
                 },
                 'savX': 'X',
                 'savY': 'Y',
-                'savZ': 'Z'
+                'savZ': 'Z',
+                'savAa': 'aa',
+                'savAb': 'ab',
+                'savAc': 'ac',
+                'savBa': 'ba',
+                'savBb': 'bb',
+                'savBc': 'bc',
+                'test1': 'propA',
+                'test2': 'propB'
             },
-            function(){ return 1;}
+            function(){ return 1;},
+            { 'propAry': ['savBa', 'savBb'] }
         ]
     };
 
@@ -52,7 +63,7 @@ describe( 'tk', function(){
     it( 'should allow wildcard * for array indices, resolved as array of values', function(){
         var str = 'accounts.0.ary.*';
         expect(tk.getPath(data, str)).to.be.an.array;
-        expect(tk.getPath(data, str).length).to.equal(4);
+        expect(tk.getPath(data, str).length).to.equal(data.accounts[0].ary.length);
         expect(tk.getPath(data, str).join(',')).to.equal(data.accounts[0].ary.join(','));
     } );
     
@@ -67,14 +78,65 @@ describe( 'tk', function(){
         expect(tk.getPath(data, str)).to.equal(ary.sort()[0]);
     } );
     
-    it( 'should let wildcarded array be further evaluated', function(){
+    it( 'should allow interior wildcards', function(){
+        var str = 'accounts.1.sav*a';
+        var ary = [];
+        for(var prop in data.accounts[1]){
+            if (prop.substr(0,3) === 'sav' && prop.substr(4,1) === 'a'){
+                ary.push(data.accounts[1][prop]);
+            }
+        }
+        expect(tk.getPath(data, str)).to.be.an.array;
+        expect(tk.getPath(data, str).length).to.equal(ary.length);
+        expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+    } );
+    
+    it( 'should let grouping separator create array of results', function(){
         var str = 'accounts.0.ary.0,2';
         var ary = [];
         ary.push(data.accounts[0].ary[0]);
         ary.push(data.accounts[0].ary[2]);
         expect(tk.getPath(data, str)).to.be.an.array;
-        expect(tk.getPath(data, str).length).to.equal(2);
+        expect(tk.getPath(data, str).length).to.equal(ary.length);
         expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
     } );
     
+    it( 'should allow wildcards inside group', function(){
+        var str = 'accounts.1.savA*,savBa';
+        var ary = [];
+        for(var prop in data.accounts[1]){
+            if (prop.substr(0,4) === 'savA'){
+                ary.push(data.accounts[1][prop]);
+            }
+        }
+        ary.push(data.accounts[1].savBa);
+        expect(tk.getPath(data, str)).to.be.an.array;
+        expect(tk.getPath(data, str).length).to.equal(ary.length);
+        expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+    } );
+    
+    it( 'should allow container inside group', function(){
+        var str = 'accounts.1.[accounts.3.propAry.0],savA*';
+        var ary = [];
+        ary.push(data.accounts[1][ data.accounts[3].propAry[0] ]);
+        for(var prop in data.accounts[1]){
+            if (prop.substr(0,4) === 'savA'){
+                ary.push(data.accounts[1][prop]);
+            }
+        }
+        expect(tk.getPath(data, str)).to.be.an.array;
+        expect(tk.getPath(data, str).length).to.equal(ary.length);
+        expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+    } );
+    
+    it( 'should allow only comma group', function(){
+        var str = '[accounts.1.test1],[accounts.1.test2]';
+        var ary = [];
+        ary.push(data[data.accounts[1].test1]);
+        ary.push(data[data.accounts[1].test2]);
+        expect(tk.getPath(data, str)).to.be.an.array;
+        expect(tk.getPath(data, str).length).to.equal(ary.length);
+        expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+    } );
+
 } );
