@@ -232,6 +232,12 @@ describe( 'tk', function(){
             expect(data[data.accounts[1].test3]).to.not.equal(newVal);
         });
 
+        it( 'should return false if at least one entry in comma group failed to set', function(){
+            var str = 'accounts.1.savX,savY,savQ';
+            var newVal = 'new';
+            expect(tk.setPath(data, str, newVal)).to.be.false;
+        });
+
     });
 
 } );

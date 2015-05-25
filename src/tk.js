@@ -239,6 +239,9 @@
 
 		var setPath = function(obj, path, val){
 			var ref = resolvePath(obj, path, val);
+			if (isArray(ref)){
+				return ref.indexOf(false) === -1;
+			}
 			return typeof ref !== 'undefined';
 		};
 
