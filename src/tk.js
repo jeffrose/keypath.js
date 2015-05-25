@@ -164,21 +164,24 @@
 			// console.log('tokenized:', JSON.stringify(tk));
 
 			return tk.reduce(function(prev, curr, idx){
-				var ret;
+				var ret,
+					lastToken = (idx === (tk.length - 1)),
+					newValueHere = (change && lastToken);
+
 				// console.log('reduce:',prev,curr);
 				if (typeof curr === 'undefined' || typeof prev === 'undefined'){
 					ret = prev;
 				}
 				else if (typeof curr === 'string'){
 					if (prev[curr]) {
-						if (change && idx === (tk.length - 1)){ prev[curr] = newValue; }
+						if (newValueHere){ prev[curr] = newValue; }
 						ret = prev[curr];
 					}
 					else if (curr.indexOf('*') >-1){
 						ret = [];
 						for (var prop in prev){
 							if (prev.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
-								if (change && idx === (tk.length -1)){ prev[prop] = newValue; }
+								if (newValueHere){ prev[prop] = newValue; }
 								ret.push(prev[prop]);
 							}
 						}
@@ -190,15 +193,25 @@
 					// each element of array as the path. Concat all the results together.
 					ret = [];
 					for (i = 0; curr[i] !== undefined; i++){
-						if (curr[i].t && curr[i].exec === 'property'){
-							ret = ret.concat(prev[getPath(root, curr[i])]);
-						} else {
-							ret = ret.concat(getPath(prev, curr[i]));
+						if (newValueHere){
+							if (curr[i].t && curr[i].exec === 'property'){
+								prev[getPath(root, curr[i])] = newValue;
+								ret = ret.concat(prev[getPath(root, curr[i])]);
+							} else {
+								ret = ret.concat(setPath(prev, curr[i], newValue));
+							}
+						}
+						else {
+							if (curr[i].t && curr[i].exec === 'property'){
+								ret = ret.concat(prev[getPath(root, curr[i])]);
+							} else {
+								ret = ret.concat(getPath(prev, curr[i]));
+							}
 						}
 					}
 				}
 				else if (curr.exec === 'property'){
-					if (change && idx === (tk.length -1)){
+					if (newValueHere){
 						prev[getPath(root, curr)] = newValue;
 					}
 					ret = prev[getPath(root, curr)];
