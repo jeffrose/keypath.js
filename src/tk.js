@@ -1,200 +1,314 @@
 // Parsing, tokeninzing, etc
 
-var str1 = 'accounts.1.checking.id';
+(function (define) {
+	'use strict';
+	
+    define('tk', function (require, exports) {
 
-var str2 = 'accounts[accounts.2()]checking.id';
+		var separators = {
+		    '.': {
+		        'exec': 'property'
+		        },
+		    ',': {
+		        'exec': 'collection'
+		        }
+		};
 
-var str3 = 'accounts[accounts.2()]checking.fn()';
+		var containers = {
+		    '[': {
+		        'closer': ']',
+		        'exec': 'property'
+		        },
+		    '(': {
+		        'closer': ')',
+		        'exec': 'call'
+		        },
+		    '{': {
+		        'closer': '}',
+		        'exec': '??'
+		        }
+		};
 
-var str4 = 'accounts.0.ary.sort()';
-
-var str5 = 'accounts.0.ary.*';
-
-var str6 = 'accounts.1.sav*.sort().0';
-
-var data = {
-	'accounts': [
-		{ 'ary': [9,8,7,6] },
-		{
-			'checking': {
-				'balance': 123.00,
-				'id': '12345',
-				'fn': function(){ return 'Function return value'; }
-			},
-			'savX': 'X',
-			'savY': 'Y',
-			'savZ': 'Z'
-		},
-		function(){ return 1;}
-	]
-};
-
-var separator = '.';
-var containers = {
-	'[': {
-		'closer': ']',
-		'exec': 'property'
-		},
-	'(': {
-		'closer': ')',
-		'exec': 'call'
-		},
-	'{': {
-		'closer': '}',
-		'exec': '??'
-		}
-};
-
-function tokenize(str){
-	var tokens = [],
-		word = '',
-		substr = '',
-		i,
-		opener, closer,
-		depth = 0;
-
-	// console.log('Parsing:', str);
-
-	for (i = 0; i < str.length; i++){
-		// console.log(i, str[i]);
-		if (depth > 0){
-			// Scan for closer
-			str[i] === opener && depth++;
-			str[i] === closer.closer && depth--;
-
-			if (depth > 0){
-				substr += str[i];
+		var wildCardMatch = function(template, str){
+			var pos = template.indexOf('*'),
+				parts = template.split('*', 2),
+				match = true;
+			if (parts[0]){
+				match = match && str.substr(0, parts[0].length) === parts[0];
 			}
-			else {
-				tokens.push({'t':tokenize(substr), 'exec': closer.exec});
-				substr = '';
+			if (parts[1]){
+				match = match && str.substr(pos+1) === parts[1];
 			}
-		}
-		else if (str[i] === separator){
-			// word is a plain property
-			word && tokens.push(word);
-			word = '';
-		}
-		else if (closer = containers[str[i]]){
-			// found opener, initiate scan for closer
-			word && tokens.push(word);
-			word = '';
-			opener = str[i];
-			depth++;
-		}
-		else {
-			// still accumulating property name
-			word += str[i];
-		}
-	}
-	// add trailing word to tokens, if present
-	word && tokens.push(word);
-	// console.log('returning:', tokens);
-	return depth === 0 ? tokens : undefined; // depth != 0 means mismatched containers
-}
+			return match;
+		};
 
-function wildcardMatch(template, str){
-	var pos = template.indexOf('*'),
-		parts = template.split('*', 2),
-		match = true;
-	if (parts[0]){
-		match = match && str.substr(0, parts[0].length) === parts[0];
-	}
-	if (parts[1]){
-		match = match && str.substr(pos+1) === parts[1];
-	}
-	return match;
-}
+		var isArray = function(object) {
+		  return object != null && typeof object === "object" &&
+		    'splice' in object && 'join' in object;
+		};
 
-function resolvePath(obj, path, newValue){
-	var root = root ? root : obj,
-		change = newValue !== undefined,
-		val,
-		tk,
-		preprev;
+		var isObject = function(val) {
+			if (val === null) { return false;}
+			return ( (typeof val === 'function') || (typeof val === 'object') );
+		};
 
-	tk = typeof path === 'string' ? tokenize(path) : path;
+		var flatten = function(ary){
+			ary = isArray(ary) ? ary : [ary];
+			return ary.reduce(function(a, b) {
+			  return a.concat(b);
+			},[]);
+		};
 
-	// TODO: handle '*' in path
-	return tk.reduce(function(prev, curr, idx){
-		var ret;
-		// console.log('reduce:',prev,curr);
-		if (typeof curr === 'undefined' || typeof prev === 'undefined'){
-			ret = prev;
-		}
-		else if (typeof curr === 'string'){
-			if (prev[curr]) {
-				if (change && idx === (tk.length -1)){ prev[curr] = newValue; }
-				ret = prev[curr];
-			}
-			else if (curr.indexOf('*') >-1){
-				ret = [];
-				for (var prop in prev){
-					if (prev.hasOwnProperty(prop) && wildcardMatch(curr, prop)){
-						if (change && idx === (tk.length -1)){ prev[prop] = newValue; }
-						ret.push(prev[prop]);
+		/*
+		 *  Scan input string from left to right, one character at a time. If a special character
+		 *  is found (one of "separators" or "containers"), either store the accumulated word as
+		 *  a token or else begin watching input for end of token (finding a closing character for
+		 *  a container or the end of a collection). If a container is found, call tokenize
+		 *  recursively on string within container.
+		 */
+		var tokenize = function (str){
+			var tokens = [],
+				strLength = str.length,
+				word = '',
+				substr = '',
+				i,
+				opener, closer, separator,
+				collection = [],
+				depth = 0;
+
+			// console.log('Parsing:', str);
+
+			for (i = 0; i < strLength; i++){
+				// console.log(i, str[i]);
+				if (depth > 0){
+					// Scan for closer
+					str[i] === opener && depth++;
+					str[i] === closer.closer && depth--;
+
+					if (depth > 0){
+						substr += str[i];
+					}
+					// TODO: handle comma-separated elements when depth === 1, process as function arguments
+					else {
+						if (i+1 < strLength && separators[str[i+1]] && separators[str[i+1]].exec === 'collection'){
+							collection.push({'t':tokenize(substr), 'exec': closer.exec});
+						}
+						else if (collection[0]){
+							collection.push({'t':tokenize(substr), 'exec': closer.exec});
+							tokens.push(collection);
+							collection = [];
+						}
+						else {
+							tokens.push({'t':tokenize(substr), 'exec': closer.exec});
+						}
+						substr = '';
 					}
 				}
+				else if (str[i] in separators){
+					separator = separators[str[i]];
+					if (separator.exec === 'property'){
+						// word is a plain property or end of collection
+						if (collection[0] !== undefined){
+							// we are gathering a collection, so add last word to collection and then store
+							word && collection.push(word);
+							tokens.push(collection);
+							collection = [];
+						}
+						else {
+							// word is a plain property
+							word && tokens.push(word);
+						}
+					}
+					else if (separator.exec === 'collection'){
+						// word is a collection
+						word && collection.push(word);
+					}
+					word = '';
+				}
+				else if (closer = containers[str[i]]){
+					// found opener, initiate scan for closer
+					if (collection[0] !== undefined){
+						// we are gathering a collection, so add last word to collection and then store
+						word && collection.push(word);
+					}
+					else {
+						// word is a plain property
+						word && tokens.push(word);
+					}
+					word = '';
+					opener = str[i];
+					depth++;
+				}
+				else {
+					// still accumulating property name
+					word += str[i];
+				}
 			}
-			else { return undefined; }
-		}
-		else if (curr.exec === 'property'){
-			if (change && idx === (tk.length -1)){
-				prev[getPath(root, curr.t)] = newValue;
+			// add trailing word to tokens, if present
+			if (collection[0] !== undefined){
+				// we are gathering a collection, so add last word to collection and then store
+				word && collection.push(word);
+				tokens.push(collection);
 			}
-			ret = prev[getPath(root, curr.t)];
-		}
-		else if (curr.exec === 'call'){
-			// TODO: handle params for function
-			ret = prev.call(preprev);
-		}
-		preprev = prev;
-		return ret;
-	}.bind(this), obj);
-}
+			else {
+				// word is a plain property
+				word && tokens.push(word);
+			}
+			// console.log('returning:', tokens);
+			return depth === 0 ? tokens : undefined; // depth != 0 means mismatched containers
+		};
 
-function getPath(obj, path){
-	return resolvePath(obj, path);
-}
+		var resolvePath = function (obj, path, newValue){
+			var root = root ? root : obj,
+				change = newValue !== undefined,
+				val,
+				tk,
+				preprev,
+				i;
 
-function setPath(obj, path, val){
-	var ref = resolvePath(obj, path, val);
-	return typeof ref !== 'undefined';
-}
+			tk = typeof path === 'string' ? tokenize(path) : path.t;
+			// console.log('tokenized:', JSON.stringify(tk));
 
-console.log('\n-------------------------------------------------------\n');
-console.log('str1:', str1);
-console.log('Tokens:',JSON.stringify(tokenize(str1)));
-console.log('Get returned:', getPath(data, str1));
+			return tk.reduce(function(prev, curr, idx){
+				var ret,
+					lastToken = (idx === (tk.length - 1)),
+					newValueHere = (change && lastToken);
 
-console.log('\n-------------------------------------------------------\n');
-console.log('str2:', str2);
-console.log('Tokens:',JSON.stringify(tokenize(str2)));
-console.log('Get returned:', getPath(data, str2));
+				// console.log('reduce:',prev,curr);
+				if (typeof curr === 'undefined' || typeof prev === 'undefined'){
+					ret = prev;
+				}
+				else if (typeof curr === 'string'){
+					if (prev[curr]) {
+						if (newValueHere){ prev[curr] = newValue; }
+						ret = prev[curr];
+					}
+					else if (curr.indexOf('*') >-1){
+						ret = [];
+						for (var prop in prev){
+							if (prev.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
+								if (newValueHere){ prev[prop] = newValue; }
+								ret.push(prev[prop]);
+							}
+						}
+					}
+					else { return undefined; }
+				}
+				else if (isArray(curr)){
+					// call getPath again with base value as evaluated value so far and
+					// each element of array as the path. Concat all the results together.
+					ret = [];
+					for (i = 0; curr[i] !== undefined; i++){
+						if (newValueHere){
+							if (curr[i].t && curr[i].exec === 'property'){
+								prev[getPath(root, curr[i])] = newValue;
+								ret = ret.concat(prev[getPath(root, curr[i])]);
+							} else {
+								ret = ret.concat(setPath(prev, curr[i], newValue));
+							}
+						}
+						else {
+							if (curr[i].t && curr[i].exec === 'property'){
+								ret = ret.concat(prev[getPath(root, curr[i])]);
+							} else {
+								ret = ret.concat(getPath(prev, curr[i]));
+							}
+						}
+					}
+				}
+				else if (curr.exec === 'property'){
+					if (newValueHere){
+						prev[getPath(root, curr)] = newValue;
+					}
+					ret = prev[getPath(root, curr)];
+				}
+				else if (curr.exec === 'call'){
+					// TODO: handle params for function
+					ret = prev.call(preprev);
+				}
+				preprev = prev;
+				return ret;
+			}.bind(this), obj);
+		};
 
-console.log('\n-------------------------------------------------------\n');
-console.log('str3:', str3);
-console.log('Tokens:',JSON.stringify(tokenize(str3)));
-console.log('Get returned:', getPath(data, str3));
+		var scanForValue = function(obj, val, savePath, path){
+			var i, len, prop, more;
 
-console.log('\n-------------------------------------------------------\n');
-console.log('str4:', str4);
-console.log('Tokens:',JSON.stringify(tokenize(str4)));
-console.log('Get returned:', getPath(data, str4));
+			path = path ? path : '';
 
-console.log('\n-------------------------------------------------------\n');
-console.log('str5:', str5);
-console.log('Tokens:',JSON.stringify(tokenize(str5)));
-console.log('Get returned:', getPath(data, str5));
+			if (obj === val){
+				return savePath(path); // true -> keep looking; false -> stop now
+			}
+			else if (isArray(obj)){
+				len = obj.length;
+				for(i = 0; i < len; i++){
+					more = scanForValue(obj[i], val, savePath, path + '.' + i);
+					if (!more){ return; }
+				}
+				return true; // keep looking
+			}
+			else if (isObject(obj)) {
+				for (prop in obj){
+					if (obj.hasOwnProperty(prop)){
+						more = scanForValue(obj[prop], val, savePath, path + '.' + prop);
+						if (!more){ return; }
+					}
+				}
+				return true; // keep looking
+			}
+			// Leaf node (string, number, character, boolean, etc.), but didn't match
+			return true; // keep looking
+		};
 
-console.log('\n-------------------------------------------------------\n');
-console.log('str6:', str6);
-console.log('Tokens:',JSON.stringify(tokenize(str6)));
-console.log('Get returned:', getPath(data, str6));
+		// var Tk = function(opts){
+		// 	opts = opts || {};
+		// 	separators = opts.separators || _separators;
+		// 	containers = opts.containers || _containers;
+		// }
 
-console.log('\n-------------------------------------------------------\n');
-console.log('str2:', str2);
-console.log('Tokens:',JSON.stringify(tokenize(str2)));
-console.log('Old val:', getPath(data, str2));
-console.log('Able to set new value?', setPath(data, str2, 'new id'));
-console.log('New val:', getPath(data, str2));
+
+		var getPath = function (obj, path){
+			return resolvePath(obj, path);
+		};
+
+		var setPath = function(obj, path, val){
+			var ref = resolvePath(obj, path, val);
+			if (isArray(ref)){
+				return ref.indexOf(false) === -1;
+			}
+			return typeof ref !== 'undefined';
+		};
+
+		var getPathFor = function(obj, val, oneOrMany){
+			var retVal = [];
+			var savePath = function(path){
+				retVal.push(path.substr(1));
+				if(!oneOrMany || oneOrMany === 'one'){
+					retVal = retVal[0];
+					return false;
+				}
+				return true;
+			}
+			scanForValue(obj, val, savePath);
+			return retVal[0] ? retVal : undefined;
+		};
+
+ 
+        //Attach properties to exports.
+        exports.getPath = getPath;
+        exports.setPath = setPath;
+        exports.getPathFor = getPathFor;
+    });
+}(typeof define === 'function' && define.amd ? define : function (id, factory) {
+    if (typeof exports !== 'undefined') {
+        //commonjs
+        factory(require, exports);
+    } else {
+        //Create a global function. Only works if
+        //the code does not have dependencies, or
+        //dependencies fit the call pattern below.
+        factory(function(value) {
+            return window[value];
+        }, (window[id] = {}));
+    }
+}));
