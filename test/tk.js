@@ -22,7 +22,8 @@ describe( 'tk', function(){
                     'checking': {
                         'balance': 123.00,
                         'id': '12345',
-                        'fn': function(){ return 'Function return value'; }
+                        'fn': function(){ return 'Function return value'; },
+                        'repeat': 'propA'
                     },
                     'savX': 'X',
                     'savY': 'Y',
@@ -48,6 +49,16 @@ describe( 'tk', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
             expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+        } );
+
+        it( 'should return undefined for paths that do not exist', function(){
+            var str = 'xaccounts.1.checking.id';
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.9.checking.id';
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.1.checking.x';
+            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.getPath(undefined, str)).to.be.undefined;
         } );
 
         it( 'should be able to evaluate [] container and execute function', function(){
@@ -236,6 +247,39 @@ describe( 'tk', function(){
             var str = 'accounts.1.savX,savY,savQ';
             var newVal = 'new';
             expect(tk.setPath(data, str, newVal)).to.be.false;
+        });
+
+    });
+
+    describe( 'getPathFor', function(){
+        it( 'should return a valid path to the value if present in the root object', function(){
+            var val = data.accounts[1].test2;
+            expect(tk.getPathFor(data, val)).to.equal('accounts.1.test2');
+            expect(tk.getPath(data, tk.getPathFor(data, val))).to.equal(val);
+        });
+
+        it( 'should be identity: getPath(getPathFor) and getPathFor(getPath)', function(){
+            var val = data.accounts[1].test2;
+            var str = 'accounts.1.test2';
+            expect(tk.getPath(data, tk.getPathFor(data, val))).to.equal(val);
+            expect(tk.getPathFor(data, tk.getPath(data, str))).to.equal(str);
+        });
+
+        it( 'should return undefined if no path found', function(){
+            var val = 12345;
+            expect(tk.getPathFor(data, val)).to.be.undefined;
+        });
+
+        it( 'should return one valid path if "one" option is set or if not specified', function(){
+            var val = data.accounts[1].test2;
+            expect(tk.getPathFor(data, val)).to.be.a.string;
+            expect(tk.getPathFor(data, val, 'one')).to.be.a.string;
+        });
+
+        it( 'should return all valid path if "many" option is set', function(){
+            var val = data.accounts[1].test1;
+            expect(tk.getPathFor(data, val, 'many')).to.be.an.array;
+            expect(tk.getPathFor(data, val, 'many').sort().join(',')).to.equal('accounts.1.checking.repeat,accounts.1.test1');
         });
 
     });

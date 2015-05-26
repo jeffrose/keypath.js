@@ -47,6 +47,11 @@
 		    'splice' in object && 'join' in object;
 		};
 
+		var isObject = function(val) {
+			if (val === null) { return false;}
+			return ( (typeof val === 'function') || (typeof val === 'object') );
+		};
+
 		var flatten = function(ary){
 			ary = isArray(ary) ? ary : [ary];
 			return ary.reduce(function(a, b) {
@@ -83,6 +88,7 @@
 					if (depth > 0){
 						substr += str[i];
 					}
+					// TODO: handle comma-separated elements when depth === 1, process as function arguments
 					else {
 						if (i+1 < strLength && separators[str[i+1]] && separators[str[i+1]].exec === 'collection'){
 							collection.push({'t':tokenize(substr), 'exec': closer.exec});
@@ -225,6 +231,34 @@
 			}.bind(this), obj);
 		};
 
+		var scanForValue = function(obj, val, savePath, path){
+			var i, len, prop, more;
+
+			path = path ? path : '';
+
+			if (obj === val){
+				return savePath(path); // true -> keep looking; false -> stop now
+			}
+			else if (isArray(obj)){
+				len = obj.length;
+				for(i = 0; i < len; i++){
+					more = scanForValue(obj[i], val, savePath, path + '.' + i);
+					if (!more){ return; }
+				}
+				return true; // keep looking
+			}
+			else if (isObject(obj)) {
+				for (prop in obj){
+					if (obj.hasOwnProperty(prop)){
+						more = scanForValue(obj[prop], val, savePath, path + '.' + prop);
+						if (!more){ return; }
+					}
+				}
+				return true; // keep looking
+			}
+			// Leaf node (string, number, character, boolean, etc.), but didn't match
+			return true; // keep looking
+		};
 
 		// var Tk = function(opts){
 		// 	opts = opts || {};
@@ -245,10 +279,25 @@
 			return typeof ref !== 'undefined';
 		};
 
+		var getPathFor = function(obj, val, oneOrMany){
+			var retVal = [];
+			var savePath = function(path){
+				retVal.push(path.substr(1));
+				if(!oneOrMany || oneOrMany === 'one'){
+					retVal = retVal[0];
+					return false;
+				}
+				return true;
+			}
+			scanForValue(obj, val, savePath);
+			return retVal[0] ? retVal : undefined;
+		};
+
  
         //Attach properties to exports.
         exports.getPath = getPath;
         exports.setPath = setPath;
+        exports.getPathFor = getPathFor;
     });
 }(typeof define === 'function' && define.amd ? define : function (id, factory) {
     if (typeof exports !== 'undefined') {
