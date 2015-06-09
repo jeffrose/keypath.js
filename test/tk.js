@@ -282,6 +282,172 @@ describe( 'tk', function(){
             expect(tk.getPathFor(data, val, 'many').sort().join(',')).to.equal('accounts.1.checking.repeat,accounts.1.test1');
         });
 
+
+    });
+
+    describe('clock', function(){
+        var complexObj, deepObj, testResult;
+
+        var repeat = 1;
+
+        var getTime = function getTime(startTime){
+            if (global.process && global.process.hrtime){
+                if (startTime){
+                    var diff = process.hrtime(startTime);
+                    return diff[0] ? (diff[0] * 1000000000) + diff[1] : diff[1];
+                }
+                return process.hrtime();
+            }
+            startTime = startTime || 0;
+            if (global.Performance !== undefined){
+                return (Date.now() * 1000) - startTime;
+            }
+            return (Date.now() * 1000) - startTime;
+        };
+
+        var getMeanTime = function getMeanTime(t, num){
+            if(t.shift && t.pop){
+                return t[0] ? Math.floor(((t[0] * 1000000000) + t[1]) / num) : Math.floor(t[1] / num);
+            }
+            return Math.floor(t / num);
+        };
+
+        var getDisplayTime = function getDisplayTime(t){
+            var tString = '';
+            // if(t.shift && t.pop){
+            //     // convert process.hrtime array into nanoseconds
+            //     t = t[0] ? (t[0] * 1000000000) + t[1] : t[1];
+            // }
+            // else {
+            //     // normalize other timing methods to nanoseconds
+            //     t = t * 1000;
+            // }
+            if (t / 1000000000 > 1) {
+                return ((Math.round(t / 1000000))/1000) + 's';
+            }
+            if (t / 1000000 > 1) {
+                return ((Math.round(t / 1000))/1000) + 'ms';
+            }
+            if (t / 1000 > 1) {
+                return (t/1000) + 'µs';
+            }
+            return t + 'ns';
+        };
+
+        var timeFunction = function timeFunction(){
+            var args = Array.prototype.slice.call(arguments);
+            var num = args.shift();
+            var cb = args.shift();
+            var startTime, endTime, totalTime = 0;
+
+            // Call once to create in memory - first run is always slow
+            // cb.apply(this, args);
+
+            for(var i = 0; i < num; i++){
+                args.push(i);
+                startTime = getTime();
+                cb.apply(this, args);
+                totalTime = getTime(startTime);
+            }
+            return totalTime;
+            // var avg = totalTime / num;
+            // return Math.floor(avg);
+        };
+
+        var timeFunctionString = function timeFunctionString(){
+            var args = Array.prototype.slice.call(arguments);
+            var num = args[0];
+            return getDisplayTime(getMeanTime(timeFunction.apply(this, arguments), num));
+        };
+
+        var getRandomInt = function getRandomInt(min, max){
+            return Math.floor(Math.random() * (max - min)) + min;
+        };
+
+        var compare = function compare(num, a, b){
+            if (!(a.shift && b.shift && (num > 0))){
+                console.error('Usage: compare([fn, arg1..],[fn, arg1..],executionCount)');
+                return;
+            }
+            var aTime, bTime;
+            aTime = timeFunction([num].concat(a));
+            bTime = timeFunction([num].concat(b));
+            return [aTime, bTime, aTime - bTime];
+        };
+
+        beforeEach(function () {
+            testResult = '';
+
+            complexObj = {
+                'propA': 'one',
+                'propB': 'two',
+                'propC': 'three',
+                'accounts': [
+                    { 'ary': [9,8,7,6] },
+                    {
+                        'checking': {
+                            'balance': 123.00,
+                            'id': '12345',
+                            'fn': function(){ return 'Function return value'; },
+                            'repeat': 'propA'
+                        },
+                        'savX': 'X',
+                        'savY': 'Y',
+                        'savZ': 'Z',
+                        'savAa': 'aa',
+                        'savAb': 'ab',
+                        'savAc': 'ac',
+                        'savBa': 'ba',
+                        'savBb': 'bb',
+                        'savBc': 'bc',
+                        'test1': 'propA',
+                        'test2': 'propB',
+                        'test3': 'propC'
+                    },
+                    function(){ return 1;},
+                    { 'propAry': ['savBa', 'savBb'] }
+                ]
+            };
+            deepObj = {};
+            var tmp = deepObj;
+            for (var i = 0; i < 20; i++){
+                tmp.sub = {'a':'one'};
+                tmp = tmp.sub;
+            }
+        });
+
+        afterEach(function(){
+            testResult && console.log(testResult);
+        });
+
+        it('should run a perf test', function () {
+            var str = 'accounts.1.checking.id';
+            var result = timeFunctionString(repeat, tk.getPath, complexObj, str);
+            expect(result).to.be.a.string;
+            expect(result.length).not.to.equal(0);
+        });
+
+        it('should find first level property', function () {
+            var str = 'sub';
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, deepObj, str));
+        });
+
+        it('should find 10th level property', function () {
+            var str = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, deepObj, str));
+        });
+
+        it('should find 20th level property', function () {
+            var str = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, deepObj, str));
+        });
+
+        it('should find complex value', function () {
+            var str = 'accounts.1.[accounts.3.propAry.0],savA*';
+            // var str = 'accounts[accounts.2()]checking.fn()';
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, complexObj, str));
+        });
+
     });
 
 } );
