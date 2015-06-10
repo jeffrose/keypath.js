@@ -314,6 +314,7 @@ describe( 'tk', function(){
 
         var getDisplayTime = function getDisplayTime(t){
             var tString = '';
+
             // if(t.shift && t.pop){
             //     // convert process.hrtime array into nanoseconds
             //     t = t[0] ? (t[0] * 1000000000) + t[1] : t[1];
@@ -322,13 +323,13 @@ describe( 'tk', function(){
             //     // normalize other timing methods to nanoseconds
             //     t = t * 1000;
             // }
-            if (t / 1000000000 > 1) {
+            if (Math.abs(t) / 1000000000 > 1) {
                 return ((Math.round(t / 1000000))/1000) + 's';
             }
-            if (t / 1000000 > 1) {
+            if (Math.abs(t) / 1000000 > 1) {
                 return ((Math.round(t / 1000))/1000) + 'ms';
             }
-            if (t / 1000 > 1) {
+            if (Math.abs(t) / 1000 > 1) {
                 return (t/1000) + 'µs';
             }
             return t + 'ns';
@@ -366,14 +367,21 @@ describe( 'tk', function(){
 
         var compare = function compare(num, a, b){
             if (!(a.shift && b.shift && (num > 0))){
-                console.error('Usage: compare([fn, arg1..],[fn, arg1..],executionCount)');
+                console.error('Usage: compare(executionCount,[fn, arg1..],[fn, arg1..]');
                 return;
             }
             var aTime, bTime;
-            aTime = timeFunction([num].concat(a));
-            bTime = timeFunction([num].concat(b));
+            aTime = getMeanTime(timeFunction.apply(this, [num].concat(a)), num);
+            bTime = getMeanTime(timeFunction.apply(this, [num].concat(b)), num);
             return [aTime, bTime, aTime - bTime];
         };
+
+        var compareString = function compareString(num, a, b){
+            var args = Array.prototype.slice.call(arguments);
+            var num = args[0];
+            var compareResult = compare.apply(this, arguments);
+            return compareResult.map(getDisplayTime);
+        }
 
         beforeEach(function () {
             testResult = '';
@@ -427,6 +435,11 @@ describe( 'tk', function(){
             expect(result.length).not.to.equal(0);
         });
 
+        it('should give a baseline performance of basic object get', function () {
+            var str = 'sub';
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, function(obj, prop){ return obj[prop]; }, deepObj, str));
+        });
+
         it('should find first level property', function () {
             var str = 'sub';
             testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, deepObj, str));
@@ -446,6 +459,14 @@ describe( 'tk', function(){
             var str = 'accounts.1.[accounts.3.propAry.0],savA*';
             // var str = 'accounts[accounts.2()]checking.fn()';
             testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, complexObj, str));
+        });
+
+        it('should compare first level property with 10th level property', function () {
+            var strA = 'sub';
+            var strB = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
+            var result = compareString(repeat, [ tk.getPath, deepObj, strA ], [ tk.getPath, deepObj, strB ]);
+            testResult = ('A ("' + strA + '"): ' + result[0] + '\nB ("' + strB + '"): ' + result[1] + '\n' +
+                'A - B: ' + result[2]);
         });
 
     });
