@@ -53,6 +53,7 @@ describe( 'tk', function(){
 
         it( 'should return undefined for paths that do not exist', function(){
             var str = 'xaccounts.1.checking.id';
+            console.log(JSON.stringify(tk.getPath(data, str)));
             expect(tk.getPath(data, str)).to.be.undefined;
             str = 'accounts.9.checking.id';
             expect(tk.getPath(data, str)).to.be.undefined;
@@ -62,13 +63,13 @@ describe( 'tk', function(){
         } );
 
         it( 'should be able to evaluate [] container and execute function', function(){
-            var str = 'accounts[accounts.2()]checking.id';
+            var str = 'accounts[2()]checking.id';
             var tmp = data.accounts[2]();
             expect(tk.getPath(data, str)).to.equal(data.accounts[tmp].checking.id);
         } );
 
         it( 'should execute function at tail of path', function(){
-            var str = 'accounts[accounts.2()]checking.fn()';
+            var str = 'accounts[2()]checking.fn()';
             var tmp = data.accounts[2]();
             expect(tk.getPath(data, str)).to.equal(data.accounts[tmp].checking.fn());
         } );
@@ -108,6 +109,22 @@ describe( 'tk', function(){
             expect(tk.getPath(data, str).length).to.equal(ary.length);
             expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
         } );
+
+        it('should allow parent prefix to shift context within object', function () {
+            var str = 'accounts.0.<1.checking.id';
+            expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+        });
+        
+        it('should allow multiple prefixes in one word', function () {
+            var str = 'accounts.3.propAry.<<1.checking.id';
+            expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+        });
+        
+        it('should allow container to leave outer context alone while processing internal prefix paths', function () {
+            var str = 'accounts.1.[<3.propAry.0]';
+            var val = data.accounts[1][ data.accounts[3].propAry[0] ];
+            expect(tk.getPath(data, str)).to.equal(val);
+        });
         
         it( 'should let grouping separator create array of results', function(){
             var str = 'accounts.0.ary.0,2';
@@ -134,7 +151,7 @@ describe( 'tk', function(){
         } );
         
         it( 'should allow container inside group', function(){
-            var str = 'accounts.1.[accounts.3.propAry.0],savA*';
+            var str = 'accounts.1.[<3.propAry.0],savA*';
             var ary = [];
             ary.push(data.accounts[1][ data.accounts[3].propAry[0] ]);
             for(var prop in data.accounts[1]){
@@ -456,7 +473,7 @@ describe( 'tk', function(){
         });
 
         it('should find complex value', function () {
-            var str = 'accounts.1.[accounts.3.propAry.0],savA*';
+            var str = 'accounts.1.[<3.propAry.0],savA*';
             // var str = 'accounts[accounts.2()]checking.fn()';
             testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, complexObj, str));
         });

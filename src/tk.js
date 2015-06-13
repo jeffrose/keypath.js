@@ -5,13 +5,19 @@
 	
     define('tk', function (require, exports) {
 
+    	var prefixes = {
+    		'<': {
+    			'exec': 'parent'
+    		}
+    	};
+
 		var separators = {
 		    '.': {
 		        'exec': 'property'
 		        },
 		    ',': {
 		        'exec': 'collection'
-		        }
+			    }
 		};
 
 		var containers = {
@@ -79,7 +85,6 @@
 			// console.log('Parsing:', str);
 
 			for (i = 0; i < strLength; i++){
-				// console.log(i, str[i]);
 				if (depth > 0){
 					// Scan for closer
 					str[i] === opener && depth++;
@@ -154,41 +159,71 @@
 				// word is a plain property
 				word && tokens.push(word);
 			}
-			// console.log('returning:', tokens);
 			return depth === 0 ? tokens : undefined; // depth != 0 means mismatched containers
 		};
 
-		var resolvePath = function (obj, path, newValue){
+		var getContext = function getContext(context, valueStack, word){
+			if (!prefixes[word[0]]){
+				return context;
+			}
+			var counter = 0,
+				prefix,
+				newContext;
+			while (prefix = prefixes[word[counter]]){
+				if (prefix.exec === 'parent'){
+					newContext = valueStack[counter + 1];
+				}
+				counter++;
+			}
+			return newContext;
+		};
+
+		var cleanWord = function cleanWord(word){
+			if(!prefixes[word[0]]){
+				return word;
+			}
+			var len = word.length;
+			for (var i = 1; i < len; i++){
+				if (!prefixes[word[i]]){
+					return word.substr(i);
+				}
+			}
+			return '';
+		}
+
+		var resolvePath = function (obj, path, newValue, valueStack){
 			var root = root ? root : obj,
 				change = newValue !== undefined,
 				val,
 				tk,
-				preprev,
-				i;
+				i,
+				valueStack = valueStack || [];
 
 			tk = typeof path === 'string' ? tokenize(path) : path.t;
-			// console.log('tokenized:', JSON.stringify(tk));
 
 			return tk.reduce(function(prev, curr, idx){
-				var ret,
+				var context = valueStack.length ? valueStack[0] : root,
+					ret,
 					lastToken = (idx === (tk.length - 1)),
 					newValueHere = (change && lastToken);
-
-				// console.log('reduce:',prev,curr);
 				if (typeof curr === 'undefined' || typeof prev === 'undefined'){
-					ret = prev;
+					ret = undefined;
 				}
 				else if (typeof curr === 'string'){
-					if (prev[curr]) {
-						if (newValueHere){ prev[curr] = newValue; }
-						ret = prev[curr];
+					context = getContext(context, valueStack, curr);
+					if (typeof context === 'undefined') { return undefined; }
+					curr = cleanWord(curr);
+
+					if (context[curr]) {
+						if (newValueHere){ context[curr] = newValue; }
+						ret = context[curr];
 					}
 					else if (curr.indexOf('*') >-1){
 						ret = [];
-						for (var prop in prev){
-							if (prev.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
-								if (newValueHere){ prev[prop] = newValue; }
-								ret.push(prev[prop]);
+						for (var prop in context){
+							if (context.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
+								if (newValueHere){ context[prop] = newValue; }
+								ret.push(context[prop]);
 							}
 						}
 					}
@@ -201,32 +236,32 @@
 					for (i = 0; curr[i] !== undefined; i++){
 						if (newValueHere){
 							if (curr[i].t && curr[i].exec === 'property'){
-								prev[getPath(root, curr[i])] = newValue;
-								ret = ret.concat(prev[getPath(root, curr[i])]);
+								context[getPath(context, curr[i], valueStack.concat())] = newValue;
+								ret = ret.concat(context[getPath(context, curr[i], valueStack.concat())]);
 							} else {
-								ret = ret.concat(setPath(prev, curr[i], newValue));
+								ret = ret.concat(setPath(context, curr[i], newValue, valueStack.concat()));
 							}
 						}
 						else {
 							if (curr[i].t && curr[i].exec === 'property'){
-								ret = ret.concat(prev[getPath(root, curr[i])]);
+								ret = ret.concat(context[getPath(context, curr[i], valueStack.concat())]);
 							} else {
-								ret = ret.concat(getPath(prev, curr[i]));
+								ret = ret.concat(getPath(context, curr[i], valueStack.concat()));
 							}
 						}
 					}
 				}
 				else if (curr.exec === 'property'){
 					if (newValueHere){
-						prev[getPath(root, curr)] = newValue;
+						context[getPath(context, curr, valueStack.concat())] = newValue;
 					}
-					ret = prev[getPath(root, curr)];
+					ret = context[getPath(context, curr, valueStack.concat())];
 				}
 				else if (curr.exec === 'call'){
 					// TODO: handle params for function
-					ret = prev.call(preprev);
+					ret = context.call(valueStack[1]);
 				}
-				preprev = prev;
+				valueStack.unshift(ret);
 				return ret;
 			}.bind(this), obj);
 		};
@@ -267,12 +302,12 @@
 		// }
 
 
-		var getPath = function (obj, path){
-			return resolvePath(obj, path);
+		var getPath = function (obj, path, valueStack){
+			return resolvePath(obj, path, undefined, valueStack);
 		};
 
-		var setPath = function(obj, path, val){
-			var ref = resolvePath(obj, path, val);
+		var setPath = function(obj, path, val, valueStack){
+			var ref = resolvePath(obj, path, val, valueStack);
 			if (isArray(ref)){
 				return ref.indexOf(false) === -1;
 			}
