@@ -74,6 +74,7 @@
 		 */
 		var tokenize = function (str){
 			var tokens = [],
+				mods = {},
 				strLength = str.length,
 				word = '',
 				substr = '',
@@ -109,8 +110,17 @@
 						substr = '';
 					}
 				}
+				else if (str[i] in prefixes){
+					mods.has = true;
+					if (mods[prefixes[str[i]].exec]) { mods[prefixes[str[i]].exec]++; }
+					else { mods[prefixes[str[i]].exec] = 1; }
+				}
 				else if (str[i] in separators){
 					separator = separators[str[i]];
+					if (word && mods.has){
+						word = {'w': word, 'mods': mods};
+						mods = {};
+					}
 					if (separator.exec === 'property'){
 						// word is a plain property or end of collection
 						if (collection[0] !== undefined){
@@ -132,6 +142,10 @@
 				}
 				else if (closer = containers[str[i]]){
 					// found opener, initiate scan for closer
+					if (word && mods.has){
+						word = {'w': word, 'mods': mods};
+						mods = {};
+					}
 					if (collection[0] !== undefined){
 						// we are gathering a collection, so add last word to collection and then store
 						word && collection.push(word);
@@ -150,6 +164,10 @@
 				}
 			}
 			// add trailing word to tokens, if present
+			if (word && mods.has){
+				word = {'w': word, 'mods': mods};
+				mods = {};
+			}
 			if (collection[0] !== undefined){
 				// we are gathering a collection, so add last word to collection and then store
 				word && collection.push(word);
@@ -162,34 +180,34 @@
 			return depth === 0 ? tokens : undefined; // depth != 0 means mismatched containers
 		};
 
-		var getContext = function getContext(context, valueStack, word){
-			if (!prefixes[word[0]]){
-				return context;
-			}
-			var counter = 0,
-				prefix,
-				newContext;
-			while (prefix = prefixes[word[counter]]){
-				if (prefix.exec === 'parent'){
-					newContext = valueStack[counter + 1];
-				}
-				counter++;
-			}
-			return newContext;
-		};
+		// var getContext = function getContext(context, valueStack, word){
+		// 	if (!prefixes[word[0]]){
+		// 		return context;
+		// 	}
+		// 	var counter = 0,
+		// 		prefix,
+		// 		newContext;
+		// 	while (prefix = prefixes[word[counter]]){
+		// 		if (prefix.exec === 'parent'){
+		// 			newContext = valueStack[counter + 1];
+		// 		}
+		// 		counter++;
+		// 	}
+		// 	return newContext;
+		// };
 
-		var cleanWord = function cleanWord(word){
-			if(!prefixes[word[0]]){
-				return word;
-			}
-			var len = word.length;
-			for (var i = 1; i < len; i++){
-				if (!prefixes[word[i]]){
-					return word.substr(i);
-				}
-			}
-			return '';
-		}
+		// var cleanWord = function cleanWord(word){
+		// 	if(!prefixes[word[0]]){
+		// 		return word;
+		// 	}
+		// 	var len = word.length;
+		// 	for (var i = 1; i < len; i++){
+		// 		if (!prefixes[word[i]]){
+		// 			return word.substr(i);
+		// 		}
+		// 	}
+		// 	return '';
+		// }
 
 		var resolvePath = function (obj, path, newValue, valueStack){
 			var root = root ? root : obj,
@@ -210,10 +228,6 @@
 					ret = undefined;
 				}
 				else if (typeof curr === 'string'){
-					context = getContext(context, valueStack, curr);
-					if (typeof context === 'undefined') { return undefined; }
-					curr = cleanWord(curr);
-
 					if (context[curr]) {
 						if (newValueHere){ context[curr] = newValue; }
 						ret = context[curr];
@@ -250,6 +264,30 @@
 							}
 						}
 					}
+				}
+				else if (curr.w){
+					// this word token has modifiers, modify current context
+					if (curr.mods.parent){
+						context = valueStack[curr.mods.parent];
+						if (typeof context === 'undefined') { return undefined; }
+					}
+					curr = curr.w;
+
+					// Repeat basic string property processing with word and modified context
+					if (context[curr]) {
+						if (newValueHere){ context[curr] = newValue; }
+						ret = context[curr];
+					}
+					else if (curr.indexOf('*') >-1){
+						ret = [];
+						for (var prop in context){
+							if (context.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
+								if (newValueHere){ context[prop] = newValue; }
+								ret.push(context[prop]);
+							}
+						}
+					}
+					else { return undefined; }
 				}
 				else if (curr.exec === 'property'){
 					if (newValueHere){
