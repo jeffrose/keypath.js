@@ -1,0 +1,35 @@
+{
+  "name": "transducers-js",
+  "version": "0.4.166",
+  "homepage": "https://github.com/cognitect-labs/transducers-js",
+  "description": "A Transducers implementation for JavaScript",
+  "keywords": [
+     "underscore",
+     "lodash",
+     "functional",
+     "util",
+     "server",
+     "client",
+     "browser"
+  ],
+  "author": "Cognitect",
+  "license": "APL",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cognitect/npm-transducers-js.git"
+  },
+  "main": "transducers.js",
+  "bugs": {
+    "url": "https://github.com/cognitect-labs/transducers-js/issues"
+  },
+  "contributors": [
+    "David Nolen (https://github.com/swannodette)"
+  ],
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "dependencies": {
+  },
+  "scripts": {
+  }
+}

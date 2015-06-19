@@ -31,13 +31,8 @@
 //         }
 //     };
     
-    it( 'should parse', function(){
-        /*
-        var tokenizer = new Tokenizer();
-=======
 //     it( 'should parse', function(){
 //         var tokenizer = new Tokenizer();
->>>>>>> f65f97b6c46a1c8409bcee72f49fe802e81ac0ba
         
 //         tokenizer.addRule( 'segment', /^[a-zA-Z0-9]+\.$/ );
         
@@ -49,14 +44,6 @@
 //             console.log( 'TOKEN', token, id );
 //         } );
         
-        tokenizer.tokenize( 'foo.bar.100.qux.baz' );
-        tokenizer.flush();
-        tokenizer.tokenize( 'foo.bar[100]qux()baz' );
-        */
-        //expect( keyPath.get( 'foo.bar.100.qux.baz' ) ).to.be.undefined;
-        //expect( keyPath.get( 'foo.bar[100]qux(123)baz' ) ).to.equal( 123 );
-    } );
-} );
 //         tokenizer.tokenize( 'foo.bar.100.qux.baz' );
 //         tokenizer.flush();
 //         tokenizer.tokenize( 'foo.bar[100]qux()baz' );

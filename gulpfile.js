@@ -6,20 +6,9 @@ var gulp = require( 'gulp' ),
 
 gulp.task( 'test', function( done ){
     require( 'babel-core/register' )( {
-        ignore: false
+        //ignore: /ee\.js\/dist\/ee$/
     } );
 
-    gulp.src( [ 'test/**/*.js' ] )
-        .pipe( debug() )
-        .pipe( mocha() )
-        .on( 'end', done );
-} );
-
-gulp.task( 'test-babel', function( done ){
-    require( 'babel/register' )( {
-        ignore: false
-    } );
-    
     gulp.src( [ 'test/**/*.js' ] )
         .pipe( debug() )
         .pipe( mocha() )
