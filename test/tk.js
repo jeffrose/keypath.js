@@ -486,6 +486,24 @@ describe( 'tk', function(){
                 'A - B: ' + result[2]);
         });
 
+        it('should compare complex value resolution with plain javascript version', function () {
+            var str = 'accounts.1.[<3.propAry.0],savA*';
+            var testFunc = function(data){
+                var ary = [];
+                ary.push(data.accounts[1][ data.accounts[3].propAry[0] ]);
+                for(var prop in data.accounts[1]){
+                    if (prop.substr(0,4) === 'savA'){
+                        ary.push(data.accounts[1][prop]);
+                    }
+                }
+                return ary;
+            }
+            // var str = 'accounts[accounts.2()]checking.fn()';
+            var result = compareString(repeat, [ tk.getPath, complexObj, str ], [ testFunc, complexObj ]);
+            testResult = ('A ("' + str + '"): ' + result[0] + '\nB (testFunc): ' + result[1] + '\n' +
+                'A - B: ' + result[2]);
+        });
+
     });
 
 } );
