@@ -1,1 +1,0 @@
-module.exports = require("npm:transducers-js@0.4.166/transducers");
