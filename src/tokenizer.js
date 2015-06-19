@@ -109,7 +109,7 @@ Tokenizer.prototype.match = function( value ){
     return null;
 };
 
-Tokenizer.prototype.tokenize = function( data ){
+Tokenizer.prototype.tokenize = function( data ){ 
     data = this[ buffer ] + data;
     this[ buffer ] = '';
     
@@ -121,14 +121,14 @@ Tokenizer.prototype.tokenize = function( data ){
     
     var matchingRule = undefined,
     
-        string = '';
+        word = '';
     
     some.call( data, function( char ){
-        string += char;
+        word += char;
         
-        matchingRule = this.match( string );
+        matchingRule = this.match( word );
         
-        console.log( 'MATCH', string, matchingRule );
+        console.log( 'MATCH', word, matchingRule );
         
         return matchingRule !== null;
     }, this );
@@ -136,16 +136,16 @@ Tokenizer.prototype.tokenize = function( data ){
     // TODO handle data remaining in buffer
     // TODO emit "finish" when tokenization is done.
     
-    if( string.length === 0 ){
+    if( word.length === 0 ){
         throw new SyntaxError( `could not tokenize ${data}` );
-    } else if( string.length === data.length ){
+    } else if( word.length === data.length ){
         this[ buffer ] = data;
         return;
     } else {
         if( !this[ ignore ][ matchingRule.id ] ){
-            var token = new Token( string, matchingRule.id );
+            var token = new Token( word, matchingRule.id );
             this.emit( 'token', token, matchingRule.id );
         }
-        this.tokenize( data.substring( string.length ) );
+        this.tokenize( data.substring( word.length ) );
     }
 };

@@ -1,37 +1,14 @@
 'use strict';
 
-var System = require( 'systemjs' );
-
-System.config( {
-    babelOptions: {
-        ignore: false
-    },
-    map: {
-        'bower:'    : 'bower_components/*.js',
-        'npm:'      : 'node_modules/*.js'
-    },
-    paths: {
-        'babel'     : 'npm:babel-core/browser'
-    },
-    transpiler: 'babel'
-} );
-
 var gulp = require( 'gulp' ),
     debug = require( 'gulp-debug' ),
     mocha = require( 'gulp-mocha' );
 
 gulp.task( 'test', function( done ){
-    gulp.src( [ 'test/**/*.js' ] )
-        .pipe( debug() )
-        .pipe( mocha() )
-        .on( 'end', done );
-} );
-
-gulp.task( 'test-babel', function( done ){
-    require( 'babel/register' )( {
-        ignore: false
+    require( 'babel-core/register' )( {
+        //ignore: /ee\.js\/dist\/ee$/
     } );
-    
+
     gulp.src( [ 'test/**/*.js' ] )
         .pipe( debug() )
         .pipe( mocha() )
