@@ -11,7 +11,7 @@ var chai        = require( 'chai' ),
 //chai.use( sinon_chai );
 
 describe( 'AST', function(){
-    var tree = {
+var esprimaExample = {
     "type": "Program",
     "body": [
         {
@@ -66,6 +66,60 @@ describe( 'AST', function(){
                 "property": {
                     "type": "Identifier",
                     "name": "baz"
+                }
+            }
+        }
+    ]
+};
+
+var expected = {
+    "type": "Program",
+    "body": [
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "MemberExpression",
+                "computed": false,
+                "object": {
+                    "type": "Identifier",
+                    "name": "foo"
+                },
+                "property": {
+                    "type": "MemberExpression",
+                    "computed": true,
+                    "object": {
+                        "type": "Identifier",
+                        "name": "bar"
+                    },
+                    "property": {
+                        "type": "MemberExpression",
+                        "computed": false,
+                        "object": {
+                            "type": "Numeric",
+                            "value": 100
+                        },
+                        "property": {
+                            "type": "CallExpression",
+                            "callee": {
+                                "type": "Identifier",
+                                "name": "qux"
+                            },
+                            "arguments": [
+                                {
+                                    "type": "Numeric",
+                                    "value": 123
+                                },
+                                {
+                                    "type": "Literal",
+                                    "value": "abc"
+                                }
+                            ],
+                            "returnValue": {
+                                "type": "Identifier",
+                                "name": "baz"
+                            }
+                        }
+                    }
                 }
             }
         }

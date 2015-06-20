@@ -130,16 +130,6 @@ AST.prototype.ast = function( text ){
     return program;
 };
 
-AST.prototype.callExpression = function( object = this.identifier() ){
-    this.consume( '(' );
-        
-    var args = this.args();
-    
-    this.consume( ')' );
-    
-    return new CallExpression( object, args );
-};
-
 AST.prototype.consume = function( expected ){
     if( !this.tokens.length ){
         throw new ASTError( 'Unexpected end of expression' );
@@ -177,7 +167,7 @@ AST.prototype.expression = function(){
     } else if( this.peek().value === '%' ){
         expression = this.punctuator();
     }
-    
+    //foo.bar[100]qux(123,%,"bleh")baz
     while( next = this.expect( '(', '[', '.' ) ){
         if( next.value === '(' ){
             expression = new CallExpression( expression, this.args() );
@@ -265,26 +255,6 @@ AST.prototype.literal = function(){
     }
     
     return new Literal( token.value );
-};
-
-
-AST.prototype.memberExpression = function( object = this.identifier() ){
-    var token = this.expect( '[', '.' ),
-    
-        computed, property;
-    
-    console.log( 'MEMBER', object, token );
-    
-    if( token.value === '[' ){
-        computed = true;
-        property = this.numeric();
-        this.consume( ']' );
-    } else if( token.value === '.' ){
-        computed = false;
-        property = this.identifier();
-    }
-    
-    return new MemberExpression( object, property, computed );
 };
 
 AST.prototype.numeric = function(){
