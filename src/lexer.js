@@ -1,7 +1,5 @@
 'use strict';
 
-import EventEmitter from '../node_modules/ee.js/dist/ee-es5';
-
 const 
     ignore = Symbol( '@@ignore' ),
     parsers = Symbol( '@@parsers' ),
@@ -103,8 +101,6 @@ function LexerError( message ){
 LexerError.prototype = Object.create( SyntaxError.prototype );
 
 export default function Lexer( ruleSet ){
-    EventEmitter.call( this );
-    
     this.buffer = '';
     
     this[ ignore ]  = Object.create( null );
@@ -118,7 +114,7 @@ export default function Lexer( ruleSet ){
     }
 }
 
-Lexer.prototype = Object.create( EventEmitter.prototype );
+Lexer.prototype = Object.create( null );
 
 Lexer.prototype[ Symbol.toStringTag ] = 'Lexer';
 

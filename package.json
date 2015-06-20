@@ -1,5 +1,5 @@
 {
-  "name": "keypath.js",
+  "name": "keypath-expression",
   "description": "",
   "version": "0.1.0",
   "repository": "https://github.com/jeffrose/keypath.js.git",
@@ -13,38 +13,22 @@
   "keywords": [],
   "main": "dist/keypath.js",
   "dependencies": {
-    "ee.js": "git://github.com/jeffrose/ee.js#master"
+    
   },
   "devDependencies": {
-    "babel-core": "^5.4.7",
-    "babel-runtime": "^5.4.7",
+    "babel": "^5.5.8",
+    "babel-core": "^5.5.8",
+    "babel-runtime": "^5.5.8",
     "chai": "^2.3.0",
-    "core-js": "^0.9.13",
-    "gulp": "^3.8.11",
+    "gulp": "^3.9.0",
     "gulp-debug": "^2.0.1",
     "gulp-istanbul": "^0.9.0",
     "gulp-mocha": "^2.0.1",
-    "jspm": "^0.15.6",
-    "jspm-bower-endpoint": "^0.3.2",
     "mocha": "^2.2.5",
     "sinon": "^1.14.1",
     "sinon-chai": "^2.7.0"
   },
   "engines": {
     "node": ">= 0.12"
-  },
-  "jspm": {
-    "directories": {},
-    "dependencies": {
-      "antlr4": "npm:antlr4@^4.5.2",
-      "jeffrose/ee.js": "github:jeffrose/ee.js@master",
-      "transducers-js": "npm:transducers-js@^0.4.166"
-    },
-    "devDependencies": {
-      "babel": "npm:babel-core@^5.1.13",
-      "babel-runtime": "npm:babel-runtime@^5.1.13",
-      "core-js": "npm:core-js@^0.9.4",
-      "systemjs": "npm:systemjs@^0.16.11"
-    }
   }
 }
