@@ -38,7 +38,6 @@ Interpreter.prototype.compile = function( expression ){
 
 Interpreter.prototype.computedMember = function( left, right, context, create, expression ){
     return function( base ){
-        console.log( 'Computed member base', base );
         var lhs = left( base ),
             rhs, value;
         
@@ -54,8 +53,6 @@ Interpreter.prototype.computedMember = function( left, right, context, create, e
             value = lhs[ rhs ];
         }
         
-        console.log( 'computed', lhs, rhs, value );
-        
         return context ?
             { context: lhs, name: rhs, value: value } :
             value;
@@ -64,7 +61,6 @@ Interpreter.prototype.computedMember = function( left, right, context, create, e
 
 Interpreter.prototype.identifier = function( name, context, create, expression ){
     return function( base ){
-        console.log( 'Identifier base', base );
         var value;
         
         if( base ){
@@ -77,8 +73,6 @@ Interpreter.prototype.identifier = function( name, context, create, expression )
                 undefined;
         }
         
-        console.log( 'identifier', name, value );
-        
         return context ?
             { context: base, name: name, value: value } :
             value;
@@ -87,7 +81,6 @@ Interpreter.prototype.identifier = function( name, context, create, expression )
 
 Interpreter.prototype.nonComputedMember = function( left, right, context, create, expression ){
     return function( base ){
-        console.log( 'Non-computed member base', base );
         var lhs = left( base ),
             value;
         
@@ -111,8 +104,6 @@ Interpreter.prototype.recurse = function( node, context, create ){
     var interpreter = this,
         args, left, right;
     
-    console.log( 'Recursing', node.type, node.name, node.value );
-    
     switch( node.type ){
         case 'CallExpression':
             args = [];
@@ -121,15 +112,11 @@ Interpreter.prototype.recurse = function( node, context, create ){
                 args.push( interpreter.recurse( expr ) );
             } );
             
-            console.log( 'Recursing callee' );
             right = interpreter.recurse( node.callee, true );
             
             return function( base ){
-                console.log( 'Call base', base );
                 let rhs = right( base ),
                     value;
-                
-                console.log( 'rhs', rhs );
                 
                 if( rhs.value != null ){
                     let values = [],
@@ -150,16 +137,14 @@ Interpreter.prototype.recurse = function( node, context, create ){
         case 'Identifier':
             return interpreter.identifier( node.name, context, create, interpreter.expression );
         case 'Literal':
-            return interpreter.value( node.value, context );
+            return interpreter.value( node.name, context );
         case 'Numeric':
-            return interpreter.value( node.value, context );
+            return interpreter.value( node.name, context );
         case 'MemberExpression':
             left = interpreter.recurse( node.object, false, create );
             right = node.computed ?
                 interpreter.recurse( node.property ) :
                 node.property.name;
-            
-            console.log( 'computed member?', node.computed, node.property );
             
             return node.computed ?
                 interpreter.computedMember( left, right, context, create, interpreter.expression ) :
@@ -171,7 +156,6 @@ Interpreter.prototype.recurse = function( node, context, create ){
 
 Interpreter.prototype.value = function( value, context ){
     return function(){
-        console.log( 'value', value, arguments );
         return context ?
             { context: undefined, name: undefined, value: value } :
             value;
