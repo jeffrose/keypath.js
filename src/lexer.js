@@ -1,102 +1,7 @@
 'use strict';
 
-import { default as Null } from './null';
-
-function Token( type, value ){
-    if( typeof type !== 'string' ){
-        throw new TypeError( 'type must be a string' );
-    }
-    
-    if( typeof value === 'undefined' ){
-        throw new TypeError( 'value cannot be undefined' );
-    }
-    
-    Object.defineProperties( this, {
-        type: {
-            value: type,
-            configurable: false,
-            enumerable: true,
-            writable: false
-        },
-        value: {
-            value: value,
-            configurable: false,
-            enumerable: true,
-            writable: false
-        },
-        length: {
-            value: value.length,
-            configurable: false,
-            enumerable: false,
-            writable: false
-        }
-    } );
-}
-
-Token.prototype = new Null();
-
-Token.prototype.constructor = Token;
-
-Token.prototype.is = function( type ){
-    return this.type === type;
-};
-
-Token.prototype.toJSON = function(){
-    var json = Object.create( null );
-    
-    json.type = this.type;
-    json.value = this.value;
-    
-    return json;
-};
-
-Token.prototype.toString = function(){
-    return String( this.value );
-};
-
-Token.prototype.valueOf = function(){
-    return this.value;
-};
-
-function Keyword( value ){
-    Token.call( this, 'keyword', value );
-}
-
-Keyword.prototype = Object.create( Token.prototype );
-
-Keyword.prototype.constructor = Keyword;
-
-function Identifier( value ){
-    Token.call( this, 'identifier', value );
-}
-
-Identifier.prototype = Object.create( Token.prototype );
-
-Identifier.prototype.constructor = Identifier;
-
-function Literal( value ){
-    Token.call( this, 'literal', value );
-}
-
-Literal.prototype = Object.create( Token.prototype );
-
-Literal.prototype.constructor = Literal;
-
-function Numeric( value ){
-    Token.call( this, 'numeric', value );
-}
-
-Numeric.prototype = Object.create( Token.prototype );
-
-Numeric.prototype.constructor = Numeric;
-
-function Punctuator( value ){
-    Token.call( this, 'punctuator', value );
-}
-
-Punctuator.prototype = Object.create( Token.prototype );
-
-Punctuator.prototype.constructor = Punctuator;
+import Null from './null';
+import { Identifier, Literal, Numeric, Punctuator } from './lexer/token';
 
 function LexerError( message ){
     SyntaxError.call( this, message );    
@@ -117,12 +22,12 @@ Lexer.prototype.lex = function( text ){
     this.index = 0;
     this.tokens = [];
     
-    var length = this.buffer.length,
-    
-        word = '';
+    let length = this.buffer.length,
+        word = '',
+        char;
     
     while( this.index < length ){
-        let char = this.buffer[ this.index ];
+        char = this.buffer[ this.index ];
         
         // Identifier
         if( this.isIdentifier( char ) ){
@@ -195,10 +100,11 @@ Lexer.prototype.peek = function( number ){
 };
 
 Lexer.prototype.read = function( until ){
-    var start = this.index;
+    let start = this.index,
+        char;
     
     while( this.index < this.buffer.length ){
-        let char = this.buffer[ this.index ];
+        char = this.buffer[ this.index ];
         
         if( until.call( this, char ) ){
             break;
@@ -212,4 +118,12 @@ Lexer.prototype.read = function( until ){
 
 Lexer.prototype.throwError = function( message ){
     throw new LexerError( message );
+};
+
+Lexer.prototype.toJSON = function(){
+    let json = new Null();
+    
+    json.buffer = this.buffer;
+    
+    return json;
 };

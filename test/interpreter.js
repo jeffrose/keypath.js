@@ -20,18 +20,18 @@ describe( 'Interpreter', function(){
             fn = interpreter.compile( 'foo.bar[0].qux(123,"bleh").baz' ),
             object = {
                 foo: {
-                    bar: []
+                    bar: [
+                        {
+                            qux: function(){
+                                console.log( 'qux', arguments );
+                                return {
+                                    baz: 'BAZ'
+                                };
+                            }
+                        }
+                    ]
                 }
             };
-        
-        object.foo.bar[ 0 ] = {
-            qux: function(){
-                console.log( 'qux', arguments );
-                return {
-                    baz: 'BAZ'
-                };
-            }
-        };
             
         // foo.bar[0]qux(123,"bleh")baz
         
