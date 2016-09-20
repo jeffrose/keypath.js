@@ -1,9 +1,6 @@
 'use strict';
 
-const 
-    ignore = Symbol( '@@ignore' ),
-    parsers = Symbol( '@@parsers' ),
-    rules = Symbol( '@@rules' );
+import { default as Null } from './null';
 
 function Token( type, value ){
     if( typeof type !== 'string' ){
@@ -30,20 +27,27 @@ function Token( type, value ){
         length: {
             value: value.length,
             configurable: false,
-            enumerable: true,
+            enumerable: false,
             writable: false
         }
     } );
 }
 
-Token.prototype = Object.create( null );
-
-Token.prototype[ Symbol.toStringTag ] = 'Token';
+Token.prototype = new Null();
 
 Token.prototype.constructor = Token;
 
 Token.prototype.is = function( type ){
     return this.type === type;
+};
+
+Token.prototype.toJSON = function(){
+    var json = Object.create( null );
+    
+    json.type = this.type;
+    json.value = this.value;
+    
+    return json;
 };
 
 Token.prototype.toString = function(){
@@ -100,23 +104,11 @@ function LexerError( message ){
 
 LexerError.prototype = Object.create( SyntaxError.prototype );
 
-export default function Lexer( ruleSet ){
+export default function Lexer(){
     this.buffer = '';
-    
-    this[ ignore ]  = Object.create( null );
-    this[ parsers ] = Object.create( null );
-    this[ rules ]   = Object.create( null );
-    
-    if( typeof ruleSet === 'object' ){
-        for( let type in ruleSet ){
-            this.addRule( type, ruleSet[ type ] );
-        }
-    }
 }
 
-Lexer.prototype = Object.create( null );
-
-Lexer.prototype[ Symbol.toStringTag ] = 'Lexer';
+Lexer.prototype = new Null();
 
 Lexer.prototype.constructor = Lexer;
 
@@ -164,11 +156,14 @@ Lexer.prototype.lex = function( text ){
             } );
             
             this.tokens.push( new Numeric( word ) );
+        
+        // Whitespace
         } else if( this.isWhitespace( char ) ){
             this.index++;
+        
+        // Error
         } else {
-            console.log( 'NO MATCH', char );
-            this.index++;
+            this.throwError( `"${ char }" is an invalid character` );
         }
         
         word = '';
@@ -215,108 +210,6 @@ Lexer.prototype.read = function( until ){
     return this.buffer.slice( start, this.index );
 };
 
-
-/*
-Lexer.prototype.destroy = function(){
-    this.flush();
-    
-    delete this[ ignore ];
-    delete this[ parsers ];
-    delete this[ rules ];
-    
-    EventEmitter.prototype.destroy.call( this );
+Lexer.prototype.throwError = function( message ){
+    throw new LexerError( message );
 };
-
-Lexer.prototype.addParser = function( type, parser ){
-    this[ parsers ][ type ] = parser;
-};
-
-Lexer.prototype.addRule = function( type, test ){
-    var isFunction = typeof test === 'function',
-    
-        rule;
-    
-    if( !isFunction && !( test instanceof RegExp ) ){
-        throw new TypeError( 'test must be a function or regular expression' );
-    }
-    
-    rule = isFunction ?
-        test :
-        function( value ){
-            return test.test( value );
-        };
-    
-    this[ rules ][ type ] = rule;
-};
-
-Lexer.prototype.flush = function(){
-    if( this.buffer || this.index ){
-        this.buffer = '';
-        this.index = 0;
-        this.emit( 'end' );
-    }
-};
-
-// TODO Do we unignore?
-Lexer.prototype.ignore = function( type ){
-    this[ ignore ][ type ] = true;
-};
-
-Lexer.prototype.lex = function( data ){
-    if( typeof data !== 'string' ){
-        throw new TypeError( 'data must be a string' );
-    }
-    
-    this.buffer = data;
-    this.index = 0;
-    
-    var length = data.length,
-        word = '',
-        
-        char, rule, type;
-    
-    while( this.index < length && !rule ){
-        word += data[ this.index ];
-        
-        char = this.index < length ?
-            data[ this.index + 1 ] :
-            undefined;
-        
-        for( type in this[ rules ] ){
-            rule = this[ rules ][ type ];
-            if( rule.call( this, word, char ) ){
-                break;
-            }
-            rule = type = undefined;
-        }
-        
-        this.index++;
-    }
-    
-    console.log( 'BUFFER', this.buffer );
-    
-    if( word.length === 0 ){
-        throw new SyntaxError( `could not tokenize ${data}` );
-    } else {
-        if( type && !this[ ignore ][ type ] ){
-            let parse = this[ parsers ][ type ],
-            
-                value = typeof parse === 'function' ?
-                    parse.call( this, word, char ) :
-                    word,
-            
-                token = new Token( type, value );
-            
-            this.emit( type, token );
-            
-            this.buffer = data.substring( ( data.indexOf( value ) !== -1 ? value : word ).length );
-        }
-        
-        this.buffer.length && this.lex( this.buffer );
-    }
-    
-    if( this.index === length ){
-        this.emit( 'finish' );
-    }
-};
-*/

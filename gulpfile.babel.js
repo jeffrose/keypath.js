@@ -5,7 +5,7 @@ import debug from 'gulp-debug';
 import mocha from 'gulp-mocha';
 
 gulp.task( 'test', function( done ){
-    gulp.src( [ 'test/**/*.js' ] )
+    gulp.src( [ 'test/interpreter.js' ] )
         .pipe( debug() )
         .pipe( mocha() )
         .on( 'end', done );
