@@ -9,6 +9,12 @@ const lexer = new Lexer(),
     builder = new Builder( lexer ),
     intrepreter = new Interpreter( builder );
 
+/**
+ * @class KeyPathExp
+ * @extends Null
+ * @param {external:string} pattern
+ * @param {external:string} flags
+ */
 export default function KeyPathExp( pattern, flags ){
     Object.defineProperty( this, 'value', {
         value: intrepreter.compile( pattern ),
@@ -22,6 +28,10 @@ KeyPathExp.prototype = new Null();
 
 KeyPathExp.prototype.constructor = KeyPathExp;
 
-KeyPathExp.prototype.exec = function( target ){
+KeyPathExp.prototype.get = function( target ){
+    
+};
+
+KeyPathExp.prototype.set = function( target ){
     
 };

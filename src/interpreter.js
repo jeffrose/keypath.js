@@ -23,7 +23,7 @@ Interpreter.prototype.compile = function( expression ){
     interpreter.expression = expression;
     
     forEach( body, function( statement ){
-        expressions.push( interpreter.recurse( statement.expression ) );
+        expressions.push( interpreter.recurse( statement.expression, false, false ) );
     } );
     
     fn = body.length === 0 ? noop :
@@ -41,13 +41,11 @@ Interpreter.prototype.computedMember = function( left, right, context, create, e
         var lhs = left( base ),
             rhs, value;
         
-        if( lhs != null ){
+        if( typeof lhs !== 'undefined' ){
             rhs = right( base );
             
-            if( create ){
-                if( lhs && !( lhs[ rhs ] ) ){
-                    lhs[ rhs ] = new Null();
-                }
+            if( create && !( rhs in lhs ) ){
+                lhs[ rhs ] = new Null();
             }
             
             value = lhs[ rhs ];
@@ -61,16 +59,14 @@ Interpreter.prototype.computedMember = function( left, right, context, create, e
 
 Interpreter.prototype.identifier = function( name, context, create, expression ){
     return function( base ){
-        var value;
+        let value;
         
-        if( base ){
+        if( typeof base !== 'undefined' ){
             if( create && !( name in base ) ){
                 base[ name ] = new Null();
             }
             
-            value = base ?
-                base[ name ] :
-                undefined;
+            value = base[ name ];
         }
         
         return context ?
@@ -84,15 +80,13 @@ Interpreter.prototype.nonComputedMember = function( left, right, context, create
         var lhs = left( base ),
             value;
         
-        if( create ){
-            if( lhs && !( lhs[ right ] ) ){
+        if( typeof lhs !== 'undefined' ){
+            if( create && !( right in lhs ) ){
                 lhs[ right ] = new Null();
             }
+            
+            value = lhs[ right ];
         }
-        
-        value = lhs != null ?
-            lhs[ right ] :
-            undefined;
         
         return context ?
             { context: lhs, name: right, value: value } :
@@ -109,14 +103,14 @@ Interpreter.prototype.recurse = function( node, context, create ){
             args = [];
             
             forEach( node.arguments, function( expr ){
-                args.push( interpreter.recurse( expr ) );
+                args.push( interpreter.recurse( expr, false, false ) );
             } );
             
-            right = interpreter.recurse( node.callee, true );
+            right = interpreter.recurse( node.callee, true, false );
             
             return function( base ){
-                let rhs = right( base ),
-                    value;
+                const rhs = right( base );
+                let value;
                 
                 if( rhs.value != null ){
                     let values = [],
@@ -141,7 +135,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
         case 'MemberExpression':
             left = interpreter.recurse( node.object, false, create );
             right = node.computed ?
-                interpreter.recurse( node.property ) :
+                interpreter.recurse( node.property, false, false ) :
                 node.property.name;
             
             return node.computed ?

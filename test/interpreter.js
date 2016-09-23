@@ -19,7 +19,6 @@ describe( 'Interpreter', function(){
                     bar: [
                         {
                             qux: function(){
-                                console.log( 'qux', arguments );
                                 return {
                                     baz: 'BAZ'
                                 };
