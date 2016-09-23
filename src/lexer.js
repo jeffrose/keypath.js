@@ -3,12 +3,21 @@
 import Null from './null';
 import { Identifier, Literal, Punctuator } from './lexer/token';
 
+/**
+ * @class LexerError
+ * @extends SyntaxError
+ * @param {external:string} message The error message
+ */
 function LexerError( message ){
     SyntaxError.call( this, message );    
 }
 
 LexerError.prototype = Object.create( SyntaxError.prototype );
 
+/**
+ * @class Lexer
+ * @extends Null
+ */
 export default function Lexer(){
     this.buffer = '';
 }

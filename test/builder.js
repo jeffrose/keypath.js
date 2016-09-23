@@ -87,11 +87,11 @@ var expected = {
         expect( expression.callee.name ).to.equal( 'foo' );
         expect( expression.arguments.length ).to.equal( 3 );
         expect( expression.arguments[ 0 ].type ).to.equal( 'Literal' );
-        expect( expression.arguments[ 0 ].value ).to.equal( '123' );
+        expect( expression.arguments[ 0 ].value ).to.equal( 123 );
         expect( expression.arguments[ 1 ].type ).to.equal( 'Literal' );
-        expect( expression.arguments[ 1 ].value ).to.equal( '456' );
+        expect( expression.arguments[ 1 ].value ).to.equal( 456 );
         expect( expression.arguments[ 2 ].type ).to.equal( 'Literal' );
-        expect( expression.arguments[ 2 ].value ).to.equal( '789' );
+        expect( expression.arguments[ 2 ].value ).to.equal( 789 );
         
         program = builder.build( 'foo()()' );
         expression = program.body[ 0 ].expression;
@@ -130,9 +130,9 @@ var expected = {
         expect( expression.object.object.type ).to.equal( 'Identifier' );
         expect( expression.object.object.name ).to.equal( 'foo' );
         expect( expression.object.property.type ).to.equal( 'Literal' );
-        expect( expression.object.property.value ).to.equal( '123' );
+        expect( expression.object.property.value ).to.equal( 123 );
         expect( expression.property.type ).to.equal( 'Literal' );
-        expect( expression.property.value ).to.equal( '456' );
+        expect( expression.property.value ).to.equal( 456 );
         
         program = builder.build( '["foo"]' ),
         expression = program.body[ 0 ].expression;
@@ -141,7 +141,7 @@ var expected = {
         expect( expression.computed ).to.equal( true );
         expect( expression.object ).to.equal( null );
         expect( expression.property.type ).to.equal( 'Literal' );
-        expect( expression.property.value ).to.equal( '"foo"' );
+        expect( expression.property.value ).to.equal( 'foo' );
     } );
     
     it( 'should parse non-computed member expressions', function(){

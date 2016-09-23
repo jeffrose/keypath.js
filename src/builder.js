@@ -3,6 +3,11 @@
 import Null from './null';
 import { CallExpression, ExpressionStatement, Identifier, Literal, MemberExpression, Program, Punctuator } from './builder/node';
 
+/**
+ * @class BuilderError
+ * @extends SyntaxError
+ * @param {external:string} message The error message
+ */
 function BuilderError( message ){
     SyntaxError.call( this, message );
 }
@@ -11,6 +16,11 @@ BuilderError.prototype = Object.create( SyntaxError.prototype );
 
 BuilderError.prototype.constructor = BuilderError;
 
+/**
+ * @class Builder
+ * @extends Null
+ * @param {Lexer} lexer
+ */
 export default function Builder( lexer ){
     this.lexer = lexer;
 }
@@ -69,7 +79,6 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     return undefined;
 };
 
-// foo.bar[100]qux(123,%,"bleh")baz
 Builder.prototype.expression = function(){
     let expression = null,
         next = this.peek();
@@ -142,7 +151,15 @@ Builder.prototype.literal = function(){
         this.throwError( 'Literal expected' );
     }
     
-    return new Literal( token.value );
+    const value = token.value,
+    
+        literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
+            // String Literal
+            value.substring( 1, value.length - 1 ) :
+            // Numeric Literal
+            parseFloat( value );
+    
+    return new Literal( literal );
 };
 
 Builder.prototype.peek = function( first, second, third, fourth ){
