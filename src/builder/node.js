@@ -3,15 +3,17 @@
 import Null from '../null';
 import nextId from '../uuid';
 
-function toNamedJSON(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.name = this.name;
-    
-    return json;
-}
-
+/**
+ * @class Node
+ * @extends Null
+ * @param {external:string} type The type of node
+ */
 export default function Node( type ){
+    
+    if( typeof type !== 'string' ){
+        throw new TypeError( 'type must be a string' );
+    }
+    
     this.id = nextId();
     this.type = type;
 }
@@ -31,136 +33,207 @@ Node.prototype.is = function( type ){
 Node.prototype.toJSON = function(){
     const json = new Null();
     
-    json.id   = this.id;
     json.type = this.type;
     
     return json;
 };
 
 Node.prototype.toString = function(){
-    return this.type;
+    return String( this.type );
 };
 
 Node.prototype.valueOf = function(){
     return this.id;
 };
 
+function Statement( statementType ){
+    Node.call( this, statementType );
+}
+
+Statement.prototype = Object.create( Node.prototype );
+
+Statement.prototype.constructor = Statement;
+
+function Expression( expressionType ){
+    Node.call( this, expressionType );
+}
+
+Expression.prototype = Object.create( Node.prototype );
+
+Expression.prototype.constructor = Expression;
+
 export function Program( body ){
     Node.call( this, 'Program' );
-    this.body = body;
+    
+    if( !Array.isArray( body ) ){
+        throw new TypeError( 'body must be an array' );
+    }
+    
+    this.body = body || [];
 }
 
 Program.prototype = Object.create( Node.prototype );
 
 Program.prototype.constructor = Program;
 
+Program.prototype.addStatement = function( statement ){
+    if( !( statement instanceof Statement ) ){
+        throw new TypeError( 'statement must be a statement' );
+    }
+    
+    this.body.push( statement );
+};
+
 Program.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
-    json.body = this.body;
+    json.body = this.body.map( ( node ) => node.toJSON() );
     
     return json;
 };
 
 export function ExpressionStatement( expression ){
-    Node.call( this, 'ExpressionStatement' );
+    Statement.call( this, 'ExpressionStatement' );
+    
+    if( !( expression instanceof Expression ) ){
+        throw new TypeError( 'argument must be an expression' );
+    }
+    
     this.expression = expression;
 }
 
-ExpressionStatement.prototype = Object.create( Node.prototype );
+ExpressionStatement.prototype = Object.create( Statement.prototype );
 
 ExpressionStatement.prototype.constructor = ExpressionStatement;
 
 ExpressionStatement.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
-    json.expression = this.expression;
+    json.expression = this.expression.toJSON();
     
     return json;
 };
 
 export function CallExpression( callee, args ){
-    Node.call( this, 'CallExpression' );
+    Expression.call( this, 'CallExpression' );
+    
+    if( !Array.isArray( args ) ){
+        throw new TypeError( 'arguments must be an array' );
+    }
     
     this.callee = callee;
-    this.args = args;
+    this.arguments = args;
 }
 
-CallExpression.prototype = Object.create( Node.prototype );
+CallExpression.prototype = Object.create( Expression.prototype );
 
 CallExpression.prototype.constructor = CallExpression;
 
 CallExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
-    json.callee      = this.callee;
-    json.args        = this.args;
+    json.callee    = this.callee.toJSON();
+    json.arguments = this.arguments.map( ( node ) => node.toJSON() );
     
     return json;
 };
 
 export function MemberExpression( object, property, computed ){
-    Node.call( this, 'MemberExpression' );
+    Expression.call( this, 'MemberExpression' );
+    
+    if( computed ){
+        if( !( property instanceof Expression ) ){
+            throw new TypeError( 'property must be an expression when computed is true' );
+        }
+    } else {
+        if( !( property instanceof Identifier ) ){
+            throw new TypeError( 'property must be an identifier when computed is false' );
+        }
+    }
     
     this.object = object;
     this.property = property;
     this.computed = computed || false;
 }
 
-MemberExpression.prototype = Object.create( Node.prototype );
+MemberExpression.prototype = Object.create( Expression.prototype );
 
 MemberExpression.prototype.constructor = MemberExpression;
 
 MemberExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
-    json.object   = this.object;
-    json.property = this.property;
+    json.object   = this.object.toJSON();
+    json.property = this.property.toJSON();
     json.computed = this.computed;
     
     return json;
 };
 
 export function Identifier( name ){
-    Node.call( this, 'Identifier' );
+    Expression.call( this, 'Identifier' );
+    
+    if( typeof name !== 'string' ){
+        throw new TypeError( 'name must be a string' );
+    }
+    
     this.name = name;
 }
 
-Identifier.prototype = Object.create( Node.prototype );
+Identifier.prototype = Object.create( Expression.prototype );
 
 Identifier.prototype.constructor = Identifier;
 
-Identifier.prototype.toJSON = toNamedJSON;
+Identifier.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.name = this.name;
+    
+    return json;
+};
 
-export function Literal( name ){
-    Node.call( this, 'Literal' );
-    this.name = name;
+export function Literal( value ){
+    Expression.call( this, 'Literal' );
+    
+    const type = typeof value;
+    
+    if( 'boolean number string'.split( ' ' ).indexOf( type ) === -1 && value !== null && !( value instanceof RegExp ) ){
+        throw new TypeError( 'value must be a boolean, number, string, null, or instance of RegExp' );
+    }
+    
+    this.value = value;
 }
 
-Literal.prototype = Object.create( Node.prototype );
+Literal.prototype = Object.create( Expression.prototype );
 
 Literal.prototype.constructor = Literal;
 
-Literal.prototype.toJSON = toNamedJSON;
+Literal.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.value = this.value;
+    
+    return json;
+};
 
-export function Numeric( name ){
-    Node.call( this, 'Numeric' );
-    this.name = name;
-}
-
-Numeric.prototype = Object.create( Node.prototype );
-
-Numeric.prototype.constructor = Numeric;
-
-Numeric.prototype.toJSON = toNamedJSON;
-
-export function Punctuator( name ){
+export function Punctuator( value ){
     Node.call( this, 'Punctuator' );
-    this.name = name;
+    
+    if( typeof value !== 'string' ){
+        throw new TypeError( 'value must be a string' );
+    }
+    
+    this.value = value;
 }
 
 Punctuator.prototype = Object.create( Node.prototype );
 
 Punctuator.prototype.constructor = Punctuator;
 
-Punctuator.prototype.toJSON = toNamedJSON;
+Punctuator.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.value = this.value;
+    
+    return json;
+};

@@ -61,7 +61,7 @@ Compiler.prototype.recurse = function( node, callback = noop ){
         case 'CallExpression':
             args = [];
             compiler.recurse( node.callee, function( key ){
-                forEach( node.args, function( arg ){
+                forEach( node.arguments, function( arg ){
                     compiler.recurse( arg, function( value ){
                         args.push( value );
                     } );
@@ -73,7 +73,7 @@ Compiler.prototype.recurse = function( node, callback = noop ){
             callback( node.name );
             break;
         case 'Literal':
-            callback( `"${ node.name }"` );
+            callback( node.value );
             break;
         case 'MemberExpression':
             compiler.recurse( node.object, function( key ){
@@ -81,9 +81,6 @@ Compiler.prototype.recurse = function( node, callback = noop ){
                     callback( compiler.member( key, value, node.computed ) );
                 } );
             } );
-            break;
-        case 'Numeric':
-            callback( node.name );
             break;
         case 'Program':
             // Not safe to forEach directly on ast.body

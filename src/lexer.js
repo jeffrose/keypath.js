@@ -1,7 +1,7 @@
 'use strict';
 
 import Null from './null';
-import { Identifier, Literal, Numeric, Punctuator } from './lexer/token';
+import { Identifier, Literal, Punctuator } from './lexer/token';
 
 function LexerError( message ){
     SyntaxError.call( this, message );    
@@ -22,8 +22,8 @@ Lexer.prototype.lex = function( text ){
     this.index = 0;
     this.tokens = [];
     
-    let length = this.buffer.length,
-        word = '',
+    const length = this.buffer.length;
+    let word = '',
         char;
     
     while( this.index < length ){
@@ -42,15 +42,17 @@ Lexer.prototype.lex = function( text ){
             this.tokens.push( new Punctuator( char ) );
             this.index++;
         
-        // Literal
-        } else if( char === '"' ){
+        // Quoted String
+        } else if( this.isQuote( char ) ){
+            let quote = char;
+            
             this.index++;
             
             word = this.read( function( char ){
-                return char === '"';
+                return char === quote;
             } );
             
-            this.tokens.push( new Literal( word ) );
+            this.tokens.push( new Literal( `${ quote }${ word }${ quote }` ) );
             
             this.index++;
         
@@ -60,7 +62,7 @@ Lexer.prototype.lex = function( text ){
                 return !this.isNumeric( char );
             } );
             
-            this.tokens.push( new Numeric( word ) );
+            this.tokens.push( new Literal( word ) );
         
         // Whitespace
         } else if( this.isWhitespace( char ) ){
@@ -89,14 +91,12 @@ Lexer.prototype.isWhitespace = function( char ){
     return char === ' ' || char === '\r' || char === '\t' || char === '\n' || char === '\v' || char === '\u00A0';
 };
 
-Lexer.prototype.isNumeric = function( char ){
-    return ( '0' <= char && char <= '9' ) && typeof char === 'string';
+Lexer.prototype.isQuote = function( char ){
+    return char === '"' || char === "'";
 };
 
-Lexer.prototype.peek = function( number ){
-    return this.index + number < this.buffer.length ?
-        this.buffer[ this.index + number ] :
-        undefined;
+Lexer.prototype.isNumeric = function( char ){
+    return '0' <= char && char <= '9';
 };
 
 Lexer.prototype.read = function( until ){

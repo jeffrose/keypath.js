@@ -12,32 +12,10 @@ export default function Token( type, value ){
         throw new TypeError( 'value cannot be undefined' );
     }
     
-    Object.defineProperties( this, {
-        id: {
-            value: nextId(),
-            configurable: false,
-            enumerable: false,
-            writable: false
-        },
-        type: {
-            value: type,
-            configurable: false,
-            enumerable: true,
-            writable: false
-        },
-        value: {
-            value: value,
-            configurable: false,
-            enumerable: true,
-            writable: false
-        },
-        length: {
-            value: value.length,
-            configurable: false,
-            enumerable: false,
-            writable: false
-        }
-    } );
+    this.id = nextId();
+    this.type = type;
+    this.value = value;
+    this.length = value.length;
 }
 
 Token.prototype = new Null();
@@ -80,14 +58,6 @@ export function Literal( value ){
 Literal.prototype = Object.create( Token.prototype );
 
 Literal.prototype.constructor = Literal;
-
-export function Numeric( value ){
-    Token.call( this, 'numeric', value );
-}
-
-Numeric.prototype = Object.create( Token.prototype );
-
-Numeric.prototype.constructor = Numeric;
 
 export function Punctuator( value ){
     Token.call( this, 'punctuator', value );

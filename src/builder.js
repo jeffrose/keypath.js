@@ -1,11 +1,10 @@
 'use strict';
 
 import Null from './null';
-import { CallExpression, ExpressionStatement, Identifier, Literal, MemberExpression, Numeric, Program, Punctuator } from './builder/node';
+import { CallExpression, ExpressionStatement, Identifier, Literal, MemberExpression, Program, Punctuator } from './builder/node';
 
 function BuilderError( message ){
     SyntaxError.call( this, message );
-    console.log( 'BuilderError', message );
 }
 
 BuilderError.prototype = Object.create( SyntaxError.prototype );
@@ -21,11 +20,11 @@ Builder.prototype = new Null();
 Builder.prototype.constructor = Builder;
 
 Builder.prototype.arguments = function(){
-    var args = [];
+    const args = [];
     
     if( this.peek().value !== '(' ){
         do {
-            args.push( this.expression() );
+            args.unshift( this.expression() );
         } while( this.expect( ',' ) );
     }
     
@@ -36,7 +35,7 @@ Builder.prototype.build = function( text ){
     this.buffer = text;
     this.tokens = this.lexer.lex( text );
     
-    var program = this.program();
+    const program = this.program();
     
     if( this.tokens.length ){
         this.throwError( `Unexpected token ${ this.tokens[ 0 ] } remaining` );
@@ -50,7 +49,7 @@ Builder.prototype.consume = function( expected ){
         this.throwError( 'Unexpected end of expression' );
     }
     
-    var token = this.expect( expected );
+    const token = this.expect( expected );
     
     if( !token ){
         this.throwError( `Unexpected token ${ token.value } consumed` );
@@ -60,7 +59,7 @@ Builder.prototype.consume = function( expected ){
 };
 
 Builder.prototype.expect = function( first, second, third, fourth ){
-    var token = this.peek( first, second, third, fourth );
+    const token = this.peek( first, second, third, fourth );
     
     if( token ){
         this.tokens.pop();
@@ -71,47 +70,51 @@ Builder.prototype.expect = function( first, second, third, fourth ){
 };
 
 // foo.bar[100]qux(123,%,"bleh")baz
-// foo.bar.100.qux.123,%,"bleh".baz
 Builder.prototype.expression = function(){
-    let args, callee, expression, next, object, property;
+    let expression = null,
+        next = this.peek();
     
-    switch( this.peek().type ){
-        case 'identifier':
-            expression = this.identifier();
-            break;
-        case 'literal':
-            expression = this.literal();
-            break;
-        case 'numeric':
-            expression = this.numeric();
-            break;
-        case 'punctuator':
-            break;
-        default:
-            this.throwError( `Unexpected upcoming token ${ this.peek().value }` );
-    }
-    
-    while( next = this.expect( ')', ']', '.' ) ){
-        switch( next.value ){
-            case '.':
-                property = expression;
-                object = this.expression();
-                expression = new MemberExpression( object, property, false );
+    if( typeof next !== 'undefined' ){
+        let args, callee, object, property;
+        
+        switch( next.type ){
+            
+            case 'identifier':
+                expression = this.identifier();
+                next = this.peek();
+                
+                if( typeof next !== 'undefined' && next.type === 'punctuator' ){
+                    next.value === '.' && this.consume( '.' );
+                    property = expression;
+                    object = this.expression();
+                    expression = new MemberExpression( object, property, false );
+                }
                 break;
-            case ']':
-                property = this.numeric();
-                this.consume( '[' );
-                object = this.expression();
-                expression = new MemberExpression( object, property, true );
+            
+            case 'literal':
+                expression = this.literal();
                 break;
-            case ')':
-                args = this.arguments();
-                this.consume( '(' );
-                callee = this.expression();
-                expression = new CallExpression( callee, args );
+                
+            case 'punctuator':
+                if( next.value === ')' ){
+                    this.consume( ')' );
+                    args = this.arguments();
+                    this.consume( '(' );
+                    callee = this.expression();
+                    expression = new CallExpression( callee, args );
+                } else if( next.value === ']' ){
+                    this.consume( ']' );
+                    property = this.literal();
+                    this.consume( '[' );
+                    object = this.expression();
+                    expression = new MemberExpression( object, property, true );
+                } else {
+                    this.throwError( `Unexpected punctuator token: ${ next.value }` );
+                }
                 break;
+            
             default:
-                this.throwError( `Unexpected token ${ next.value }` );
+                this.throwError( `Unexpected ${ next.type } token: ${ next.value }` );
         }
     }
     
@@ -123,7 +126,7 @@ Builder.prototype.expressionStatement = function(){
 };
 
 Builder.prototype.identifier = function(){
-    var token = this.consume();
+    const token = this.consume();
     
     if( !( token.type === 'identifier' ) ){
         this.throwError( 'Identifier expected' );
@@ -133,7 +136,7 @@ Builder.prototype.identifier = function(){
 };
 
 Builder.prototype.literal = function(){
-    var token = this.consume();
+    const token = this.consume();
     
     if( !( token.type === 'literal' ) ){
         this.throwError( 'Literal expected' );
@@ -142,32 +145,26 @@ Builder.prototype.literal = function(){
     return new Literal( token.value );
 };
 
-Builder.prototype.numeric = function(){
-    var token = this.consume();
-    
-    if( !( token.type === 'numeric' ) ){
-        this.throwError( 'Numeric expected' );
-    }
-    
-    return new Numeric( token.value );
+Builder.prototype.peek = function( first, second, third, fourth ){
+    const length = this.tokens.length;
+    return length ?
+        this.peekAt( length - 1, first, second, third, fourth ) :
+        undefined;
 };
 
-Builder.prototype.peek = function( first, second, third, fourth ){
-    let length = this.tokens.length;
-    if( length ){
-        let token = this.tokens[ length - 1 ],
-            value = token.value;
-        
-        if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
-            return token;
-        }
+Builder.prototype.peekAt = function( index, first, second, third, fourth ){
+    const token = this.tokens[ index ],
+        value = token.value;
+    
+    if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
+        return token;
     }
     
     return undefined;
 };
 
 Builder.prototype.program = function(){
-    var body = [];
+    const body = [];
     
     while( true ){
         if( this.tokens.length ){
@@ -179,7 +176,7 @@ Builder.prototype.program = function(){
 };
 
 Builder.prototype.punctuator = function(){
-    var token = this.consume();
+    const token = this.consume();
     
     if( !( token.type === 'punctuator' ) ){
         throw new BuilderError( 'Punctuator expected' );

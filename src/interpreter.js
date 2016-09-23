@@ -108,7 +108,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
         case 'CallExpression':
             args = [];
             
-            forEach( node.args, function( expr ){
+            forEach( node.arguments, function( expr ){
                 args.push( interpreter.recurse( expr ) );
             } );
             
@@ -137,9 +137,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
         case 'Identifier':
             return interpreter.identifier( node.name, context, create, interpreter.expression );
         case 'Literal':
-            return interpreter.value( node.name, context );
-        case 'Numeric':
-            return interpreter.value( node.name, context );
+            return interpreter.value( node.value, context );
         case 'MemberExpression':
             left = interpreter.recurse( node.object, false, create );
             right = node.computed ?

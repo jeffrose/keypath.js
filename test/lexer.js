@@ -1,93 +1,121 @@
 'use strict';
 
-var chai        = require( 'chai' ),
-    //sinon       = require( 'sinon' ),
-    //sinon_chai  = require( 'sinon-chai' ),
-    Lexer     = require( '../src/lexer' ),
+var chai   = require( 'chai' ),
+    Lexer  = require( '../src/lexer' ),
 
-    expect      = chai.expect;
-
-//chai.use( sinon_chai );
+    expect = chai.expect;
 
 describe( 'Lexer', function(){
-    var target = {
-        foo: {
-            bar: [
-                {
-                    qux: function( value ){
-                        return {
-                            baz: value
-                        };
-                    }
-                },
-                {
-                    qux: function( value ){
-                        return {
-                            baz: value
-                        };
-                    }
-                }
-            ]
-        }
-    };
+    var lexer = new Lexer(),
+        tokens;
     
-    it( 'should parse', function(){
-        var lexer = new Lexer();
+    afterEach( function(){
+        tokens = undefined;
+    } );
+    
+    it( 'should lex identifiers', function(){
+        tokens = lexer.lex( 'abc' );
         
-        //console.log( lexer.lex( 'foo.bar.100.qux.baz' ) );
-        console.log( lexer.lex( 'foo.bar[100]qux(123,%,"bleh")baz' ) );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 1 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', 'abc' );
         
-        /*var lexer = new Lexer( {
-            traverse: function( word, char ){
-                return /^[a-zA-Z0-9]+\.$/.test( word ) || char === undefined;
-            }
-        } );
+        tokens = lexer.lex( 'abc123' );
         
-        lexer.addRule( 'traverse', function( word, char ){
-            return /^[a-zA-Z0-9]+\.$/.test( word ) || char === undefined;
-        } );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 1 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', 'abc123' );
+    } );
+    
+    it( 'should lex literals', function(){
+        tokens = lexer.lex( '123' );
         
-        lexer.addRule( 'execute', function( word, char ){
-            return char === '(';
-        } );// /^[a-zA-Z]+\(.*\)$/ );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 1 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', '123' );
         
-        lexer.addParser( 'execute', function( word, char ){
-            var index = this.buffer.indexOf( ')', this.index ),
-                value = this.buffer.substring( 0, index + 1 );
-            
-            console.log( 'EXECUTE', value );
-            return value;
-        } );
+        tokens = lexer.lex( '"abc"' );
         
-        lexer.addRule( 'iterate', /^[a-zA-Z]+\[.+\]$/ );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 1 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
         
-        lexer.on( 'traverse', function( token ){
-            console.log( 'traverse', token );
-        } );
+        tokens = lexer.lex( "'abc'" );
         
-        lexer.on( 'execute', function( token ){
-            console.log( 'execute', token );
-        } );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 1 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', "'abc'" );
         
-        lexer.on( 'iterate', function( token ){
-            console.log( 'iterate', token );
-        } );
+        tokens = lexer.lex( '"abc""def"' );
         
-        lexer.on( 'end', function(){
-            console.log( 'END', arguments );
-        } );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 2 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 1 ] ).to.have.property( 'value', '"def"' );
         
-        lexer.on( 'finish', function(){
-            console.log( 'FINISH', arguments );
-        } );
+        tokens = lexer.lex( '"abc"123' );
         
-        //console.log( lexer.lex( 'foo.bar.100.qux.baz' ) );
-        lexer.lex( 'foo.bar[100]qux(123)baz' );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 2 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 1 ] ).to.have.property( 'value', '123' );
+    } );
+    
+    it( 'should lex punctuators', function(){
+        tokens = lexer.lex( '.,[]()%' );
         
-        lexer.flush();
-        */
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 7 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', '.' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 1 ] ).to.have.property( 'value', ',' );
+        expect( tokens[ 2 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 2 ] ).to.have.property( 'value', '[' );
+        expect( tokens[ 3 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 3 ] ).to.have.property( 'value', ']' );
+        expect( tokens[ 4 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 4 ] ).to.have.property( 'value', '(' );
+        expect( tokens[ 5 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 5 ] ).to.have.property( 'value', ')' );
+        expect( tokens[ 6 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 6 ] ).to.have.property( 'value', '%' );
+    } );
+    
+    it( 'should not permit invalid characters', function(){
+        expect( () => lexer.lex( '~' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '!' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '@' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '#' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '^' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '&' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '*' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '<' ) ).to.throw( SyntaxError );
+        expect( () => lexer.lex( '>' ) ).to.throw( SyntaxError );
+    } );
+    
+    it( 'should ignore whitespace', function(){
+        tokens = lexer.lex( ' ' );
         
-        //expect( keyPath.get( 'foo.bar.100.qux.baz' ) ).to.be.undefined;
-        //expect( keyPath.get( 'foo.bar[100]qux(123)baz' ) ).to.equal( 123 );
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 0 );
+        
+        tokens = lexer.lex( ' abc def ' );
+        
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 2 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', 'abc' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 1 ] ).to.have.property( 'value', 'def' );
     } );
 } );
