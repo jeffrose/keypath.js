@@ -11,4 +11,11 @@ gulp.task( 'test', function( done ){
         .on( 'end', done );
 } );
 
-gulp.task( 'default', [ 'test' ] );
+gulp.task( 'tk-test', function( done ){
+    gulp.src( [ 'test/tk.js' ] )
+        .pipe( debug() )
+        .pipe( mocha() )
+        .on( 'end', done );
+} );
+
+gulp.task( 'default', [ 'tk-test', 'test' ] );
