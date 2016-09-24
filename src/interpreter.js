@@ -1,10 +1,15 @@
 'use strict';
 
-import { default as forEach } from './forEach';
-import { default as Null } from './null';
+import forEach from './forEach';
+import Null from './null';
 
 const noop = function(){};
 
+/**
+ * @class Interpreter
+ * @extends Null
+ * @param {Builder} builder
+ */
 export default function Interpreter( builder ){
     this.builder = builder;
 }
@@ -23,26 +28,29 @@ Interpreter.prototype.compile = function( expression ){
     interpreter.expression = expression;
     
     forEach( body, function( statement ){
-        expressions.push( interpreter.recurse( statement.expression, false, false ) );
+        expressions.push( interpreter.recurse( statement.expression, false ) );
     } );
     
     fn = body.length === 0 ? noop :
         body.length === 1 ? expressions[ 0 ] :
         function(){
-            console.log( 'FOO' );
+            console.log( 'FOO', arguments );
             return 'foo';
         };
     
-    return fn;
+    return function( target, create, value ){
+        console.log( 'ARGS', arguments );
+        return fn( target, create, value );
+    };
 };
 
-Interpreter.prototype.computedMember = function( left, right, context, create, expression ){
-    return function( base ){
-        var lhs = left( base ),
+Interpreter.prototype.computedMember = function( left, right, context, expression ){
+    return function( base, create ){
+        var lhs = left( base, create ),
             rhs, value;
         
         if( typeof lhs !== 'undefined' ){
-            rhs = right( base );
+            rhs = right( base, create );
             
             if( create && !( rhs in lhs ) ){
                 lhs[ rhs ] = new Null();
@@ -57,8 +65,8 @@ Interpreter.prototype.computedMember = function( left, right, context, create, e
     };
 };
 
-Interpreter.prototype.identifier = function( name, context, create, expression ){
-    return function( base ){
+Interpreter.prototype.identifier = function( name, context, expression ){
+    return function( base, create ){
         let value;
         
         if( typeof base !== 'undefined' ){
@@ -75,9 +83,9 @@ Interpreter.prototype.identifier = function( name, context, create, expression )
     };
 };
 
-Interpreter.prototype.nonComputedMember = function( left, right, context, create, expression ){
-    return function( base ){
-        var lhs = left( base ),
+Interpreter.prototype.nonComputedMember = function( left, right, context, expression ){
+    return function( base, create ){
+        var lhs = left( base, create ),
             value;
         
         if( typeof lhs !== 'undefined' ){
@@ -94,33 +102,30 @@ Interpreter.prototype.nonComputedMember = function( left, right, context, create
     };
 };
 
-Interpreter.prototype.recurse = function( node, context, create ){
-    var interpreter = this,
-        args, left, right;
+Interpreter.prototype.recurse = function( node, context ){
+    const interpreter = this;
+    let left, right;
     
     switch( node.type ){
         case 'CallExpression':
-            args = [];
+            const args = [];
             
             forEach( node.arguments, function( expr ){
-                args.push( interpreter.recurse( expr, false, false ) );
+                args.push( interpreter.recurse( expr, false ) );
             } );
             
-            right = interpreter.recurse( node.callee, true, false );
+            right = interpreter.recurse( node.callee, true );
             
-            return function( base ){
-                const rhs = right( base );
+            return function( base, create ){
+                if( create ){
+                    throw new Error( 'cannot create functions' );
+                }
+                
+                const rhs = right( base, create );
                 let value;
                 
-                if( rhs.value != null ){
-                    let values = [],
-                        index = 0,
-                        length = args.length;
-                    
-                    for( ; index < length; ++index ){
-                        values.push( args[ index ]( base ) );
-                    }
-                    
+                if( typeof rhs.value === 'function' ){
+                    const values = args.map( ( arg ) => arg( base, create ) );
                     value = rhs.value.apply( rhs.context, values );
                 }
                 
@@ -129,18 +134,18 @@ Interpreter.prototype.recurse = function( node, context, create ){
                     value;
             };
         case 'Identifier':
-            return interpreter.identifier( node.name, context, create, interpreter.expression );
+            return interpreter.identifier( node.name, context, interpreter.expression );
         case 'Literal':
             return interpreter.value( node.value, context );
         case 'MemberExpression':
-            left = interpreter.recurse( node.object, false, create );
+            left = interpreter.recurse( node.object, false );
             right = node.computed ?
-                interpreter.recurse( node.property, false, false ) :
+                interpreter.recurse( node.property, false ) :
                 node.property.name;
             
             return node.computed ?
-                interpreter.computedMember( left, right, context, create, interpreter.expression ) :
-                interpreter.nonComputedMember( left, right, context, create, interpreter.expression );
+                interpreter.computedMember( left, right, context, interpreter.expression ) :
+                interpreter.nonComputedMember( left, right, context, interpreter.expression );
         case 'Program':
             break;
     }

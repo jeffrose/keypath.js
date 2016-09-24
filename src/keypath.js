@@ -29,9 +29,9 @@ KeyPathExp.prototype = new Null();
 KeyPathExp.prototype.constructor = KeyPathExp;
 
 KeyPathExp.prototype.get = function( target ){
-    
+    return this.value( target, false );
 };
 
-KeyPathExp.prototype.set = function( target ){
-    
+KeyPathExp.prototype.set = function( target, value ){
+    return this.value( target, true, value );
 };
