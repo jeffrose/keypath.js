@@ -117,16 +117,14 @@ Interpreter.prototype.recurse = function( node, context ){
             right = interpreter.recurse( node.callee, true );
             
             return function( base, create ){
-                if( create ){
-                    throw new Error( 'cannot create functions' );
-                }
-                
                 const rhs = right( base, create );
                 let value;
                 
                 if( typeof rhs.value === 'function' ){
                     const values = args.map( ( arg ) => arg( base, create ) );
                     value = rhs.value.apply( rhs.context, values );
+                } else if( create ){
+                    throw new Error( 'cannot create functions' );
                 }
                 
                 return context ?
