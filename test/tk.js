@@ -11,39 +11,43 @@ var chai        = require( 'chai' ),
 describe( 'tk', function(){
     var data;
 
+            // var str2 = 'accounts.1.{~accounts.3.propAry.0}';
     beforeEach(function(){
         data = {
             'propA': 'one',
             'propB': 'two',
             'propC': 'three',
             'accounts': [
-                { 'ary': [9,8,7,6] },
-                {
-                    'checking': {
-                        'balance': 123.00,
-                        'id': '12345',
-                        'fn': function(){ return 'Function return value'; },
-                        'repeat': 'propA'
-                    },
-                    'savX': 'X',
-                    'savY': 'Y',
-                    'savZ': 'Z',
-                    'savAa': 'aa',
-                    'savAb': 'ab',
-                    'savAc': 'ac',
-                    'savBa': 'ba',
-                    'savBb': 'bb',
-                    'savBc': 'bc',
-                    'test1': 'propA',
-                    'test2': 'propB',
-                    'test3': 'propC'
-                },
-                function(){ return 1;},
-                { 'propAry': ['savBa', 'savBb'] }
+                /* 0 */ { 'ary': [9,8,7,6] },
+                /* 1 */ {
+                            'checking': {
+                                'balance': 123.00,
+                                'id': '12345',
+                                'fn': function(){ return 'Function return value'; },
+                                'repeat': 'propA'
+                            },
+                            'savX': 'X',
+                            'savY': 'Y',
+                            'savZ': 'Z',
+                            'savAa': 'aa',
+                            'savAb': 'ab',
+                            'savAc': 'ac',
+                            'savBa': 'ba',
+                            'savBb': 'bb',
+                            'savBc': 'bc',
+                            'test1': 'propA',
+                            'test2': 'propB',
+                            'test3': 'propC'
+                        },
+                /* 2 */ function(){ return 1;},
+                /* 3 */ { 'propAry': ['savBa', 'savBb'] }
             ]
         };
 
     });
+
+    // describe( 'debug', function(){
+    // });
 
     describe( 'getPath', function(){
         it( 'should get simple dot-separated properties', function(){
@@ -53,7 +57,7 @@ describe( 'tk', function(){
 
         it( 'should return undefined for paths that do not exist', function(){
             var str = 'xaccounts.1.checking.id';
-            console.log(JSON.stringify(tk.getPath(data, str)));
+            // console.log(JSON.stringify(tk.getPath(data, str)));
             expect(tk.getPath(data, str)).to.be.undefined;
             str = 'accounts.9.checking.id';
             expect(tk.getPath(data, str)).to.be.undefined;
@@ -63,13 +67,13 @@ describe( 'tk', function(){
         } );
 
         it( 'should be able to evaluate [] container and execute function', function(){
-            var str = 'accounts[2()]checking.id';
+            var str = 'accounts{2()}checking.id';
             var tmp = data.accounts[2]();
             expect(tk.getPath(data, str)).to.equal(data.accounts[tmp].checking.id);
         } );
 
         it( 'should execute function at tail of path', function(){
-            var str = 'accounts[2()]checking.fn()';
+            var str = 'accounts{2()}checking.fn()';
             var tmp = data.accounts[2]();
             expect(tk.getPath(data, str)).to.equal(data.accounts[tmp].checking.fn());
         } );
@@ -115,15 +119,22 @@ describe( 'tk', function(){
             expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
         });
         
+        it('should allow root prefix to shift context within object', function () {
+            var str = 'accounts.0.~accounts.1.checking.id';
+            expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+        });
+        
         it('should allow multiple prefixes in one word', function () {
             var str = 'accounts.3.propAry.<<1.checking.id';
             expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
         });
         
         it('should allow container to leave outer context alone while processing internal prefix paths', function () {
-            var str = 'accounts.1.[<3.propAry.0]';
+            var str = 'accounts.1.{<3.propAry.0}';
+            var str2 = 'accounts.1.{~accounts.3.propAry.0}';
             var val = data.accounts[1][ data.accounts[3].propAry[0] ];
             expect(tk.getPath(data, str)).to.equal(val);
+            expect(tk.getPath(data, str2)).to.equal(val);
         });
         
         it( 'should let grouping separator create array of results', function(){
@@ -151,7 +162,7 @@ describe( 'tk', function(){
         } );
         
         it( 'should allow container inside group', function(){
-            var str = 'accounts.1.[<3.propAry.0],savA*';
+            var str = 'accounts.1.{<3.propAry.0},savA*';
             var ary = [];
             ary.push(data.accounts[1][ data.accounts[3].propAry[0] ]);
             for(var prop in data.accounts[1]){
@@ -165,7 +176,7 @@ describe( 'tk', function(){
         } );
         
         it( 'should allow path of only a comma group', function(){
-            var str = '[accounts.1.test1],[accounts.1.test2]';
+            var str = '{accounts.1.test1},{accounts.1.test2}';
             var ary = [];
             ary.push(data[data.accounts[1].test1]);
             ary.push(data[data.accounts[1].test2]);
@@ -252,7 +263,7 @@ describe( 'tk', function(){
         });
 
         it( 'should set value to all entries in comma group of containers', function(){
-            var str = '[accounts.1.test1],[accounts.1.test2]';
+            var str = '{accounts.1.test1},{accounts.1.test2}';
             var newVal = 'new';
             expect(tk.setPath(data, str, newVal)).to.be.true;
             expect(data[data.accounts[1].test1]).to.equal(newVal);
@@ -473,7 +484,7 @@ describe( 'tk', function(){
         });
 
         it('should find complex value', function () {
-            var str = 'accounts.1.[<3.propAry.0],savA*';
+            var str = 'accounts.1.{<3.propAry.0},savA*';
             // var str = 'accounts[accounts.2()]checking.fn()';
             testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, complexObj, str));
         });
@@ -487,7 +498,7 @@ describe( 'tk', function(){
         });
 
         it('should compare complex value resolution with plain javascript version', function () {
-            var str = 'accounts.1.[<3.propAry.0],savA*';
+            var str = 'accounts.1.{<3.propAry.0},savA*';
             var testFunc = function(data){
                 var ary = [];
                 ary.push(data.accounts[1][ data.accounts[3].propAry[0] ]);
