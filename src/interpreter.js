@@ -39,15 +39,14 @@ Interpreter.prototype.compile = function( expression ){
         };
     
     return function( target, create, value ){
-        console.log( 'ARGS', arguments );
         return fn( target, create, value );
     };
 };
 
 Interpreter.prototype.computedMember = function( left, right, context, expression ){
     return function( base, create ){
-        var lhs = left( base, create ),
-            rhs, value;
+        const lhs = left( base, create );
+        let rhs, value;
         
         if( typeof lhs !== 'undefined' ){
             rhs = right( base, create );
@@ -84,21 +83,21 @@ Interpreter.prototype.identifier = function( name, context, expression ){
 };
 
 Interpreter.prototype.nonComputedMember = function( left, right, context, expression ){
-    return function( base, create ){
-        var lhs = left( base, create ),
-            value;
+    return function( base, create, value ){
+        const lhs = left( base, create );
+        let returnValue;
         
         if( typeof lhs !== 'undefined' ){
             if( create && !( right in lhs ) ){
-                lhs[ right ] = new Null();
+                lhs[ right ] = value || new Null();
             }
             
-            value = lhs[ right ];
+            returnValue = lhs[ right ];
         }
         
         return context ?
-            { context: lhs, name: right, value: value } :
-            value;
+            { context: lhs, name: right, value: returnValue } :
+            returnValue;
     };
 };
 

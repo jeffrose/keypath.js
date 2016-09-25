@@ -8,7 +8,7 @@ var chai       = require( 'chai' ),
 describe( 'KeyPathExp', function(){
     
     it( 'should compile an AST', function(){
-        var kpex = new KeyPathExp( 'foo.bar[0]baz' ),
+        var kpex = new KeyPathExp( 'foo[0]baz' ),
             empty = {};
             
         // foo.bar[0]qux(123,"bleh")baz
