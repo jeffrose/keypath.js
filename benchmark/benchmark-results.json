@@ -1,26 +1,34 @@
 [
   {
     "name": "KeyPathExp#get",
-    "timestamp": "Mon Sep 26 2016 02:30:34 GMT+0000 (UTC)",
-    "count": 124058,
-    "cycles": 4,
-    "hz": 2064840.5467788216,
+    "timestamp": "Mon Sep 26 2016 12:08:11 GMT-0400 (EDT)",
+    "count": 69118,
+    "cycles": 6,
+    "hz": 1087163.929951838,
     "suite": "KeyPathExp vs. tk vs. keypather"
   },
   {
     "name": "tk#getPath",
-    "timestamp": "Mon Sep 26 2016 02:30:39 GMT+0000 (UTC)",
-    "count": 4636,
-    "cycles": 3,
-    "hz": 81540.502284568,
+    "timestamp": "Mon Sep 26 2016 12:08:16 GMT-0400 (EDT)",
+    "count": 18360,
+    "cycles": 4,
+    "hz": 291843.60832165263,
+    "suite": "KeyPathExp vs. tk vs. keypather"
+  },
+  {
+    "name": "tk#getPath-pre-compiled",
+    "timestamp": "Mon Sep 26 2016 12:08:22 GMT-0400 (EDT)",
+    "count": 18592,
+    "cycles": 5,
+    "hz": 353686.32473640604,
     "suite": "KeyPathExp vs. tk vs. keypather"
   },
   {
     "name": "keypather#get",
-    "timestamp": "Mon Sep 26 2016 02:30:45 GMT+0000 (UTC)",
-    "count": 7135,
-    "cycles": 5,
-    "hz": 110803.39338045752,
+    "timestamp": "Mon Sep 26 2016 12:08:27 GMT-0400 (EDT)",
+    "count": 3037,
+    "cycles": 8,
+    "hz": 49196.45978520862,
     "suite": "KeyPathExp vs. tk vs. keypather"
   }
 ]

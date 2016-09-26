@@ -95,11 +95,17 @@ gulp.task( 'test-all', ( done ) => {
         .on( 'end', done );
 } );
 
-gulp.task( 'tk-test', ( done ) => {
-    gulp.src( [ 'test/tk.js' ] )
-        .pipe( debug() )
-        .pipe( mocha() )
-        .on( 'end', done );
+gulp.task( 'tk-test', [ 'dist' ], ( done ) => {
+    gulp.src( [ 'dist/tk-umd.js' ] )
+        .pipe( istanbul() )
+        .pipe( istanbul.hookRequire() )
+        .on( 'finish', () => {
+            gulp.src( [ 'test/tk.js' ], { read: false } )
+                .pipe( debug() )
+                .pipe( mocha() )
+                .pipe( istanbul.writeReports() )
+                .on( 'end', done );
+        } );
 } );
 
 gulp.task( 'benchmark', [ 'dist' ], () => {

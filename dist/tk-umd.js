@@ -144,6 +144,8 @@ var isObject = function isObject(val) {
     return typeof val === 'function' || (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object';
 };
 
+var cache = {};
+
 /*
  *  Scan input string from left to right, one character at a time. If a special character
  *  is found (one of "separators" or "containers"), either store the accumulated word as
@@ -152,6 +154,10 @@ var isObject = function isObject(val) {
  *  recursively on string within container.
  */
 var tokenize = function tokenize(str) {
+    if (cache[str]) {
+        return cache[str];
+    }
+
     var tokens = [],
         mods = {},
         strLength = str.length,
@@ -251,7 +257,14 @@ var tokenize = function tokenize(str) {
         // word is a plain property
         word && tokens.push(word);
     }
-    return depth === 0 ? tokens : undefined; // depth != 0 means mismatched containers
+
+    // depth != 0 means mismatched containers
+    if (depth !== 0) {
+        return undefined;
+    }
+
+    cache[str] = tokens;
+    return tokens;
 };
 
 // var getContext = function getContext(context, valueStack, word){
@@ -300,9 +313,7 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
             ret,
             lastToken = idx === tk.length - 1,
             newValueHere = change && lastToken;
-        if (typeof curr === 'undefined' || typeof prev === 'undefined') {
-            ret = undefined;
-        } else if (typeof curr === 'string') {
+        if (typeof curr === 'string') {
             // Cannot do ".hasOwnProperty" here since that breaks when testing
             // for functions defined on prototypes (e.g. [1,2,3].sort())
             if (typeof context[curr] !== 'undefined') {
@@ -343,6 +354,8 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
                     }
                 }
             }
+        } else if (typeof curr === 'undefined' || typeof prev === 'undefined') {
+            ret = undefined;
         } else if (curr.w) {
             // this word token has modifiers, modify current context
             if (curr.mods.parent) {
@@ -410,7 +423,7 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
         }
         valueStack.unshift(ret);
         return ret;
-    }.bind(this), obj);
+    }, obj);
 };
 
 var scanForValue = function scanForValue(obj, val, savePath, path) {
@@ -444,6 +457,10 @@ var scanForValue = function scanForValue(obj, val, savePath, path) {
     return true; // keep looking
 };
 
+var getTokens = function getTokens(path) {
+    return { t: tokenize(path) };
+};
+
 var getPath = function getPath(obj, path) {
     var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
     return resolvePath(obj, path, undefined, args);
@@ -472,34 +489,34 @@ var getPathFor = function getPathFor(obj, val, oneOrMany) {
     return retVal[0] ? retVal : undefined;
 };
 
-var setOptions = function setOptions(options) {
-    if (options.prefixes) {
-        for (var p in options.prefixes) {
-            if (options.prefixes.hasOwnProperty(p)) {
-                prefixes[p] = options.prefixes[p];
-            }
-        }
-    }
-    if (options.separators) {
-        for (var s in options.separators) {
-            if (options.separators.hasOwnProperty(s)) {
-                separators[s] = options.separators[s];
-            }
-        }
-    }
-    if (options.containers) {
-        for (var c in options.containers) {
-            if (options.containers.hasOwnProperty(c)) {
-                containers[c] = options.containers[c];
-            }
-        }
-    }
-};
+// export var setOptions = function(options){
+//     if (options.prefixes){
+//         for (var p in options.prefixes){
+//             if (options.prefixes.hasOwnProperty(p)){
+//                 prefixes[p] = options.prefixes[p];
+//             }
+//         }
+//     }
+//     if (options.separators){
+//         for (var s in options.separators){
+//             if (options.separators.hasOwnProperty(s)){
+//                 separators[s] = options.separators[s];
+//             }
+//         }
+//     }
+//     if (options.containers){
+//         for (var c in options.containers){
+//             if (options.containers.hasOwnProperty(c)){
+//                 containers[c] = options.containers[c];
+//             }
+//         }
+//     }
+// };
 
+exports.getTokens = getTokens;
 exports.getPath = getPath;
 exports.setPath = setPath;
 exports.getPathFor = getPathFor;
-exports.setOptions = setOptions;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
