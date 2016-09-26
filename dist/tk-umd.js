@@ -99,6 +99,7 @@ var prefixes = {
         'exec': 'placeholder'
     }
 };
+var prefixList = Object.keys(prefixes);
 
 var separators = {
     '.': {
@@ -108,6 +109,7 @@ var separators = {
         'exec': 'collection'
     }
 };
+var separatorList = Object.keys(separators);
 
 var containers = {
     // '[': {
@@ -123,6 +125,7 @@ var containers = {
         'exec': 'property'
     }
 };
+var containerList = Object.keys(containers);
 
 var wildCardMatch = function wildCardMatch(template, str) {
     var pos = template.indexOf('*'),
@@ -136,6 +139,10 @@ var wildCardMatch = function wildCardMatch(template, str) {
     }
     return match;
 };
+var specials = '[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
+var specialRegEx = new RegExp(specials);
+console.log('Specials:', specialRegEx.toString());
+console.log(specialRegEx.test('abc()'));
 
 var isObject = function isObject(val) {
     if (val === null) {
@@ -297,6 +304,21 @@ var tokenize = function tokenize(str) {
 // }
 
 var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
+    if (typeof path === 'string' && typeof newValue === 'undefined' && !path.match(specialRegEx)) {
+        var ary = path.split('.');
+        var len = ary.length;
+        var returnVal = obj;
+        var i = 0;
+        while (returnVal !== undefined && i < len) {
+            if (i.length < 0) {
+                returnVal = undefined;
+            }
+            returnVal = returnVal[ary[i]];
+            i++;
+        }
+        return returnVal;
+    }
+
     valueStack = valueStack || [obj]; // Initialize valueStack with original data object
     args = args || []; // args defaults to empty array
 
