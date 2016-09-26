@@ -120,7 +120,9 @@ Interpreter.prototype.recurse = function( node, context ){
                 let value;
                 
                 if( typeof rhs.value === 'function' ){
-                    const values = args.map( ( arg ) => arg( base, create ) );
+                    const values = args.map( function( arg ){
+                        return arg( base, create );
+                    } );
                     value = rhs.value.apply( rhs.context, values );
                 } else if( create ){
                     throw new Error( 'cannot create functions' );

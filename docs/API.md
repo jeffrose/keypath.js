@@ -1,3 +1,37 @@
+## Classes
+
+<dl>
+<dt><a href="#BuilderError">BuilderError</a> ⇐ <code>SyntaxError</code></dt>
+<dd></dd>
+<dt><a href="#Builder">Builder</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#Interpreter">Interpreter</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#KeyPathExp">KeyPathExp</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#LexerError">LexerError</a> ⇐ <code>SyntaxError</code></dt>
+<dd></dd>
+<dt><a href="#Lexer">Lexer</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#Null">Null</a> ⇐ <code><a href="#external_null">null</a></code></dt>
+<dd></dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#kp">kp(literals, ...values)</a> ⇒ <code><a href="#kpCallback">kpCallback</a></code></dt>
+<dd><p>A template literal tag for keypath processing.</p>
+</dd>
+</dl>
+
+## Typedefs
+
+<dl>
+<dt><a href="#kpCallback">kpCallback</a> : <code>function</code></dt>
+<dd></dd>
+</dl>
+
 ## External
 
 <dl>
@@ -32,6 +66,116 @@
 <dd><p>JavaScript <a href="https://developer.mozilla.org/en-US/docs/Glossary/Primitive">primitive</a> symbol</p>
 </dd>
 </dl>
+
+<a name="BuilderError"></a>
+
+## BuilderError ⇐ <code>SyntaxError</code>
+**Kind**: global class  
+**Extends:** <code>SyntaxError</code>  
+<a name="new_BuilderError_new"></a>
+
+### new BuilderError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Builder"></a>
+
+## Builder ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+<a name="new_Builder_new"></a>
+
+### new Builder(lexer)
+
+| Param | Type |
+| --- | --- |
+| lexer | <code>[Lexer](#Lexer)</code> | 
+
+<a name="Interpreter"></a>
+
+## Interpreter ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+<a name="new_Interpreter_new"></a>
+
+### new Interpreter(builder)
+
+| Param | Type |
+| --- | --- |
+| builder | <code>[Builder](#Builder)</code> | 
+
+<a name="KeyPathExp"></a>
+
+## KeyPathExp ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+<a name="new_KeyPathExp_new"></a>
+
+### new KeyPathExp(pattern, flags)
+
+| Param | Type |
+| --- | --- |
+| pattern | <code>[string](#external_string)</code> | 
+| flags | <code>[string](#external_string)</code> | 
+
+<a name="LexerError"></a>
+
+## LexerError ⇐ <code>SyntaxError</code>
+**Kind**: global class  
+**Extends:** <code>SyntaxError</code>  
+<a name="new_LexerError_new"></a>
+
+### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Lexer"></a>
+
+## Lexer ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+<a name="Null"></a>
+
+## Null ⇐ <code>[null](#external_null)</code>
+**Kind**: global class  
+**Extends:** <code>[null](#external_null)</code>  
+<a name="new_Null_new"></a>
+
+### new Null()
+A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
+
+<a name="kp"></a>
+
+## kp(literals, ...values) ⇒ <code>[kpCallback](#kpCallback)</code>
+A template literal tag for keypath processing.
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| literals | <code>external:Array.&lt;string&gt;</code> | 
+| ...values | <code>[Array](#external_Array)</code> | 
+
+**Example**  
+```js
+const object = { foo: { bar: { qux: { baz: 'fuz' } } } },
+ getBaz = ( target ) => kp`foo.bar.qux.baz`( target );
+
+console.log( getBaz( object ) ); // "fuz"
+```
+<a name="kpCallback"></a>
+
+## kpCallback : <code>function</code>
+**Kind**: global typedef  
+
+| Param | Type |
+| --- | --- |
+| target | <code>\*</code> | 
+| [value] | <code>\*</code> | 
 
 <a name="external_Array"></a>
 

@@ -4,6 +4,7 @@ const gulp = require( 'gulp' ),
     babel = require( 'rollup-plugin-babel' ),
     benchmark = require( 'gulp-bench' ),
     buffer = require( 'vinyl-buffer' ),
+    concat = require( 'gulp-concat' ),
     debug = require( 'gulp-debug' ),
     gutil = require( 'gulp-util' ),
     istanbul = require( 'gulp-istanbul' ),
@@ -64,14 +65,15 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
 
 gulp.task( 'docs', () => {
     return gulp.src( [ 'index.js', 'src/**.js' ] )
+        .pipe( concat( 'API.md' ) )
         .pipe( jsdoc() )
         .on( 'error', ( error ) => {
             log( colors.red( 'jsdoc failed' ), error.message );
         } )
-        .pipe( rename( {
+        /*.pipe( rename( {
             //basename: 'API',
             extname: '.md'
-        } ) )
+        } ) )*/
         .pipe( gulp.dest( 'docs' ) );
 } );
 
