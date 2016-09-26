@@ -41,6 +41,7 @@
     "gulp-uglify": "1.5.3",
     "gulp-util": "3.0.7",
     "keypather": "2.0.1",
+    "lodash.get": "4.4.2",
     "merge-stream": "1.0.0",
     "mocha": "3.0.2",
     "rollup-plugin-babel": "2.6.1",
