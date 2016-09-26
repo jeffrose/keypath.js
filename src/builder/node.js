@@ -8,7 +8,7 @@ import nextId from '../uuid';
  * @extends Null
  * @param {external:string} type The type of node
  */
-export default function Node( type ){
+function Node( type ){
     
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
@@ -45,6 +45,8 @@ Node.prototype.toString = function(){
 Node.prototype.valueOf = function(){
     return this.id;
 };
+
+export { Node as default };
 
 function Statement( statementType ){
     Node.call( this, statementType );

@@ -1,7 +1,7 @@
 'use strict';
 
 var chai       = require( 'chai' ),
-    KeyPathExp = require( '../src/keypath' ),
+    KeyPathExp = require( '../dist/keypath-umd' ),
 
     expect     = chai.expect;
 

@@ -15,7 +15,7 @@ const lexer = new Lexer(),
  * @param {external:string} pattern
  * @param {external:string} flags
  */
-export default function KeyPathExp( pattern, flags ){
+function KeyPathExp( pattern, flags ){
     Object.defineProperty( this, 'value', {
         value: intrepreter.compile( pattern ),
         configurable: false,
@@ -35,3 +35,5 @@ KeyPathExp.prototype.get = function( target ){
 KeyPathExp.prototype.set = function( target, value ){
     return this.value( target, true, value );
 };
+
+export { KeyPathExp as default };

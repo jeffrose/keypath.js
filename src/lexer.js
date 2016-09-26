@@ -1,7 +1,7 @@
 'use strict';
 
 import Null from './null';
-import { Identifier, Literal, Punctuator } from './lexer/token';
+import { default as Token, Identifier, Literal, Punctuator } from './lexer/token';
 
 /**
  * @class LexerError

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "KeyPathExp#get",
+    "timestamp": "Mon Sep 26 2016 02:30:34 GMT+0000 (UTC)",
+    "count": 124058,
+    "cycles": 4,
+    "hz": 2064840.5467788216,
+    "suite": "KeyPathExp vs. tk vs. keypather"
+  },
+  {
+    "name": "tk#getPath",
+    "timestamp": "Mon Sep 26 2016 02:30:39 GMT+0000 (UTC)",
+    "count": 4636,
+    "cycles": 3,
+    "hz": 81540.502284568,
+    "suite": "KeyPathExp vs. tk vs. keypather"
+  },
+  {
+    "name": "keypather#get",
+    "timestamp": "Mon Sep 26 2016 02:30:45 GMT+0000 (UTC)",
+    "count": 7135,
+    "cycles": 5,
+    "hz": 110803.39338045752,
+    "suite": "KeyPathExp vs. tk vs. keypather"
+  }
+]

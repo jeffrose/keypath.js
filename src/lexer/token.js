@@ -1,9 +1,9 @@
 'use strict';
 
-import nextId from '../uuid';
 import Null from '../null';
+import nextId from '../uuid';
 
-export default function Token( type, value ){
+function Token( type, value ){
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
     }
@@ -42,6 +42,8 @@ Token.prototype.toString = function(){
 Token.prototype.valueOf = function(){
     return this.id;
 };
+
+export { Token as default };
 
 export function Identifier( value ){
     Token.call( this, 'identifier', value );
