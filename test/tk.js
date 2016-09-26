@@ -24,6 +24,7 @@ describe( 'tk', function(){
                                 'balance': 123.00,
                                 'id': '12345',
                                 'fn': function(){ return 'Function return value'; },
+                                'fnArg': function(){ var args = Array.prototype.slice.call(arguments); return args.join(','); },
                                 'repeat': 'propA'
                             },
                             'savX': 'X',
@@ -49,6 +50,7 @@ describe( 'tk', function(){
     // describe( 'debug', function(){
     // });
 
+    // describe( 'disable', function(){
     describe( 'getPath', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -184,6 +186,18 @@ describe( 'tk', function(){
             expect(tk.getPath(data, str).length).to.equal(ary.length);
             expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
         } );
+
+        it( 'should process placeholders', function(){
+            var str = 'accounts.%1.%2';
+            var key = 'savX';
+            expect(tk.getPath(data, str, 1, key)).to.equal(data.accounts[1].savX);
+        });
+        
+        it( 'should call functions with placeholder args', function(){
+            var str = 'accounts.1.checking.fnArg(%1, %2)';
+            var key = 'hello';
+            expect(tk.getPath(data, str, key, key)).to.equal(data.accounts[1].checking.fnArg(key, key));
+        });
     });
 
     describe( 'setPath', function(){
@@ -277,6 +291,13 @@ describe( 'tk', function(){
             expect(tk.setPath(data, str, newVal)).to.be.false;
         });
 
+        it( 'should process placeholders when setting new value', function(){
+            var str = 'accounts.1.%1.id';
+            var key = 'checking'
+            var newVal = 'new';
+            tk.setPath(data, str, newVal, key);
+            expect(tk.getPath(data, str, key)).to.equal(newVal);
+        } );
     });
 
     describe( 'getPathFor', function(){
@@ -516,5 +537,6 @@ describe( 'tk', function(){
         });
 
     });
+    // });
 
 } );

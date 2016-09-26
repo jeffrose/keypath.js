@@ -7,8 +7,12 @@ var prefixes = {
     },
     '~': {
         'exec': 'root'
+    },
+    '%': {
+        'exec': 'placeholder'
     }
-};
+},
+prefixList = Object.keys(prefixes);
 
 var separators = {
     '.': {
@@ -17,13 +21,14 @@ var separators = {
     ',': {
         'exec': 'collection'
         }
-};
+},
+separatorList = Object.keys(separators);
 
 var containers = {
-    '[': {
-        'closer': ']',
-        'exec': '??'
-        },
+    // '[': {
+    //     'closer': ']',
+    //     'exec': '??'
+    //     },
     '(': {
         'closer': ')',
         'exec': 'call'
@@ -32,7 +37,8 @@ var containers = {
         'closer': '}',
         'exec': 'property'
         }
-};
+},
+containerList = Object.keys(containers);
 
 var wildCardMatch = function(template, str){
     var pos = template.indexOf('*'),
@@ -204,8 +210,9 @@ var tokenize = function (str){
 // 	return '';
 // }
 
-var resolvePath = function (obj, path, newValue, valueStack){
+var resolvePath = function (obj, path, newValue, args, valueStack){
     valueStack = valueStack || [obj]; // Initialize valueStack with original data object
+    args = args || []; // args defaults to empty array
 
     var change = newValue !== undefined,
         val,
@@ -213,9 +220,9 @@ var resolvePath = function (obj, path, newValue, valueStack){
         i,
         root = valueStack[valueStack.length -1]; // Root is an alias for original data object
 
-    tk = typeof path === 'string' ? tokenize(path) : path.t;
+    tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
 
-    return tk.reduce(function(prev, curr, idx){
+    return tk.length === 0 ? undefined : tk.reduce(function(prev, curr, idx){
         var context = valueStack[0],
             ret,
             lastToken = (idx === (tk.length - 1)),
@@ -242,23 +249,23 @@ var resolvePath = function (obj, path, newValue, valueStack){
             else { return undefined; }
         }
         else if (Array.isArray(curr)){
-            // call getPath again with base value as evaluated value so far and
+            // call resolvePath again with base value as evaluated value so far and
             // each element of array as the path. Concat all the results together.
             ret = [];
             for (i = 0; curr[i] !== undefined; i++){
                 if (newValueHere){
                     if (curr[i].t && curr[i].exec === 'property'){
-                        context[getPath(context, curr[i], valueStack.concat())] = newValue;
-                        ret = ret.concat(context[getPath(context, curr[i], valueStack.concat())]);
+                        context[resolvePath(context, curr[i], newValue, args, valueStack.concat())] = newValue;
+                        ret = ret.concat(context[resolvePath(context, curr[i], newValue, args, valueStack.concat())]);
                     } else {
-                        ret = ret.concat(setPath(context, curr[i], newValue, valueStack.concat()));
+                        ret = ret.concat(resolvePath(context, curr[i], newValue, args, valueStack.concat()));
                     }
                 }
                 else {
                     if (curr[i].t && curr[i].exec === 'property'){
-                        ret = ret.concat(context[getPath(context, curr[i], valueStack.concat())]);
+                        ret = ret.concat(context[resolvePath(context, curr[i], newValue, args, valueStack.concat())]);
                     } else {
-                        ret = ret.concat(getPath(context, curr[i], valueStack.concat()));
+                        ret = ret.concat(resolvePath(context, curr[i], newValue, args, valueStack.concat()));
                     }
                 }
             }
@@ -274,12 +281,24 @@ var resolvePath = function (obj, path, newValue, valueStack){
                 context = root;
                 valueStack = [root];
             }
-            // curr = curr.w;
+            if (curr.mods.placeholder){
+                if (curr.w.length === 0) { return undefined; }
+                var placeInt = Number.parseInt(curr.w) - 1;
+                if (typeof args[placeInt] === 'undefined'){ return undefined; }
+                // Force args[placeInt] to String, won't attempt to process
+                // arg of type function, array, or plain object
+                curr.w = args[placeInt].toString();
+                delete(curr.mods.placeholder); // Once value has been replaced, don't want to re-process this entry
+                delete(curr.mods.has);
+            }
 
             // Repeat basic string property processing with word and modified context
             if (context.hasOwnProperty(curr.w)) {
                 if (newValueHere){ context[curr.w] = newValue; }
                 ret = context[curr.w];
+            }
+            else if (typeof context === 'function'){
+                ret = curr.w;
             }
             else if (curr.w.indexOf('*') >-1){
                 ret = [];
@@ -294,13 +313,22 @@ var resolvePath = function (obj, path, newValue, valueStack){
         }
         else if (curr.exec === 'property'){
             if (newValueHere){
-                context[getPath(context, curr, valueStack.concat())] = newValue;
+                context[resolvePath(context, curr, newValue, args, valueStack.concat())] = newValue;
             }
-            ret = context[getPath(context, curr, valueStack.concat())];
+            ret = context[resolvePath(context, curr, newValue, args, valueStack.concat())];
         }
         else if (curr.exec === 'call'){
             // TODO: handle params for function
-            ret = context.call(valueStack[1]);
+            var callArgs = resolvePath(context, curr, newValue, args, valueStack.concat());
+            if (callArgs === undefined){
+                ret = context.apply(valueStack[1]);
+            }
+            else if (Array.isArray(callArgs)){
+                ret = context.apply(valueStack[1], callArgs);
+            }
+            else {
+                ret = context.call(valueStack[1], callArgs);
+            }
         }
         valueStack.unshift(ret);
         return ret;
@@ -336,14 +364,16 @@ var scanForValue = function(obj, val, savePath, path){
     return true; // keep looking
 };
 
-export var getPath = function (obj, path, valueStack){
-    return resolvePath(obj, path, undefined, valueStack);
+export var getPath = function (obj, path){
+    var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
+    return resolvePath(obj, path, undefined, args);
 };
 
-export var setPath = function(obj, path, val, valueStack){
-    var ref = resolvePath(obj, path, val, valueStack);
+export var setPath = function(obj, path, val){
+    var args = arguments.length > 3 ? Array.prototype.slice.call(arguments, 3) : [],
+        ref = resolvePath(obj, path, val, args);
     if (Array.isArray(ref)){
-        return ref.indexOf(false) === -1;
+        return ref.indexOf(undefined) === -1;
     }
     return typeof ref !== 'undefined';
 };
