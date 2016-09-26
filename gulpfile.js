@@ -18,7 +18,7 @@ const gulp = require( 'gulp' ),
     colors = gutil.colors,
     log = gutil.log;
 
-gulp.task( 'dist', [ 'docs' ], () => mergeStream(
+gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
     
         rollup( {
             entry: 'src/keypath.js',
