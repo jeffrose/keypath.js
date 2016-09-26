@@ -1,34 +1,42 @@
 [
   {
     "name": "KeyPathExp#get",
-    "timestamp": "Mon Sep 26 2016 12:08:11 GMT-0400 (EDT)",
-    "count": 69118,
-    "cycles": 6,
-    "hz": 1087163.929951838,
-    "suite": "KeyPathExp vs. tk vs. keypather"
+    "timestamp": "Mon Sep 26 2016 12:11:58 GMT-0400 (EDT)",
+    "count": 68588,
+    "cycles": 7,
+    "hz": 1207998.1479049937,
+    "suite": "KeyPathExp vs. tk vs. keypather vs. _.get"
   },
   {
     "name": "tk#getPath",
-    "timestamp": "Mon Sep 26 2016 12:08:16 GMT-0400 (EDT)",
-    "count": 18360,
-    "cycles": 4,
-    "hz": 291843.60832165263,
-    "suite": "KeyPathExp vs. tk vs. keypather"
+    "timestamp": "Mon Sep 26 2016 12:12:04 GMT-0400 (EDT)",
+    "count": 18976,
+    "cycles": 6,
+    "hz": 351530.2610317748,
+    "suite": "KeyPathExp vs. tk vs. keypather vs. _.get"
   },
   {
     "name": "tk#getPath-pre-compiled",
-    "timestamp": "Mon Sep 26 2016 12:08:22 GMT-0400 (EDT)",
-    "count": 18592,
+    "timestamp": "Mon Sep 26 2016 12:12:09 GMT-0400 (EDT)",
+    "count": 19577,
     "cycles": 5,
-    "hz": 353686.32473640604,
-    "suite": "KeyPathExp vs. tk vs. keypather"
+    "hz": 370295.9379621498,
+    "suite": "KeyPathExp vs. tk vs. keypather vs. _.get"
   },
   {
     "name": "keypather#get",
-    "timestamp": "Mon Sep 26 2016 12:08:27 GMT-0400 (EDT)",
-    "count": 3037,
-    "cycles": 8,
-    "hz": 49196.45978520862,
-    "suite": "KeyPathExp vs. tk vs. keypather"
+    "timestamp": "Mon Sep 26 2016 12:12:15 GMT-0400 (EDT)",
+    "count": 2988,
+    "cycles": 6,
+    "hz": 56364.08773424203,
+    "suite": "KeyPathExp vs. tk vs. keypather vs. _.get"
+  },
+  {
+    "name": "lodash#get",
+    "timestamp": "Mon Sep 26 2016 12:12:20 GMT-0400 (EDT)",
+    "count": 29737,
+    "cycles": 6,
+    "hz": 573638.2658615345,
+    "suite": "KeyPathExp vs. tk vs. keypather vs. _.get"
   }
 ]
