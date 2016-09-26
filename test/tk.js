@@ -3,7 +3,7 @@
 var chai        = require( 'chai' ),
     //sinon       = require( 'sinon' ),
     //sinon_chai  = require( 'sinon-chai' ),
-    tk          = require( '../src/tk' ),
+    tk          = require( '../dist/tk-umd' ),
     expect      = chai.expect;
 
 //chai.use( sinon_chai );
