@@ -1,91 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.tk = global.tk || {})));
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (factory((global.tk = global.tk || {})));
 }(this, (function (exports) { 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var get = function get(object, property, receiver) {
-  if (object === null) object = Function.prototype;
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent === null) {
-      return undefined;
-    } else {
-      return get(parent, property, receiver);
-    }
-  } else if ("value" in desc) {
-    return desc.value;
-  } else {
-    var getter = desc.get;
-
-    if (getter === undefined) {
-      return undefined;
-    }
-
-    return getter.call(receiver);
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var set = function set(object, property, value, receiver) {
-  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-  if (desc === undefined) {
-    var parent = Object.getPrototypeOf(object);
-
-    if (parent !== null) {
-      set(parent, property, value, receiver);
-    }
-  } else if ("value" in desc && desc.writable) {
-    desc.value = value;
-  } else {
-    var setter = desc.set;
-
-    if (setter !== undefined) {
-      setter.call(receiver, value);
-    }
-  }
-
-  return value;
-};
 
 // Parsing, tokeninzing, etc
 var EMPTY_STRING = '';
@@ -106,12 +23,13 @@ var prefixList = Object.keys(prefixes);
 var separators = {
     '.': {
         'exec': 'property'
-    },
+        },
     ',': {
         'exec': 'collection'
-    }
+        }
 };
 var separatorList = Object.keys(separators);
+var propertySeparator = '.';
 
 var containers = {
     // '[': {
@@ -121,34 +39,32 @@ var containers = {
     '(': {
         'closer': ')',
         'exec': 'call'
-    },
+        },
     '{': {
         'closer': '}',
         'exec': 'property'
-    }
+        }
 };
 var containerList = Object.keys(containers);
 
-var wildCardMatch = function wildCardMatch(template, str) {
+var wildCardMatch = function(template, str){
     var pos = template.indexOf('*'),
         parts = template.split('*', 2),
         match = true;
-    if (parts[0]) {
+    if (parts[0]){
         match = match && str.substr(0, parts[0].length) === parts[0];
     }
-    if (parts[1]) {
-        match = match && str.substr(pos + 1) === parts[1];
+    if (parts[1]){
+        match = match && str.substr(pos+1) === parts[1];
     }
     return match;
 };
 var specials = '[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
 var specialRegEx = new RegExp(specials);
 
-var isObject = function isObject(val) {
-    if (val === null) {
-        return false;
-    }
-    return typeof val === 'function' || (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object';
+var isObject = function(val) {
+    if (val === null) { return false;}
+    return ( (typeof val === 'function') || (typeof val === 'object') );
 };
 
 var useCache = true;
@@ -161,10 +77,8 @@ var cache = {};
  *  a container or the end of a collection). If a container is found, call tokenize
  *  recursively on string within container.
  */
-var tokenize = function tokenize(str) {
-    if (useCache && cache[str]) {
-        return cache[str];
-    }
+var tokenize = function (str){
+    if (useCache && cache[str]){ return cache[str]; }
 
     var tokens = [],
         mods = {},
@@ -180,97 +94,102 @@ var tokenize = function tokenize(str) {
 
     // console.log('Parsing:', str);
 
-    for (i = 0; i < strLength; i++) {
-        if (depth > 0) {
+    for (i = 0; i < strLength; i++){
+        if (depth > 0){
             // Scan for closer
             str[i] === opener && depth++;
             str[i] === closer.closer && depth--;
 
-            if (depth > 0) {
+            if (depth > 0){
                 substr += str[i];
             }
             // TODO: handle comma-separated elements when depth === 1, process as function arguments
             else {
-                    if (i + 1 < strLength && separators[str[i + 1]] && separators[str[i + 1]].exec === 'collection') {
-                        collection.push({ 't': tokenize(substr), 'exec': closer.exec });
-                    } else if (collection[0]) {
-                        collection.push({ 't': tokenize(substr), 'exec': closer.exec });
-                        tokens.push(collection);
-                        collection = [];
-                    } else {
-                        tokens.push({ 't': tokenize(substr), 'exec': closer.exec });
-                    }
-                    substr = '';
+                if (i+1 < strLength && separators[str[i+1]] && separators[str[i+1]].exec === 'collection'){
+                    collection.push({'t':tokenize(substr), 'exec': closer.exec});
                 }
-        } else if (str[i] in prefixes) {
-            mods.has = true;
-            if (mods[prefixes[str[i]].exec]) {
-                mods[prefixes[str[i]].exec]++;
-            } else {
-                mods[prefixes[str[i]].exec] = 1;
+                else if (collection[0]){
+                    collection.push({'t':tokenize(substr), 'exec': closer.exec});
+                    tokens.push(collection);
+                    collection = [];
+                }
+                else {
+                    tokens.push({'t':tokenize(substr), 'exec': closer.exec});
+                }
+                substr = '';
             }
-        } else if (str[i] in separators) {
+        }
+        else if (str[i] in prefixes){
+            mods.has = true;
+            if (mods[prefixes[str[i]].exec]) { mods[prefixes[str[i]].exec]++; }
+            else { mods[prefixes[str[i]].exec] = 1; }
+        }
+        else if (str[i] in separators){
             separator = separators[str[i]];
-            if (word && mods.has) {
-                word = { 'w': word, 'mods': mods };
+            if (word && mods.has){
+                word = {'w': word, 'mods': mods};
                 mods = {};
             }
-            if (separator.exec === 'property') {
+            if (separator.exec === 'property'){
                 // word is a plain property or end of collection
-                if (collection[0] !== undefined) {
+                if (collection[0] !== undefined){
                     // we are gathering a collection, so add last word to collection and then store
                     word && collection.push(word);
                     tokens.push(collection);
                     collection = [];
-                } else {
+                }
+                else {
                     // word is a plain property
                     word && tokens.push(word);
                 }
-            } else if (separator.exec === 'collection') {
+            }
+            else if (separator.exec === 'collection'){
                 // word is a collection
                 word && collection.push(word);
             }
             word = '';
-        } else if (str[i] in containers) {
+        }
+        else if (str[i] in containers){
             // found opener, initiate scan for closer
             closer = containers[str[i]];
-            if (word && mods.has) {
-                word = { 'w': word, 'mods': mods };
+            if (word && mods.has){
+                word = {'w': word, 'mods': mods};
                 mods = {};
             }
-            if (collection[0] !== undefined) {
+            if (collection[0] !== undefined){
                 // we are gathering a collection, so add last word to collection and then store
                 word && collection.push(word);
-            } else {
+            }
+            else {
                 // word is a plain property
                 word && tokens.push(word);
             }
             word = '';
             opener = str[i];
             depth++;
-        } else {
+        }
+        else {
             // still accumulating property name
             word += str[i];
         }
     }
     // add trailing word to tokens, if present
-    if (word && mods.has) {
-        word = { 'w': word, 'mods': mods };
+    if (word && mods.has){
+        word = {'w': word, 'mods': mods};
         mods = {};
     }
-    if (collection[0] !== undefined) {
+    if (collection[0] !== undefined){
         // we are gathering a collection, so add last word to collection and then store
         word && collection.push(word);
         tokens.push(collection);
-    } else {
+    }
+    else {
         // word is a plain property
         word && tokens.push(word);
     }
 
     // depth != 0 means mismatched containers
-    if (depth !== 0) {
-        return undefined;
-    }
+    if (depth !== 0){ return undefined; }
 
     useCache && (cache[str] = tokens);
     return tokens;
@@ -305,7 +224,7 @@ var tokenize = function tokenize(str) {
 //  return '';
 // }
 
-var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
+var resolvePath = function (obj, path, newValue, args, valueStack){
     var change = newValue !== undefined,
         tk = [],
         tkLength = 0,
@@ -321,14 +240,13 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
         ret,
         newValueHere = false;
 
-    if (typeof path === 'string' && !path.match(specialRegEx)) {
-        tk = path.split('.');
+    if (typeof path === 'string' && !path.match(specialRegEx)){
+        tk = path.split(propertySeparator);
         tkLength = tk.length;
-        while (prev !== undefined && i < tkLength) {
-            if (i === EMPTY_STRING) {
-                prev = undefined;
-            } else if (change) {
-                if (i === tkLength - 1) {
+        while (prev !== undefined && i < tkLength){
+            if (i === EMPTY_STRING){ prev = undefined; }
+            else if (change){
+                if (i === tkLength - 1){
                     prev[tk[i]] = newValue;
                 }
             }
@@ -340,139 +258,128 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
 
     tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
     tkLength = tk.length;
-    if (tkLength === 0) {
-        return undefined;
-    }
+    if (tkLength === 0) { return undefined; }
     tkLastIdx = tkLength - 1;
 
-    if (typeof valueStack === 'undefined') {
+    if (typeof valueStack === 'undefined'){
         valueStack = [obj]; // Initialize valueStack with original data object; length already init to 1
-    } else {
+    }
+    else {
         valueStackLength = valueStack.length;
     }
 
     // Converted Array.reduce into while loop, still using "prev", "curr", "idx"
     // as loop values
-    while (prev !== undefined && idx < tkLength) {
+    while (prev !== undefined && idx < tkLength){
         curr = tk[idx];
-        newValueHere = change && idx === tkLastIdx;
+        newValueHere = (change && (idx === tkLastIdx));
 
-        if (typeof curr === 'string') {
-            if (curr.indexOf('*') > -1) {
+        if (typeof curr === 'string'){
+            if (curr.indexOf('*') >-1){
                 ret = [];
-                for (var prop in context) {
-                    if (context.hasOwnProperty(prop) && wildCardMatch(curr, prop)) {
-                        if (newValueHere) {
-                            context[prop] = newValue;
-                        }
+                for (var prop in context){
+                    if (context.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
+                        if (newValueHere){ context[prop] = newValue; }
                         ret.push(context[prop]);
                     }
                 }
-            } else {
-                if (newValueHere) {
-                    console.log('newValue:', newValue);
+            }
+            else {
+                if (newValueHere){
                     context[curr] = newValue;
-                    console.log('after set:', context[curr]);
-                    if (context[curr] !== newValue) {
-                        return undefined;
-                    } // new value failed to set
+                    if (context[curr] !== newValue){ return undefined; } // new value failed to set
                 }
                 ret = context[curr];
+
             }
-        } else {
-            if (Array.isArray(curr)) {
+        }
+        else {
+            if (Array.isArray(curr)){
                 // call resolvePath again with base value as evaluated value so far and
                 // each element of array as the path. Concat all the results together.
                 ret = [];
-                currLength = curr.length;
-                for (i = 0; i < currLength; i++) {
+                currLength = curr.length
+                for (i = 0; i < currLength; i++){
                     contextProp = resolvePath(context, curr[i], newValue, args, valueStack.concat());
-                    if (typeof contextProp === 'undefined') {
-                        console.log('UNDEF!');return undefined;
-                    }
-                    console.log('contextProp:', contextProp);
+                    if (typeof contextProp === 'undefined') { return undefined; }
 
-                    if (newValueHere) {
-                        if (curr[i].t && curr[i].exec === 'property') {
-                            console.log('PROP', context[contextProp]);
+                    if (newValueHere){
+                        if (curr[i].t && curr[i].exec === 'property'){
                             context[contextProp] = newValue;
                         } else {
-                            console.log('NOT PROP', contextProp);
                             ret = ret.concat(contextProp);
                         }
-                    } else {
-                        if (curr[i].t && curr[i].exec === 'property') {
+                    }
+                    else {
+                        if (curr[i].t && curr[i].exec === 'property'){
                             ret = ret.concat(context[contextProp]);
                         } else {
                             ret = ret.concat(contextProp);
                         }
                     }
                 }
-            } else if (typeof curr === 'undefined' || typeof prev === 'undefined') {
+            }
+            else if (typeof curr === 'undefined' || typeof prev === 'undefined'){
                 ret = undefined;
-            } else if (curr.w) {
+            }
+            else if (curr.w){
                 // this word token has modifiers, modify current context
-                if (curr.mods.parent) {
+                if (curr.mods.parent){
                     context = valueStack[valueStackLength - 1 - curr.mods.parent];
-                    if (typeof context === 'undefined') {
-                        return undefined;
-                    }
+                    if (typeof context === 'undefined') { return undefined; }
                 }
-                if (curr.mods.root) {
+                if (curr.mods.root){
                     // Reset context and valueStack, start over at root in this context
                     context = valueStack[0];
                     valueStack = [context];
                     valueStackLength = 1;
                 }
-                if (curr.mods.placeholder) {
-                    if (curr.w.length === 0) {
-                        return undefined;
-                    }
+                if (curr.mods.placeholder){
+                    if (curr.w.length === 0) { return undefined; }
                     var placeInt = Number.parseInt(curr.w) - 1;
-                    if (typeof args[placeInt] === 'undefined') {
-                        return undefined;
-                    }
+                    if (typeof args[placeInt] === 'undefined'){ return undefined; }
                     // Force args[placeInt] to String, won't attempt to process
                     // arg of type function, array, or plain object
                     curr.w = args[placeInt].toString();
-                    delete curr.mods.placeholder; // Once value has been replaced, don't want to re-process this entry
-                    delete curr.mods.has;
+                    delete(curr.mods.placeholder); // Once value has been replaced, don't want to re-process this entry
+                    delete(curr.mods.has);
                 }
 
                 // Repeat basic string property processing with word and modified context
                 if (typeof context[curr.w] !== 'undefined') {
-                    if (newValueHere) {
-                        context[curr.w] = newValue;
-                    }
+                    if (newValueHere){ context[curr.w] = newValue; }
                     ret = context[curr.w];
-                } else if (typeof context === 'function') {
+                }
+                else if (typeof context === 'function'){
                     ret = curr.w;
-                } else if (curr.w.indexOf('*') > -1) {
+                }
+                else if (curr.w.indexOf('*') >-1){
                     ret = [];
-                    for (var prop in context) {
-                        if (context.hasOwnProperty(prop) && wildCardMatch(curr.w, prop)) {
-                            if (newValueHere) {
-                                context[prop] = newValue;
-                            }
+                    for (var prop in context){
+                        if (context.hasOwnProperty(prop) && wildCardMatch(curr.w, prop)){
+                            if (newValueHere){ context[prop] = newValue; }
                             ret.push(context[prop]);
                         }
                     }
-                } else {
-                    return undefined;
                 }
-            } else if (curr.exec === 'property') {
-                if (newValueHere) {
+                else { return undefined; }
+            }
+            else if (curr.exec === 'property'){
+                if (newValueHere){
                     context[resolvePath(context, curr, newValue, args, valueStack.concat())] = newValue;
                 }
                 ret = context[resolvePath(context, curr, newValue, args, valueStack.concat())];
-            } else if (curr.exec === 'call') {
+            }
+            else if (curr.exec === 'call'){
                 // TODO: handle params for function
                 var callArgs = resolvePath(context, curr, newValue, args, valueStack.concat());
-                if (callArgs === undefined) {
+                if (callArgs === undefined){
                     ret = context.apply(valueStack[valueStackLength - 2]);
-                } else if (Array.isArray(callArgs)) {
+                }
+                else if (Array.isArray(callArgs)){
                     ret = context.apply(valueStack[valueStackLength - 2], callArgs);
-                } else {
+                }
+                else {
                     ret = context.call(valueStack[valueStackLength - 2], callArgs);
                 }
             }
@@ -486,29 +393,27 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
     return context;
 };
 
-var scanForValue = function scanForValue(obj, val, savePath, path) {
+var scanForValue = function(obj, val, savePath, path){
     var i, len, prop, more;
 
     path = path ? path : '';
 
-    if (obj === val) {
+    if (obj === val){
         return savePath(path); // true -> keep looking; false -> stop now
-    } else if (Array.isArray(obj)) {
+    }
+    else if (Array.isArray(obj)){
         len = obj.length;
-        for (i = 0; i < len; i++) {
+        for(i = 0; i < len; i++){
             more = scanForValue(obj[i], val, savePath, path + '.' + i);
-            if (!more) {
-                return;
-            }
+            if (!more){ return; }
         }
         return true; // keep looking
-    } else if (isObject(obj)) {
-        for (prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
+    }
+    else if (isObject(obj)) {
+        for (prop in obj){
+            if (obj.hasOwnProperty(prop)){
                 more = scanForValue(obj[prop], val, savePath, path + '.' + prop);
-                if (!more) {
-                    return;
-                }
+                if (!more){ return; }
             }
         }
         return true; // keep looking
@@ -517,30 +422,29 @@ var scanForValue = function scanForValue(obj, val, savePath, path) {
     return true; // keep looking
 };
 
-var getTokens = function getTokens(path) {
-    return { t: tokenize(path) };
+var getTokens = function(path){
+    return {t: tokenize(path)};
 };
 
-var getPath = function getPath(obj, path) {
+var getPath = function (obj, path){
     var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
     return resolvePath(obj, path, undefined, args);
 };
 
-var setPath = function setPath(obj, path, val) {
+var setPath = function(obj, path, val){
     var args = arguments.length > 3 ? Array.prototype.slice.call(arguments, 3) : [],
         ref = resolvePath(obj, path, val, args);
-    console.log('setPath final:', ref);
-    if (Array.isArray(ref)) {
+    if (Array.isArray(ref)){
         return ref.indexOf(undefined) === -1;
     }
     return typeof ref !== 'undefined';
 };
 
-var getPathFor = function getPathFor(obj, val, oneOrMany) {
+var getPathFor = function(obj, val, oneOrMany){
     var retVal = [];
-    var savePath = function savePath(path) {
+    var savePath = function(path){
         retVal.push(path.substr(1));
-        if (!oneOrMany || oneOrMany === 'one') {
+        if(!oneOrMany || oneOrMany === 'one'){
             retVal = retVal[0];
             return false;
         }
@@ -550,31 +454,39 @@ var getPathFor = function getPathFor(obj, val, oneOrMany) {
     return retVal[0] ? retVal : undefined;
 };
 
-var setOptions = function setOptions(options) {
-    if (options.prefixes) {
-        for (var p in options.prefixes) {
-            if (options.prefixes.hasOwnProperty(p)) {
+var setOptions = function(options){
+    if (options.prefixes){
+        for (var p in options.prefixes){
+            if (options.prefixes.hasOwnProperty(p)){
                 prefixes[p] = options.prefixes[p];
             }
         }
+        prefixList = Object.keys(prefixes);
     }
-    if (options.separators) {
-        for (var s in options.separators) {
-            if (options.separators.hasOwnProperty(s)) {
+    if (options.separators){
+        for (var s in options.separators){
+            if (options.separators.hasOwnProperty(s)){
                 separators[s] = options.separators[s];
+                if (separators[s].exec === 'property'){
+                    propertySeparator = s;
+                }
             }
         }
+        separatorList = Object.keys(separators);
     }
-    if (options.containers) {
-        for (var c in options.containers) {
-            if (options.containers.hasOwnProperty(c)) {
+    if (options.containers){
+        for (var c in options.containers){
+            if (options.containers.hasOwnProperty(c)){
                 containers[c] = options.containers[c];
             }
         }
+        containerList = Object.keys(containers);
     }
-    if (typeof options.cache !== 'undefined') {
+    if (typeof options.cache !== 'undefined'){
         useCache = !!options.cache;
     }
+    specials = ('[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
+    specialRegEx = new RegExp(specials);
 };
 
 exports.getTokens = getTokens;

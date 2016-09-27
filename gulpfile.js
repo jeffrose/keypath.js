@@ -48,10 +48,11 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
             moduleName: 'tk',
             sourceMap: true,
             plugins: [
-                babel( {
-                    exclude: 'node_modules/**',
-                    presets: [ 'es2015-rollup' ]
-                } )
+                // babel( {
+                //     exclude: 'node_modules/**',
+                //     presets: [ 'es2015-rollup' ],
+                //     runtimeHelpers: true
+                // } )
             ]
         } )
         .pipe( source( 'tk.js', 'src' ) )
@@ -101,7 +102,7 @@ gulp.task( 'tk-test', [ 'dist' ], ( done ) => {
             gulp.src( [ 'test/tk.js' ], { read: false } )
                 .pipe( debug() )
                 .pipe( mocha() )
-                .pipe( istanbul.writeReports() )
+                .pipe( istanbul.writeReports({reporters:['html']}) )
                 .on( 'end', done );
         } );
 } );

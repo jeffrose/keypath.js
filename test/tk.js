@@ -47,10 +47,10 @@ describe( 'tk', function(){
 
     });
 
-    // describe( 'debug', function(){
-    // });
+    xdescribe( 'debug', function(){
+    });
 
-    // xdescribe( 'disable', function(){
+    describe( 'disable', function(){
     describe( 'getPath', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -330,6 +330,102 @@ describe( 'tk', function(){
 
     });
 
+    describe('getTokens', function () {
+        it('should return a token array from a string path', function () {
+            var str = 'accounts.1.test2';
+            var tokens = tk.getTokens(str);
+            expect(tokens).to.be.an.object;
+            expect(tokens.t).to.be.an.array;
+            expect(tokens.t.length).to.equal(3);
+        });
+    });
+
+    describe('setOptions', function () {
+        afterEach(function () {
+            tk.setOptions({
+                'cache': true,
+                'prefixes': {
+                    '<': {
+                        'exec': 'parent'
+                    },
+                    '~': {
+                        'exec': 'root'
+                    },
+                    '%': {
+                        'exec': 'placeholder'
+                    }
+                },
+                'separators': {
+                    '.': {
+                        'exec': 'property'
+                    },
+                    ',': {
+                        'exec': 'collection'
+                    }
+                },
+                'containers': {
+                    '(': {
+                        'closer': ')',
+                        'exec': 'call'
+                    },
+                    '{': {
+                        'closer': '}',
+                        'exec': 'property'
+                    }
+                }
+            });
+        });
+        it('should allow special characters to be re-defined', function () {
+            tk.setOptions({
+                'cache': true,
+                'prefixes': {
+                    '^': {
+                        'exec': 'parent'
+                    },
+                    '~': {
+                        'exec': 'root'
+                    },
+                    '%': {
+                        'exec': 'placeholder'
+                    }
+                },
+                'separators': {
+                    '!': {
+                        'exec': 'property'
+                    },
+                    ';': {
+                        'exec': 'collection'
+                    }
+                },
+                'containers': {
+                    '(': {
+                        'closer': ')',
+                        'exec': 'call'
+                    },
+                    '[': {
+                        'closer': ']',
+                        'exec': 'property'
+                    }
+                }
+            });
+            var str1 = 'accounts!1!test2';
+            var val1 = data.accounts[1].test2;
+            expect(tk.getPath(data, str1)).to.equal(val1);
+            var str2 = 'accounts[2()]checking!id';
+            var val2 = data.accounts[2]();
+            expect(tk.getPath(data, str2)).to.equal(data.accounts[val2].checking.id);
+            var str3 = 'accounts!0!^1!checking!id';
+            expect(tk.getPath(data, str3)).to.equal(data.accounts[1].checking.id);
+            var str4 = 'accounts!0!ary!0;2';
+            var ary4 = [];
+            ary4.push(data.accounts[0].ary[0]);
+            ary4.push(data.accounts[0].ary[2]);
+            expect(tk.getPath(data, str4)).to.be.an.array;
+            expect(tk.getPath(data, str4).length).to.equal(ary4.length);
+            expect(tk.getPath(data, str4).join(',')).to.equal(ary4.join(','));
+        });
+    });
+
     describe('clock', function(){
         var complexObj, deepObj, testResult;
 
@@ -533,6 +629,6 @@ describe( 'tk', function(){
         });
 
     });
-    // });
+    });
 
 } );

@@ -24,7 +24,8 @@ var separators = {
         'exec': 'collection'
         }
 },
-separatorList = Object.keys(separators);
+separatorList = Object.keys(separators),
+propertySeparator = '.';
 
 var containers = {
     // '[': {
@@ -243,7 +244,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         newValueHere = false;
 
     if (typeof path === 'string' && !path.match(specialRegEx)){
-        tk = path.split('.');
+        tk = path.split(propertySeparator);
         tkLength = tk.length;
         while (prev !== undefined && i < tkLength){
             if (i === EMPTY_STRING){ prev = undefined; }
@@ -463,13 +464,18 @@ export var setOptions = function(options){
                 prefixes[p] = options.prefixes[p];
             }
         }
+        prefixList = Object.keys(prefixes);
     }
     if (options.separators){
         for (var s in options.separators){
             if (options.separators.hasOwnProperty(s)){
                 separators[s] = options.separators[s];
+                if (separators[s].exec === 'property'){
+                    propertySeparator = s;
+                }
             }
         }
+        separatorList = Object.keys(separators);
     }
     if (options.containers){
         for (var c in options.containers){
@@ -477,8 +483,11 @@ export var setOptions = function(options){
                 containers[c] = options.containers[c];
             }
         }
+        containerList = Object.keys(containers);
     }
     if (typeof options.cache !== 'undefined'){
         useCache = !!options.cache;
     }
+    specials = ('[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
+    specialRegEx = new RegExp(specials);
 };
