@@ -88,6 +88,8 @@ var set = function set(object, property, value, receiver) {
 };
 
 // Parsing, tokeninzing, etc
+var EMPTY_STRING = '';
+
 var prefixes = {
     '<': {
         'exec': 'parent'
@@ -141,8 +143,6 @@ var wildCardMatch = function wildCardMatch(template, str) {
 };
 var specials = '[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
 var specialRegEx = new RegExp(specials);
-console.log('Specials:', specialRegEx.toString());
-console.log(specialRegEx.test('abc()'));
 
 var isObject = function isObject(val) {
     if (val === null) {
@@ -151,6 +151,7 @@ var isObject = function isObject(val) {
     return typeof val === 'function' || (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object';
 };
 
+var useCache = true;
 var cache = {};
 
 /*
@@ -161,7 +162,7 @@ var cache = {};
  *  recursively on string within container.
  */
 var tokenize = function tokenize(str) {
-    if (cache[str]) {
+    if (useCache && cache[str]) {
         return cache[str];
     }
 
@@ -170,10 +171,10 @@ var tokenize = function tokenize(str) {
         strLength = str.length,
         word = '',
         substr = '',
-        i,
-        opener,
-        closer,
-        separator,
+        i = 0,
+        opener = '',
+        closer = '',
+        separator = '',
         collection = [],
         depth = 0;
 
@@ -230,8 +231,9 @@ var tokenize = function tokenize(str) {
                 word && collection.push(word);
             }
             word = '';
-        } else if (closer = containers[str[i]]) {
+        } else if (str[i] in containers) {
             // found opener, initiate scan for closer
+            closer = containers[str[i]];
             if (word && mods.has) {
                 word = { 'w': word, 'mods': mods };
                 mods = {};
@@ -270,71 +272,78 @@ var tokenize = function tokenize(str) {
         return undefined;
     }
 
-    cache[str] = tokens;
+    useCache && (cache[str] = tokens);
     return tokens;
 };
 
 // var getContext = function getContext(context, valueStack, word){
-// 	if (!prefixes[word[0]]){
-// 		return context;
-// 	}
-// 	var counter = 0,
-// 		prefix,
-// 		newContext;
-// 	while (prefix = prefixes[word[counter]]){
-// 		if (prefix.exec === 'parent'){
-// 			newContext = valueStack[counter + 1];
-// 		}
-// 		counter++;
-// 	}
-// 	return newContext;
+//  if (!prefixes[word[0]]){
+//      return context;
+//  }
+//  var counter = 0,
+//      prefix,
+//      newContext;
+//  while (prefix = prefixes[word[counter]]){
+//      if (prefix.exec === 'parent'){
+//          newContext = valueStack[counter + 1];
+//      }
+//      counter++;
+//  }
+//  return newContext;
 // };
 
 // var cleanWord = function cleanWord(word){
-// 	if(!prefixes[word[0]]){
-// 		return word;
-// 	}
-// 	var len = word.length;
-// 	for (var i = 1; i < len; i++){
-// 		if (!prefixes[word[i]]){
-// 			return word.substr(i);
-// 		}
-// 	}
-// 	return '';
+//  if(!prefixes[word[0]]){
+//      return word;
+//  }
+//  var len = word.length;
+//  for (var i = 1; i < len; i++){
+//      if (!prefixes[word[i]]){
+//          return word.substr(i);
+//      }
+//  }
+//  return '';
 // }
 
 var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
+    var change = newValue !== undefined,
+        tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path],
+        tkLength = tk.length,
+        tkLastIdx = tkLength - 1,
+        i = 0,
+        prev = obj,
+        curr = '',
+        idx = 0,
+        context = obj,
+        ret,
+        newValueHere = false;
+
+    if (tkLength === 0) {
+        return undefined;
+    }
+
     if (typeof path === 'string' && typeof newValue === 'undefined' && !path.match(specialRegEx)) {
-        var ary = path.split('.');
-        var len = ary.length;
-        var returnVal = obj;
-        var i = 0;
-        while (returnVal !== undefined && i < len) {
-            if (i.length < 0) {
-                returnVal = undefined;
+        while (prev !== undefined && i < tkLength) {
+            if (i === EMPTY_STRING) {
+                prev = undefined;
+            } else {
+                prev = prev[tk[i]];
             }
-            returnVal = returnVal[ary[i]];
             i++;
         }
-        return returnVal;
+        return prev;
     }
 
     valueStack = valueStack || [obj]; // Initialize valueStack with original data object
     args = args || []; // args defaults to empty array
 
-    var change = newValue !== undefined,
-        val,
-        tk,
-        i,
-        root = valueStack[valueStack.length - 1]; // Root is an alias for original data object
+    // Converted Array.reduce into while loop, still using "prev", "curr", "idx"
+    // as loop values
+    while (prev !== undefined && idx < tkLength) {
+        curr = tk[idx];
+        // context = valueStack[0];
+        newValueHere = change && idx === tkLastIdx;
 
-    tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
-
-    return tk.length === 0 ? undefined : tk.reduce(function (prev, curr, idx) {
-        var context = valueStack[0],
-            ret,
-            lastToken = idx === tk.length - 1,
-            newValueHere = change && lastToken;
         if (typeof curr === 'string') {
             // Cannot do ".hasOwnProperty" here since that breaks when testing
             // for functions defined on prototypes (e.g. [1,2,3].sort())
@@ -388,8 +397,8 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
             }
             if (curr.mods.root) {
                 // Reset context and valueStack, start over at root in this context
-                context = root;
-                valueStack = [root];
+                context = valueStack[valueStack.length - 1];
+                valueStack = [context];
             }
             if (curr.mods.placeholder) {
                 if (curr.w.length === 0) {
@@ -444,8 +453,11 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
             }
         }
         valueStack.unshift(ret);
-        return ret;
-    }, obj);
+        context = ret;
+        prev = ret;
+        idx++;
+    }
+    return context;
 };
 
 var scanForValue = function scanForValue(obj, val, savePath, path) {
@@ -511,34 +523,38 @@ var getPathFor = function getPathFor(obj, val, oneOrMany) {
     return retVal[0] ? retVal : undefined;
 };
 
-// export var setOptions = function(options){
-//     if (options.prefixes){
-//         for (var p in options.prefixes){
-//             if (options.prefixes.hasOwnProperty(p)){
-//                 prefixes[p] = options.prefixes[p];
-//             }
-//         }
-//     }
-//     if (options.separators){
-//         for (var s in options.separators){
-//             if (options.separators.hasOwnProperty(s)){
-//                 separators[s] = options.separators[s];
-//             }
-//         }
-//     }
-//     if (options.containers){
-//         for (var c in options.containers){
-//             if (options.containers.hasOwnProperty(c)){
-//                 containers[c] = options.containers[c];
-//             }
-//         }
-//     }
-// };
+var setOptions = function setOptions(options) {
+    if (options.prefixes) {
+        for (var p in options.prefixes) {
+            if (options.prefixes.hasOwnProperty(p)) {
+                prefixes[p] = options.prefixes[p];
+            }
+        }
+    }
+    if (options.separators) {
+        for (var s in options.separators) {
+            if (options.separators.hasOwnProperty(s)) {
+                separators[s] = options.separators[s];
+            }
+        }
+    }
+    if (options.containers) {
+        for (var c in options.containers) {
+            if (options.containers.hasOwnProperty(c)) {
+                containers[c] = options.containers[c];
+            }
+        }
+    }
+    if (typeof options.cache !== 'undefined') {
+        useCache = !!options.cache;
+    }
+};
 
 exports.getTokens = getTokens;
 exports.getPath = getPath;
 exports.setPath = setPath;
 exports.getPathFor = getPathFor;
+exports.setOptions = setOptions;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

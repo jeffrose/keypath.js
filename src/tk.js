@@ -1,6 +1,8 @@
 // Parsing, tokeninzing, etc
 'use strict';
 
+var EMPTY_STRING = '';
+
 var prefixes = {
     '<': {
         'exec': 'parent'
@@ -54,8 +56,6 @@ var wildCardMatch = function(template, str){
 };
 var specials = '[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
 var specialRegEx = new RegExp(specials);
-console.log('Specials:', specialRegEx.toString());
-console.log(specialRegEx.test('abc()'));
 
 var isObject = function(val) {
     if (val === null) { return false;}
@@ -69,7 +69,8 @@ var flatten = function(ary){
     },[]);
 };
 
-var cache = {};
+var useCache = true,
+    cache = {};
 
 /*
  *  Scan input string from left to right, one character at a time. If a special character
@@ -79,15 +80,17 @@ var cache = {};
  *  recursively on string within container.
  */
 var tokenize = function (str){
-    if (cache[str]){ return cache[str]; }
+    if (useCache && cache[str]){ return cache[str]; }
 
     var tokens = [],
         mods = {},
         strLength = str.length,
         word = '',
         substr = '',
-        i,
-        opener, closer, separator,
+        i = 0,
+        opener = '',
+        closer = '',
+        separator = '',
         collection = [],
         depth = 0;
 
@@ -148,8 +151,9 @@ var tokenize = function (str){
             }
             word = '';
         }
-        else if (closer = containers[str[i]]){
+        else if (str[i] in containers){
             // found opener, initiate scan for closer
+            closer = containers[str[i]];
             if (word && mods.has){
                 word = {'w': word, 'mods': mods};
                 mods = {};
@@ -189,69 +193,72 @@ var tokenize = function (str){
     // depth != 0 means mismatched containers
     if (depth !== 0){ return undefined; }
 
-    cache[str] = tokens;
+    useCache && (cache[str] = tokens);
     return tokens;
 };
 
 // var getContext = function getContext(context, valueStack, word){
-// 	if (!prefixes[word[0]]){
-// 		return context;
-// 	}
-// 	var counter = 0,
-// 		prefix,
-// 		newContext;
-// 	while (prefix = prefixes[word[counter]]){
-// 		if (prefix.exec === 'parent'){
-// 			newContext = valueStack[counter + 1];
-// 		}
-// 		counter++;
-// 	}
-// 	return newContext;
+//  if (!prefixes[word[0]]){
+//      return context;
+//  }
+//  var counter = 0,
+//      prefix,
+//      newContext;
+//  while (prefix = prefixes[word[counter]]){
+//      if (prefix.exec === 'parent'){
+//          newContext = valueStack[counter + 1];
+//      }
+//      counter++;
+//  }
+//  return newContext;
 // };
 
 // var cleanWord = function cleanWord(word){
-// 	if(!prefixes[word[0]]){
-// 		return word;
-// 	}
-// 	var len = word.length;
-// 	for (var i = 1; i < len; i++){
-// 		if (!prefixes[word[i]]){
-// 			return word.substr(i);
-// 		}
-// 	}
-// 	return '';
+//  if(!prefixes[word[0]]){
+//      return word;
+//  }
+//  var len = word.length;
+//  for (var i = 1; i < len; i++){
+//      if (!prefixes[word[i]]){
+//          return word.substr(i);
+//      }
+//  }
+//  return '';
 // }
 
 var resolvePath = function (obj, path, newValue, args, valueStack){
+    var change = newValue !== undefined,
+        tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path],
+        tkLength = tk.length,
+        tkLastIdx = tkLength - 1,
+        i = 0,
+        prev = obj,
+        curr = '',
+        idx = 0,
+        context = obj,
+        ret,
+        newValueHere = false;
+
+    if (tkLength === 0) { return undefined; }
+    
     if (typeof path === 'string' && typeof newValue === 'undefined' && !path.match(specialRegEx)){
-        var ary = path.split('.');
-        var len = ary.length;
-        var returnVal = obj;
-        var i = 0;
-        while (returnVal !== undefined && i < len){
-            if (i.length < 0){ returnVal = undefined; }
-            returnVal = returnVal[ary[i]];
+        while (prev !== undefined && i < tkLength){
+            if (i === EMPTY_STRING){ prev = undefined; }
+            else { prev = prev[tk[i]]; }
             i++;
         }
-        return returnVal;
+        return prev;
     }
 
     valueStack = valueStack || [obj]; // Initialize valueStack with original data object
     args = args || []; // args defaults to empty array
 
-    var change = newValue !== undefined,
-        val,
-        tk,
-        i,
-        root = valueStack[valueStack.length -1]; // Root is an alias for original data object
+    // Converted Array.reduce into while loop, still using "prev", "curr", "idx"
+    // as loop values
+    while (prev !== undefined && idx < tkLength){
+        curr = tk[idx];
+        newValueHere = (change && (idx === tkLastIdx));
 
-    tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
-
-    return tk.length === 0 ? undefined : tk.reduce(function(prev, curr, idx){
-        var context = valueStack[0],
-            ret,
-            lastToken = (idx === (tk.length - 1)),
-            newValueHere = (change && lastToken);
         if (typeof curr === 'string'){
             // Cannot do ".hasOwnProperty" here since that breaks when testing
             // for functions defined on prototypes (e.g. [1,2,3].sort())
@@ -303,8 +310,8 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
             }
             if (curr.mods.root){
                 // Reset context and valueStack, start over at root in this context
-                context = root;
-                valueStack = [root];
+                context = valueStack[valueStack.length -1];
+                valueStack = [context];
             }
             if (curr.mods.placeholder){
                 if (curr.w.length === 0) { return undefined; }
@@ -356,8 +363,11 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
             }
         }
         valueStack.unshift(ret);
-        return ret;
-    }, obj);
+        context = ret;
+        prev = ret;
+        idx++;
+    }
+    return context;
 };
 
 var scanForValue = function(obj, val, savePath, path){
@@ -421,26 +431,29 @@ export var getPathFor = function(obj, val, oneOrMany){
     return retVal[0] ? retVal : undefined;
 };
 
-// export var setOptions = function(options){
-//     if (options.prefixes){
-//         for (var p in options.prefixes){
-//             if (options.prefixes.hasOwnProperty(p)){
-//                 prefixes[p] = options.prefixes[p];
-//             }
-//         }
-//     }
-//     if (options.separators){
-//         for (var s in options.separators){
-//             if (options.separators.hasOwnProperty(s)){
-//                 separators[s] = options.separators[s];
-//             }
-//         }
-//     }
-//     if (options.containers){
-//         for (var c in options.containers){
-//             if (options.containers.hasOwnProperty(c)){
-//                 containers[c] = options.containers[c];
-//             }
-//         }
-//     }
-// };
+export var setOptions = function(options){
+    if (options.prefixes){
+        for (var p in options.prefixes){
+            if (options.prefixes.hasOwnProperty(p)){
+                prefixes[p] = options.prefixes[p];
+            }
+        }
+    }
+    if (options.separators){
+        for (var s in options.separators){
+            if (options.separators.hasOwnProperty(s)){
+                separators[s] = options.separators[s];
+            }
+        }
+    }
+    if (options.containers){
+        for (var c in options.containers){
+            if (options.containers.hasOwnProperty(c)){
+                containers[c] = options.containers[c];
+            }
+        }
+    }
+    if (typeof options.cache !== 'undefined'){
+        useCache = !!options.cache;
+    }
+};
