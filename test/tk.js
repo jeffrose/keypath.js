@@ -50,7 +50,7 @@ describe( 'tk', function(){
     // describe( 'debug', function(){
     // });
 
-    // describe( 'disable', function(){
+    // xdescribe( 'disable', function(){
     describe( 'getPath', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -217,10 +217,12 @@ describe( 'tk', function(){
         } );
 
         it( 'should return false if set was not successful', function(){
-            var str = 'accounts.1.checking.badProperty';
+            var str = 'accounts.1.checking.newProperty';
+            var strBad = 'accounts.1.badProperty.newProperty';
             var newVal = 'new';
-            expect(tk.setPath(data, str, newVal)).to.be.false;
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.setPath(data, str, newVal)).to.be.true;
+            expect(tk.getPath(data, str)).to.equal(newVal);
+            expect(tk.setPath(data, strBad, newVal)).to.be.false;
         } );
 
         it( 'should set value to all entries in array for wildcard path', function(){
@@ -283,12 +285,6 @@ describe( 'tk', function(){
             expect(data[data.accounts[1].test1]).to.equal(newVal);
             expect(data[data.accounts[1].test2]).to.equal(newVal);
             expect(data[data.accounts[1].test3]).to.not.equal(newVal);
-        });
-
-        it( 'should return false if at least one entry in comma group failed to set', function(){
-            var str = 'accounts.1.savX,savY,savQ';
-            var newVal = 'new';
-            expect(tk.setPath(data, str, newVal)).to.be.false;
         });
 
         it( 'should process placeholders when setting new value', function(){

@@ -17,6 +17,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     },
     
     kpex = new KeyPathExp( path );
+    // var tkTokens = tk.getTokens( path );
 
 module.exports = {
     name: 'KeyPathExp vs. tk vs. keypather vs. _.get',
