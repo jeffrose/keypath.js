@@ -20,11 +20,11 @@ Builder.prototype = new Null();
 
 Builder.prototype.constructor = Builder;
 
-Builder.prototype.arrayExpression = function(){
-    const args = this.bracketList();
-    return new ArrayExpression( args );
-};
-
+/**
+ * @function
+ * @param {external:string} text
+ * @returns {Program} The built abstract syntax tree
+ */
 Builder.prototype.build = function( text ){
     this.buffer = text;
     this.tokens = this.lexer.lex( text );
@@ -38,6 +38,10 @@ Builder.prototype.build = function( text ){
     return program;
 };
 
+/**
+ * @function
+ * @returns {CallExpression} The call expression node
+ */
 Builder.prototype.callExpression = function(){
     const args = this.list( '(' );
     this.consume( '(' );
@@ -50,6 +54,11 @@ Builder.prototype.callExpression = function(){
     return new CallExpression( callee, args );
 };
 
+/**
+ * @function
+ * @param {external:string} [expected]
+ * @returns {Token} The next token in the list
+ */
 Builder.prototype.consume = function( expected ){
     if( !this.tokens.length ){
         this.throwError( 'Unexpected end of expression' );
@@ -64,6 +73,14 @@ Builder.prototype.consume = function( expected ){
     return token;
 };
 
+/**
+ * @function
+ * @param {external:string} [first]
+ * @param {external:string} [second]
+ * @param {external:string} [third]
+ * @param {external:string} [fourth]
+ * @returns {Token} The next token in the list
+ */
 Builder.prototype.expect = function( first, second, third, fourth ){
     const token = this.peek( first, second, third, fourth );
     
@@ -75,6 +92,10 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     return undefined;
 };
 
+/**
+ * @function
+ * @returns {Expression} An expression node
+ */
 Builder.prototype.expression = function(){
     let expression = null,
         list;
@@ -135,6 +156,10 @@ Builder.prototype.identifier = function(){
     return new Identifier( token.value );
 };
 
+/**
+ * @function
+ * @returns {Literal} The literal node
+ */
 Builder.prototype.literal = function(){
     const token = this.consume();
     
@@ -153,14 +178,16 @@ Builder.prototype.literal = function(){
     return new Literal( literal );
 };
 
+/**
+ * @function
+ * @param {external:string} terminator
+ * @returns {external:Array<Literal>} The list of literals
+ */
 Builder.prototype.list = function( terminator ){
     const list = [];
     
     if( this.peek().value !== terminator ){
         do {
-            if( this.peek( terminator ) ){
-                break;
-            }
             list.unshift( this.literal() );
         } while( this.expect( ',' ) );
     }
@@ -168,6 +195,12 @@ Builder.prototype.list = function( terminator ){
     return list;
 };
 
+/**
+ * @function
+ * @param {Expression} property The expression assigned to the property of the member expression
+ * @param {external:boolean} computed Whether or not the member expression is computed
+ * @returns {MemberExpression} The member expression
+ */
 Builder.prototype.memberExpression = function( property, computed ){
     const object = this.expression();
     
@@ -199,6 +232,10 @@ Builder.prototype.peekAt = function( index, first, second, third, fourth ){
     return undefined;
 };
 
+/**
+ * @function
+ * @returns {Program} A program node
+ */
 Builder.prototype.program = function(){
     const body = [];
     
@@ -223,11 +260,11 @@ Builder.prototype.punctuator = function(){
 };
 */
 
-Builder.prototype.sequenceExpression = function(){
-    const args = this.bracketList();
-    return new SequenceExpression( args );
-};
-
+/**
+ * @function
+ * @param {external:string} message The error message
+ * @throws {external:SyntaxError} When it executes
+ */
 Builder.prototype.throwError = function( message ){
     throw new SyntaxError( message );
 };
