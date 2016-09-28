@@ -1,7 +1,7 @@
 'use strict';
 
 import Null from './null';
-import { default as Token, Identifier, Literal, Punctuator } from './lexer/token';
+import { Identifier, Literal, Punctuator } from './lexer/token';
 
 /**
  * @class LexerError
@@ -130,9 +130,12 @@ Lexer.prototype.throwError = function( message ){
 };
 
 Lexer.prototype.toJSON = function(){
-    let json = new Null();
+    const json = new Null();
     
     json.buffer = this.buffer;
+    json.tokens = this.tokens.map( function( token ){
+        return token.toJSON();
+    } );
     
     return json;
 };

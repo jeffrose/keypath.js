@@ -1,7 +1,7 @@
 'use strict';
 
 var chai   = require( 'chai' ),
-    Lexer  = require( '../src/lexer' ),
+    Lexer  = require( '../dist/lexer-umd' ),
 
     expect = chai.expect;
 
@@ -117,5 +117,14 @@ describe( 'Lexer', function(){
         expect( tokens[ 0 ] ).to.have.property( 'value', 'abc' );
         expect( tokens[ 1 ] ).to.have.property( 'type', 'identifier' );
         expect( tokens[ 1 ] ).to.have.property( 'value', 'def' );
+    } );
+    
+    it( 'should provide a JSON representation', function(){
+        tokens = lexer.lex( 'abc' );
+        
+        const json = lexer.toJSON();
+        
+        expect( json ).to.have.property( 'buffer', 'abc' );
+        expect( json ).to.have.property( 'tokens' );
     } );
 } );
