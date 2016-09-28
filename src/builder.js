@@ -1,27 +1,18 @@
 'use strict';
 
 import Null from './null';
-import { CallExpression, ExpressionStatement, Identifier, Literal, MemberExpression, Program, Punctuator } from './builder/node';
-
-/**
- * @class BuilderError
- * @extends SyntaxError
- * @param {external:string} message The error message
- */
-function BuilderError( message ){
-    SyntaxError.call( this, message );
-}
-
-BuilderError.prototype = Object.create( SyntaxError.prototype );
-
-BuilderError.prototype.constructor = BuilderError;
+import { ArrayExpression, CallExpression, ExpressionStatement, Identifier, Literal, MemberExpression, Program, SequenceExpression /*, Punctuator*/ } from './builder/node';
 
 /**
  * @class Builder
  * @extends Null
  * @param {Lexer} lexer
  */
-export default function Builder( lexer ){
+function Builder( lexer ){
+    if( !arguments.length ){
+        throw new TypeError( 'lexer must be provided' );
+    }
+    
     this.lexer = lexer;
 }
 
@@ -29,16 +20,9 @@ Builder.prototype = new Null();
 
 Builder.prototype.constructor = Builder;
 
-Builder.prototype.arguments = function(){
-    const args = [];
-    
-    if( this.peek().value !== '(' ){
-        do {
-            args.unshift( this.expression() );
-        } while( this.expect( ',' ) );
-    }
-    
-    return args;
+Builder.prototype.arrayExpression = function(){
+    const args = this.bracketList();
+    return new ArrayExpression( args );
 };
 
 Builder.prototype.build = function( text ){
@@ -52,6 +36,18 @@ Builder.prototype.build = function( text ){
     }
     
     return program;
+};
+
+Builder.prototype.callExpression = function(){
+    const args = this.list( '(' );
+    this.consume( '(' );
+    const callee = this.expression();
+    
+    //console.log( 'CALL EXPRESSION' );
+    //console.log( '- CALLEE', callee );
+    //console.log( '- ARGUMENTS', args, args.length );
+    
+    return new CallExpression( callee, args );
 };
 
 Builder.prototype.consume = function( expected ){
@@ -81,49 +77,44 @@ Builder.prototype.expect = function( first, second, third, fourth ){
 
 Builder.prototype.expression = function(){
     let expression = null,
-        next = this.peek();
+        list;
     
-    if( typeof next !== 'undefined' ){
-        let args, callee, object, property;
+    if( this.peek() ){
+        if( this.expect( ']' ) ){
+            list = this.list( '[' );
+            if( this.tokens.length === 1 ){
+                expression = new ArrayExpression( list );
+                this.consume( '[' );
+            } else if( list.length > 1 ){
+                expression = new SequenceExpression( list );
+            } else {
+                expression = list[ 0 ];
+            }
+        } else if( this.peek().is( 'identifier' ) ){
+            expression = this.identifier();
+            
+            // Implied member expression
+            if( this.peek() && this.peek().is( 'punctuator' ) ){
+                if( this.peek( ')' ) || this.peek( ']' ) ){
+                    expression = this.memberExpression( expression, false );
+                }
+            }
+        } else if( this.peek().is( 'literal' ) ){
+            expression = this.literal();
+        }
         
-        switch( next.type ){
-            
-            case 'identifier':
-                expression = this.identifier();
-                next = this.peek();
-                
-                if( typeof next !== 'undefined' && next.type === 'punctuator' ){
-                    next.value === '.' && this.consume( '.' );
-                    property = expression;
-                    object = this.expression();
-                    expression = new MemberExpression( object, property, false );
-                }
-                break;
-            
-            case 'literal':
-                expression = this.literal();
-                break;
-                
-            case 'punctuator':
-                if( next.value === ')' ){
-                    this.consume( ')' );
-                    args = this.arguments();
-                    this.consume( '(' );
-                    callee = this.expression();
-                    expression = new CallExpression( callee, args );
-                } else if( next.value === ']' ){
-                    this.consume( ']' );
-                    property = this.literal();
-                    this.consume( '[' );
-                    object = this.expression();
-                    expression = new MemberExpression( object, property, true );
-                } else {
-                    this.throwError( `Unexpected punctuator token: ${ next.value }` );
-                }
-                break;
-            
-            default:
-                this.throwError( `Unexpected ${ next.type } token: ${ next.value }` );
+        let next;
+        
+        while( ( next = this.expect( ')', '[', '.' ) ) ){
+            if( next.value === ')' ){
+                expression = this.callExpression();
+            } else if( next.value === '[' ){
+                expression = this.memberExpression( expression, true );
+            } else if( next.value === '.' ){
+                expression = this.memberExpression( expression, false );
+            } else {
+                this.throwError( `Unexpected token ${ next }` );
+            }
         }
     }
     
@@ -162,6 +153,32 @@ Builder.prototype.literal = function(){
     return new Literal( literal );
 };
 
+Builder.prototype.list = function( terminator ){
+    const list = [];
+    
+    if( this.peek().value !== terminator ){
+        do {
+            if( this.peek( terminator ) ){
+                break;
+            }
+            list.unshift( this.literal() );
+        } while( this.expect( ',' ) );
+    }
+    
+    return list;
+};
+
+Builder.prototype.memberExpression = function( property, computed ){
+    const object = this.expression();
+    
+    //console.log( 'MEMBER EXPRESSION' );
+    //console.log( '- OBJECT', object );
+    //console.log( '- PROPERTY', property );
+    //console.log( '- COMPUTED', computed );
+    
+    return new MemberExpression( object, property, computed );
+};
+
 Builder.prototype.peek = function( first, second, third, fourth ){
     const length = this.tokens.length;
     return length ?
@@ -170,11 +187,13 @@ Builder.prototype.peek = function( first, second, third, fourth ){
 };
 
 Builder.prototype.peekAt = function( index, first, second, third, fourth ){
-    const token = this.tokens[ index ],
-        value = token.value;
-    
-    if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
-        return token;
+    if( typeof index === 'number' ){
+        const token = this.tokens[ index ],
+            value = token.value;
+        
+        if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
+            return token;
+        }
     }
     
     return undefined;
@@ -192,16 +211,25 @@ Builder.prototype.program = function(){
     }
 };
 
+/*
 Builder.prototype.punctuator = function(){
     const token = this.consume();
     
     if( !( token.type === 'punctuator' ) ){
-        throw new BuilderError( 'Punctuator expected' );
+        this.throwError( 'Punctuator expected' );
     }
     
     return new Punctuator( token.value );
 };
+*/
+
+Builder.prototype.sequenceExpression = function(){
+    const args = this.bracketList();
+    return new SequenceExpression( args );
+};
 
 Builder.prototype.throwError = function( message ){
-    throw new BuilderError( message );
+    throw new SyntaxError( message );
 };
+
+export { Builder as default };
