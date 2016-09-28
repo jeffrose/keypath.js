@@ -26,13 +26,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
             entry: 'src/keypath.js',
             format: 'umd',
             moduleName: 'KeyPathExp',
-            sourceMap: true,
-            plugins: [
-                babel( {
-                    exclude: 'node_modules/**',
-                    presets: [ 'es2015-rollup' ]
-                } )
-            ]
+            sourceMap: true
         } )
         .pipe( source( 'keypath.js', 'src' ) )
         .pipe( buffer() )
@@ -45,13 +39,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
             entry: 'src/interpreter.js',
             format: 'umd',
             moduleName: 'Interpreter',
-            sourceMap: true,
-            plugins: [
-                babel( {
-                    exclude: 'node_modules/**',
-                    presets: [ 'es2015-rollup' ]
-                } )
-            ]
+            sourceMap: true
         } )
         .pipe( source( 'interpreter.js', 'src' ) )
         .pipe( buffer() )
@@ -64,13 +52,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
             entry: 'src/builder.js',
             format: 'umd',
             moduleName: 'Builder',
-            sourceMap: true,
-            plugins: [
-                babel( {
-                    exclude: 'node_modules/**',
-                    presets: [ 'es2015-rollup' ]
-                } )
-            ]
+            sourceMap: true
         } )
         .pipe( source( 'builder.js', 'src' ) )
         .pipe( buffer() )
@@ -83,13 +65,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
             entry: 'src/lexer.js',
             format: 'umd',
             moduleName: 'Lexer',
-            sourceMap: true,
-            plugins: [
-                babel( {
-                    exclude: 'node_modules/**',
-                    presets: [ 'es2015-rollup' ]
-                } )
-            ]
+            sourceMap: true
         } )
         .pipe( source( 'lexer.js', 'src' ) )
         .pipe( buffer() )
@@ -104,14 +80,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
             entry: 'src/tk.js',
             format: 'umd',
             moduleName: 'tk',
-            sourceMap: true,
-            plugins: [
-                // babel( {
-                //     exclude: 'node_modules/**',
-                //     presets: [ 'es2015-rollup' ],
-                //     runtimeHelpers: true
-                // } )
-            ]
+            sourceMap: true
         } )
         .pipe( source( 'tk.js', 'src' ) )
         .pipe( buffer() )
@@ -142,7 +111,7 @@ gulp.task( 'test', [ 'dist' ], ( done ) => {
                 .pipe( mocha( {
                     grep: yargs.argv.grep
                 } ) )
-                .pipe( istanbul.writeReports() )
+                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
                 .on( 'end', done );
         } );
 } );
@@ -157,7 +126,7 @@ gulp.task( 'test:lexer', [ 'dist' ], ( done ) => {
                 .pipe( mocha( {
                     grep: yargs.argv.grep
                 } ) )
-                .pipe( istanbul.writeReports() )
+                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
                 .on( 'end', done );
         } );
 } );
@@ -172,7 +141,7 @@ gulp.task( 'test:builder', [ 'dist' ], ( done ) => {
                 .pipe( mocha( {
                     grep: yargs.argv.grep
                 } ) )
-                .pipe( istanbul.writeReports() )
+                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
                 .on( 'end', done );
         } );
 } );
@@ -187,7 +156,7 @@ gulp.task( 'test:interpreter', [ 'dist' ], ( done ) => {
                 .pipe( mocha( {
                     grep: yargs.argv.grep
                 } ) )
-                .pipe( istanbul.writeReports() )
+                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
                 .on( 'end', done );
         } );
 } );
