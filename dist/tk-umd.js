@@ -126,6 +126,10 @@ var tokenize = function (str){
         }
         else if (str[i] in separators){
             separator = separators[str[i]];
+            if (!word && mods.has){
+                // found a separator, after seeing prefixes, but no token word -> invalid
+                return undefined;
+            }
             if (word && mods.has){
                 word = {'w': word, 'mods': mods};
                 mods = {};
@@ -195,35 +199,6 @@ var tokenize = function (str){
     return tokens;
 };
 
-// var getContext = function getContext(context, valueStack, word){
-//  if (!prefixes[word[0]]){
-//      return context;
-//  }
-//  var counter = 0,
-//      prefix,
-//      newContext;
-//  while (prefix = prefixes[word[counter]]){
-//      if (prefix.exec === 'parent'){
-//          newContext = valueStack[counter + 1];
-//      }
-//      counter++;
-//  }
-//  return newContext;
-// };
-
-// var cleanWord = function cleanWord(word){
-//  if(!prefixes[word[0]]){
-//      return word;
-//  }
-//  var len = word.length;
-//  for (var i = 1; i < len; i++){
-//      if (!prefixes[word[i]]){
-//          return word.substr(i);
-//      }
-//  }
-//  return '';
-// }
-
 var resolvePath = function (obj, path, newValue, args, valueStack){
     var change = newValue !== undefined,
         tk = [],
@@ -244,7 +219,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         tk = path.split(propertySeparator);
         tkLength = tk.length;
         while (prev !== undefined && i < tkLength){
-            if (i === EMPTY_STRING){ prev = undefined; }
+            if (tk[i] === EMPTY_STRING){ return undefined; }
             else if (change){
                 if (i === tkLength - 1){
                     prev[tk[i]] = newValue;
@@ -257,6 +232,8 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
     }
 
     tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
+    console.log('tk:', JSON.stringify(tk));
+    if (typeof tk === 'undefined'){ return undefined; }
     tkLength = tk.length;
     if (tkLength === 0) { return undefined; }
     tkLastIdx = tkLength - 1;
@@ -319,7 +296,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     }
                 }
             }
-            else if (typeof curr === 'undefined' || typeof prev === 'undefined'){
+            else if (typeof curr === 'undefined'){
                 ret = undefined;
             }
             else if (curr.w){
@@ -335,7 +312,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     valueStackLength = 1;
                 }
                 if (curr.mods.placeholder){
-                    if (curr.w.length === 0) { return undefined; }
+                    console.log('curr.w', curr.w);
                     var placeInt = Number.parseInt(curr.w) - 1;
                     if (typeof args[placeInt] === 'undefined'){ return undefined; }
                     // Force args[placeInt] to String, won't attempt to process

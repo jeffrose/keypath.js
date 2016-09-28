@@ -14,6 +14,7 @@ describe( 'tk', function(){
             // var str2 = 'accounts.1.{~accounts.3.propAry.0}';
     beforeEach(function(){
         data = {
+            'undef': undefined,
             'propA': 'one',
             'propB': 'two',
             'propC': 'three',
@@ -47,10 +48,17 @@ describe( 'tk', function(){
 
     });
 
-    xdescribe( 'debug', function(){
-    });
+    // describe( 'debug', function(){
+    //     it('should process collection inside container', function (done) {
+    //         var str = 'accounts.1.test1,test2'
+    //         var ary = [];
+    //         ary.push(data.accounts[1].test1);
+    //         ary.push(data.accounts[1].test2);
+    //         expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+    //     });
+    // });
 
-    describe( 'disable', function(){
+    // xdescribe( 'disable', function(){
     describe( 'getPath', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -68,7 +76,7 @@ describe( 'tk', function(){
             expect(tk.getPath(undefined, str)).to.be.undefined;
         } );
 
-        it( 'should be able to evaluate [] container and execute function', function(){
+        it( 'should be able to evaluate container and execute function', function(){
             var str = 'accounts{2()}checking.id';
             var tmp = data.accounts[2]();
             expect(tk.getPath(data, str)).to.equal(data.accounts[tmp].checking.id);
@@ -197,6 +205,42 @@ describe( 'tk', function(){
             var str = 'accounts.1.checking.fnArg(%1, %2)';
             var key = 'hello';
             expect(tk.getPath(data, str, key, key)).to.equal(data.accounts[1].checking.fnArg(key, key));
+        });
+
+        it('should get undefined as result', function () {
+            var empty;
+            var str = ''; // empty string
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.1..checking.id'; // empty segment
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts{2()checking.id'; // mismatched container
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.1.checking.id,missing'; // cannot get missing property inside collection
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.undef'; // data object is undefined
+            expect(tk.getPath(empty, str)).to.be.undefined;
+            str = {t: ['propA', undefined, 'propB']}; // undefined path segment in token list
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.1.<<<<checking'; // too many parent refs
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.%.checking.id'; // missing placeholder number
+            expect(tk.getPath(data, str, 1)).to.be.undefined;
+            str = 'accounts.%1.checking.id'; // missing placeholder argument
+            expect(tk.getPath(data, str)).to.be.undefined;
+            str = 'accounts.1.<missing.id'; // invalid property using modifier
+            expect(tk.getPath(data, str)).to.be.undefined;
+        });
+
+        it('should execute crazy function path', function () {
+            var fn = function(){
+                return function(){
+                    return function(){
+                        return 'abc';
+                    }
+                }
+            }
+            var str = '()()()'
+            expect(tk.getPath(fn, str)).to.equal('abc');
         });
     });
 
@@ -629,6 +673,6 @@ describe( 'tk', function(){
         });
 
     });
-    });
+    // });
 
 } );
