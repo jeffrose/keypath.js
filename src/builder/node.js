@@ -23,7 +23,7 @@ Node.prototype = new Null();
 Node.prototype.constructor = Node;
 
 Node.prototype.equals = function( node ){
-    return node instanceof Node && this.id === node.id;
+    return node instanceof Node && this.valueOf() === node.valueOf();
 };
 
 Node.prototype.is = function( type ){
@@ -78,18 +78,34 @@ Program.prototype = Object.create( Node.prototype );
 
 Program.prototype.constructor = Program;
 
-Program.prototype.addStatement = function( statement ){
-    if( !( statement instanceof Statement ) ){
-        throw new TypeError( 'statement must be a statement' );
-    }
-    
-    this.body.push( statement );
-};
-
 Program.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
     json.body = this.body.map( ( node ) => node.toJSON() );
+    
+    return json;
+};
+
+export function ArrayExpression( elements ){
+    Expression.call( this, 'ArrayExpression' );
+    
+    if( !( Array.isArray( elements ) ) ){
+        throw new TypeError( 'elements must be a list of expressions' );
+    }
+    
+    this.elements = elements;
+}
+
+ArrayExpression.prototype = Object.create( Expression.prototype );
+
+ArrayExpression.prototype.constructor = ArrayExpression;
+
+ArrayExpression.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.elements = this.elements.map( function( element ){
+        return element.toJSON();
+    } );
     
     return json;
 };
@@ -214,6 +230,30 @@ Literal.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
     json.value = this.value;
+    
+    return json;
+};
+
+export function SequenceExpression( expressions ){
+    Expression.call( this, 'SequenceExpression' );
+    
+    if( !( Array.isArray( expressions ) ) ){
+        throw new TypeError( 'expressions must be a list of expressions' );
+    }
+    
+    this.expressions = expressions;
+}
+
+SequenceExpression.prototype = Object.create( Expression.prototype );
+
+SequenceExpression.prototype.constructor = SequenceExpression;
+
+SequenceExpression.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.expressions = this.expressions.map( function( expression ){
+        return expression.toJSON();
+    } );
     
     return json;
 };
