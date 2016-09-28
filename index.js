@@ -59,3 +59,17 @@
  * @external symbol
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol}
  */
+
+/**
+ * JavaScript SyntaxError
+ * @external SyntaxError
+ * @extends external:Error
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError}
+ */ 
+
+/**
+ * JavaScript TypeError
+ * @external TypeError
+ * @extends external:Error
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError}
+ */ 

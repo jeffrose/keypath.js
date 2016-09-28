@@ -3,6 +3,14 @@
 import Null from '../null';
 import nextId from '../uuid';
 
+/**
+ * @class Token
+ * @extends Null
+ * @param {external:string} type The type of the token
+ * @param {*} value The value of the token
+ * @throws {external:TypeError} If `type` is not a string
+ * @throws {external:TypeError} If `value` is undefined.
+ */
 function Token( type, value ){
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
@@ -22,6 +30,15 @@ Token.prototype = new Null();
 
 Token.prototype.constructor = Token;
 
+Token.prototype.equals = function( token ){
+    return token instanceof Token && this.valueOf() === token.valueOf();
+};
+
+/**
+ * @function
+ * @param {external:string} type
+ * @returns {external:boolean} Whether or not the token is the `type` provided.
+ */
 Token.prototype.is = function( type ){
     return this.type === type;
 };

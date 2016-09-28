@@ -341,7 +341,6 @@ var resolvePath = function resolvePath(obj, path, newValue, args, valueStack) {
     // as loop values
     while (prev !== undefined && idx < tkLength) {
         curr = tk[idx];
-        // context = valueStack[0];
         newValueHere = change && idx === tkLastIdx;
 
         if (typeof curr === 'string') {

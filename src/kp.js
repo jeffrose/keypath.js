@@ -52,8 +52,4 @@ function kp( literals, ...values ){
     };
 }
 
-var t = { foo: { bar: { qux: { baz: 'fuz' } } } },
-    f = ( target ) => kp`foo.bar.qux.baz`( target );
-console.log( f( t ) );
-
 export { kp as default };
