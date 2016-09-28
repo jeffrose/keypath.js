@@ -235,7 +235,6 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
     }
 
     tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
-    console.log('tk:', JSON.stringify(tk));
     if (typeof tk === 'undefined'){ return undefined; }
     tkLength = tk.length;
     if (tkLength === 0) { return undefined; }
@@ -315,7 +314,6 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     valueStackLength = 1;
                 }
                 if (curr.mods.placeholder){
-                    console.log('curr.w', curr.w);
                     var placeInt = Number.parseInt(curr.w) - 1;
                     if (typeof args[placeInt] === 'undefined'){ return undefined; }
                     // Force args[placeInt] to String, won't attempt to process
