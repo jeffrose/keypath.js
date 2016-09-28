@@ -1,8 +1,6 @@
 ## Classes
 
 <dl>
-<dt><a href="#BuilderError">BuilderError</a> ⇐ <code>SyntaxError</code></dt>
-<dd></dd>
 <dt><a href="#Builder">Builder</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
 <dt><a href="#Interpreter">Interpreter</a> ⇐ <code><a href="#Null">Null</a></code></dt>
@@ -14,6 +12,17 @@
 <dt><a href="#Lexer">Lexer</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
 <dt><a href="#Null">Null</a> ⇐ <code><a href="#external_null">null</a></code></dt>
+<dd></dd>
+<dt><a href="#Node">Node</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#Token">Token</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+</dl>
+
+## Objects
+
+<dl>
+<dt><a href="#interpret">interpret</a> : <code>object</code></dt>
 <dd></dd>
 </dl>
 
@@ -65,20 +74,13 @@
 <dt><a href="#external_symbol">symbol</a></dt>
 <dd><p>JavaScript <a href="https://developer.mozilla.org/en-US/docs/Glossary/Primitive">primitive</a> symbol</p>
 </dd>
+<dt><a href="#external_SyntaxError">SyntaxError</a> ⇐ <code><a href="#external_Error">Error</a></code></dt>
+<dd><p>JavaScript SyntaxError</p>
+</dd>
+<dt><a href="#external_TypeError">TypeError</a> ⇐ <code><a href="#external_Error">Error</a></code></dt>
+<dd><p>JavaScript TypeError</p>
+</dd>
 </dl>
-
-<a name="BuilderError"></a>
-
-## BuilderError ⇐ <code>SyntaxError</code>
-**Kind**: global class  
-**Extends:** <code>SyntaxError</code>  
-<a name="new_BuilderError_new"></a>
-
-### new BuilderError(message)
-
-| Param | Type | Description |
-| --- | --- | --- |
-| message | <code>[string](#external_string)</code> | The error message |
 
 <a name="Builder"></a>
 
@@ -98,6 +100,11 @@
 ## Interpreter ⇐ <code>[Null](#Null)</code>
 **Kind**: global class  
 **Extends:** <code>[Null](#Null)</code>  
+
+* [Interpreter](#Interpreter) ⇐ <code>[Null](#Null)</code>
+    * [new Interpreter(builder)](#new_Interpreter_new)
+    * [.compile(expression)](#Interpreter+compile)
+
 <a name="new_Interpreter_new"></a>
 
 ### new Interpreter(builder)
@@ -105,6 +112,15 @@
 | Param | Type |
 | --- | --- |
 | builder | <code>[Builder](#Builder)</code> | 
+
+<a name="Interpreter+compile"></a>
+
+### interpreter.compile(expression)
+**Kind**: instance method of <code>[Interpreter](#Interpreter)</code>  
+
+| Param | Type |
+| --- | --- |
+| expression | <code>[string](#external_string)</code> | 
 
 <a name="KeyPathExp"></a>
 
@@ -147,6 +163,138 @@
 
 ### new Null()
 A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
+
+<a name="Node"></a>
+
+## Node ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+<a name="new_Node_new"></a>
+
+### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of node |
+
+<a name="Token"></a>
+
+## Token ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [Token](#Token) ⇐ <code>[Null](#Null)</code>
+    * [new Token(type, value)](#new_Token_new)
+    * [.is(type)](#Token+is) ⇒ <code>[boolean](#external_boolean)</code>
+
+<a name="new_Token_new"></a>
+
+### new Token(type, value)
+**Throws**:
+
+- <code>[TypeError](#external_TypeError)</code> If `type` is not a string
+- <code>[TypeError](#external_TypeError)</code> If `value` is undefined.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>\*</code> | The value of the token |
+
+<a name="Token+is"></a>
+
+### token.is(type) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: instance method of <code>[Token](#Token)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the token is the `type` provided.  
+
+| Param | Type |
+| --- | --- |
+| type | <code>[string](#external_string)</code> | 
+
+<a name="interpret"></a>
+
+## interpret : <code>object</code>
+**Kind**: global namespace  
+
+* [interpret](#interpret) : <code>object</code>
+    * [.ArrayExpression(interpeter, node, context)](#interpret.ArrayExpression) ⇒ <code>[Function](#external_Function)</code>
+    * [.CallExpression(interpeter, node, context)](#interpret.CallExpression) ⇒ <code>[Function](#external_Function)</code>
+    * [.Identifier(interpeter, node, context)](#interpret.Identifier) ⇒ <code>[Function](#external_Function)</code>
+    * [.Literal(interpeter, node, context)](#interpret.Literal) ⇒ <code>[Function](#external_Function)</code>
+    * [.MemberExpression(interpeter, node, context)](#interpret.MemberExpression) ⇒ <code>[Function](#external_Function)</code>
+    * [.SequenceExpression(interpeter, node, context)](#interpret.SequenceExpression) ⇒ <code>[Function](#external_Function)</code>
+
+<a name="interpret.ArrayExpression"></a>
+
+### interpret.ArrayExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
+**Kind**: static method of <code>[interpret](#interpret)</code>  
+**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
+
+| Param | Type |
+| --- | --- |
+| interpeter | <code>[Interpreter](#Interpreter)</code> | 
+| node | <code>[Node](#Node)</code> | 
+| context | <code>[boolean](#external_boolean)</code> | 
+
+<a name="interpret.CallExpression"></a>
+
+### interpret.CallExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
+**Kind**: static method of <code>[interpret](#interpret)</code>  
+**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
+
+| Param | Type |
+| --- | --- |
+| interpeter | <code>[Interpreter](#Interpreter)</code> | 
+| node | <code>[Node](#Node)</code> | 
+| context | <code>[boolean](#external_boolean)</code> | 
+
+<a name="interpret.Identifier"></a>
+
+### interpret.Identifier(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
+**Kind**: static method of <code>[interpret](#interpret)</code>  
+**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
+
+| Param | Type |
+| --- | --- |
+| interpeter | <code>[Interpreter](#Interpreter)</code> | 
+| node | <code>[Node](#Node)</code> | 
+| context | <code>[boolean](#external_boolean)</code> | 
+
+<a name="interpret.Literal"></a>
+
+### interpret.Literal(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
+**Kind**: static method of <code>[interpret](#interpret)</code>  
+**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
+
+| Param | Type |
+| --- | --- |
+| interpeter | <code>[Interpreter](#Interpreter)</code> | 
+| node | <code>[Node](#Node)</code> | 
+| context | <code>[boolean](#external_boolean)</code> | 
+
+<a name="interpret.MemberExpression"></a>
+
+### interpret.MemberExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
+**Kind**: static method of <code>[interpret](#interpret)</code>  
+**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
+
+| Param | Type |
+| --- | --- |
+| interpeter | <code>[Interpreter](#Interpreter)</code> | 
+| node | <code>[Node](#Node)</code> | 
+| context | <code>[boolean](#external_boolean)</code> | 
+
+<a name="interpret.SequenceExpression"></a>
+
+### interpret.SequenceExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
+**Kind**: static method of <code>[interpret](#interpret)</code>  
+**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
+
+| Param | Type |
+| --- | --- |
+| interpeter | <code>[Interpreter](#Interpreter)</code> | 
+| node | <code>[Node](#Node)</code> | 
+| context | <code>[boolean](#external_boolean)</code> | 
 
 <a name="kp"></a>
 
@@ -247,3 +395,19 @@ JavaScript [primitive](https://developer.mozilla.org/en-US/docs/Glossary/Primiti
 
 **Kind**: global external  
 **See**: [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol)  
+<a name="external_SyntaxError"></a>
+
+## SyntaxError ⇐ <code>[Error](#external_Error)</code>
+JavaScript SyntaxError
+
+**Kind**: global external  
+**Extends:** <code>[Error](#external_Error)</code>  
+**See**: [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError)  
+<a name="external_TypeError"></a>
+
+## TypeError ⇐ <code>[Error](#external_Error)</code>
+JavaScript TypeError
+
+**Kind**: global external  
+**Extends:** <code>[Error](#external_Error)</code>  
+**See**: [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError)  
