@@ -21,6 +21,9 @@
     "path"
   ],
   "main": "index.js",
+  "scripts": {
+    "trace": "node --allow-natives-syntax --trace_opt --trace_deopt test/trace.js"
+  },
   "dependencies": {
     
   },
@@ -50,7 +53,8 @@
     "sinon": "1.17.5",
     "sinon-chai": "2.8.0",
     "vinyl-buffer": "1.0.0",
-    "vinyl-source-stream": "1.1.0"
+    "vinyl-source-stream": "1.1.0",
+    "yargs": "5.0.0"
   },
   "engines": {
     "node": ">=4.2.3"
