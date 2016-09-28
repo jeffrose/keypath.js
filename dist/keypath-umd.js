@@ -837,7 +837,7 @@ interpret.ArrayExpression = function (interpreter, node, context) {
     });
 
     return function (base, value) {
-        console.log('ARRAY EXPRESSION');
+        //console.log( 'ARRAY EXPRESSION' );
 
         var result = [];
 
@@ -849,7 +849,7 @@ interpret.ArrayExpression = function (interpreter, node, context) {
             result = result[0];
         }
 
-        console.log('- ARRAY RESULT', result);
+        //console.log( '- ARRAY RESULT', result );
 
         return context ? { value: result } : result;
     };
@@ -872,7 +872,7 @@ interpret.CallExpression = function (interpreter, node, context) {
     var right = interpreter.recurse(node.callee, true);
 
     return function (base, value) {
-        console.log('CALL EXPRESSION');
+        //console.log( 'CALL EXPRESSION' );
         var rhs = right(base, value);
         var result = void 0;
 
@@ -885,7 +885,7 @@ interpret.CallExpression = function (interpreter, node, context) {
             throw new Error('cannot create functions');
         }
 
-        console.log('- CALL RESULT', result);
+        //console.log( '- CALL RESULT', result );
 
         return context ? { value: result } : result;
     };
@@ -901,7 +901,7 @@ interpret.CallExpression = function (interpreter, node, context) {
 interpret.Identifier = function (interpreter, node, context) {
     var name = node.name;
     return function (base, value) {
-        console.log('IDENTIFIER');
+        //console.log( 'IDENTIFIER' );
         var result = void 0;
 
         if (typeof base !== 'undefined') {
@@ -912,8 +912,8 @@ interpret.Identifier = function (interpreter, node, context) {
             result = base[name];
         }
 
-        console.log('- NAME', name);
-        console.log('- IDENTIFIER RESULT', result);
+        //console.log( '- NAME', name );
+        //console.log( '- IDENTIFIER RESULT', result );
 
         return context ? { context: base, name: name, value: result } : result;
     };
@@ -929,8 +929,8 @@ interpret.Identifier = function (interpreter, node, context) {
 interpret.Literal = function (interpreter, node, context) {
     var value = node.value;
     return function () {
-        console.log('LITERAL');
-        console.log('- LITERAL RESULT', value);
+        //console.log( 'LITERAL' );
+        //console.log( '- LITERAL RESULT', value );
         return context ? { context: undefined, name: undefined, value: value } : value;
     };
 };
@@ -954,10 +954,10 @@ interpret.MemberExpression = function (interpreter, node, context) {
     if (node.computed) {
         right = interpreter.recurse(node.property, false);
         fn = function fn(base, value) {
-            console.log('COMPUTED MEMBER');
+            //console.log( 'COMPUTED MEMBER' );
             lhs = left(base, value);
 
-            console.log('- COMPUTED LHS', lhs);
+            //console.log( '- COMPUTED LHS', lhs );
 
             if (typeof lhs !== 'undefined') {
                 rhs = right(base, value);
@@ -966,7 +966,7 @@ interpret.MemberExpression = function (interpreter, node, context) {
                     lhs[rhs] = new Null();
                 }
 
-                console.log('- COMPUTED RHS', rhs);
+                //console.log( '- COMPUTED RHS', rhs );
 
                 if (Array.isArray(lhs)) {
                     // Sequence expression
@@ -988,24 +988,24 @@ interpret.MemberExpression = function (interpreter, node, context) {
                 }
             }
 
-            console.log('- COMPUTED RESULT', result);
+            //console.log( '- COMPUTED RESULT', result );
 
             return context ? { context: lhs, name: rhs, value: result } : result;
         };
     } else {
         right = node.property.name;
         fn = function fn(base, value) {
-            console.log('NON-COMPUTED MEMBER');
+            //console.log( 'NON-COMPUTED MEMBER' );
             lhs = left(base, value);
 
-            console.log('- NON-COMPUTED LHS', lhs);
+            //console.log( '- NON-COMPUTED LHS', lhs );
 
             if (typeof lhs !== 'undefined') {
                 if (typeof value !== 'undefined' && !(right in lhs)) {
                     lhs[right] = value || new Null();
                 }
 
-                console.log('- NON-COMPUTED RIGHT', right);
+                //console.log( '- NON-COMPUTED RIGHT', right );
 
                 if (Array.isArray(lhs)) {
                     result = lhs.map(function (item) {
@@ -1016,7 +1016,7 @@ interpret.MemberExpression = function (interpreter, node, context) {
                 }
             }
 
-            console.log('- NON-COMPUTED RESULT', result);
+            //console.log( '- NON-COMPUTED RESULT', result );
 
             return context ? { context: lhs, name: right, value: result } : result;
         };
@@ -1040,7 +1040,7 @@ interpret.SequenceExpression = function (interpreter, node, context) {
     });
 
     return function (base, value) {
-        console.log('SEQUENCE EXPRESSION');
+        //console.log( 'SEQUENCE EXPRESSION' );
 
         var result = [];
 
@@ -1048,7 +1048,7 @@ interpret.SequenceExpression = function (interpreter, node, context) {
             result.push(arg(base, value));
         });
 
-        console.log('- SEQUENCE RESULT', result);
+        //console.log( '- SEQUENCE RESULT', result );
 
         return context ? { value: result } : result;
     };
@@ -1114,7 +1114,7 @@ Interpreter.prototype.compile = function (expression) {
 };
 
 Interpreter.prototype.recurse = function (node, context) {
-    //console.log( 'RECURSE', node );
+    ////console.log( 'RECURSE', node );
 
     if (!(node.type in interpret)) {
         this.throwError('Unknown node type ' + node.type);

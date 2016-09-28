@@ -248,17 +248,10 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
     // as loop values
     while (prev !== undefined && idx < tkLength){
         curr = tk[idx];
-        newValueHere = change && idx === tkLastIdx;
+        newValueHere = (change && (idx === tkLastIdx));
 
-        if (typeof curr === 'string') {
-            // Cannot do ".hasOwnProperty" here since that breaks when testing
-            // for functions defined on prototypes (e.g. [1,2,3].sort())
-            if (typeof context[curr] !== 'undefined') {
-                if (newValueHere) {
-                    context[curr] = newValue;
-                }
-                ret = context[curr];
-            } else if (curr.indexOf('*') > -1) {
+        if (typeof curr === 'string'){
+            if (curr.indexOf('*') >-1){
                 ret = [];
                 for (var prop in context){
                     if (context.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
