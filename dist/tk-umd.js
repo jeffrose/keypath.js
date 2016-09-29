@@ -5,8 +5,6 @@
 }(this, (function (exports) { 'use strict';
 
 // Parsing, tokeninzing, etc
-var EMPTY_STRING = '';
-
 var prefixes = {
     '<': {
         'exec': 'parent'
@@ -61,7 +59,7 @@ var wildCardMatch = function(template, str){
     return match;
 };
 // Find all special characters except .
-var specials = '[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
+var specials = '[\\\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
 var specialRegEx = new RegExp(specials);
 
 // Find all special characters, including backslash
@@ -70,6 +68,7 @@ var allSpecialsRegEx = new RegExp(allSpecials, 'g');
 
 // Find all escaped special characters
 var escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
+var escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
 
 var isObject = function(val) {
     if (val === null) { return false;}
@@ -87,6 +86,8 @@ var cache = {};
  *  recursively on string within container.
  */
 var tokenize = function (str){
+    // Strip out any unnecessary escaping to simplify processing below
+    str = str.replace(escapedNonSpecialsRegEx, '$&'.substr(1));
     if (useCache && cache[str]){ return cache[str]; }
 
     var tokens = [],
@@ -99,15 +100,20 @@ var tokenize = function (str){
         closer = '',
         separator = '',
         collection = [],
-        depth = 0;
+        depth = 0,
+        escaped = 0;
 
     // console.log('Parsing:', str);
 
     for (i = 0; i < strLength; i++){
+        if (!escaped && str[i] === '\\'){
+            // Next character is the escaped character
+            escaped = i+1;
+        }
         if (depth > 0){
             // Scan for closer
-            str[i] === opener && depth++;
-            str[i] === closer.closer && depth--;
+            !escaped && str[i] === opener && depth++;
+            !escaped && str[i] === closer.closer && depth--;
 
             if (depth > 0){
                 substr += str[i];
@@ -128,12 +134,12 @@ var tokenize = function (str){
                 substr = '';
             }
         }
-        else if (str[i] in prefixes){
+        else if (!escaped && str[i] in prefixes){
             mods.has = true;
             if (mods[prefixes[str[i]].exec]) { mods[prefixes[str[i]].exec]++; }
             else { mods[prefixes[str[i]].exec] = 1; }
         }
-        else if (str[i] in separators){
+        else if (!escaped && str[i] in separators){
             separator = separators[str[i]];
             if (!word && mods.has){
                 // found a separator, after seeing prefixes, but no token word -> invalid
@@ -162,7 +168,7 @@ var tokenize = function (str){
             }
             word = '';
         }
-        else if (str[i] in containers){
+        else if (!escaped && str[i] in containers){
             // found opener, initiate scan for closer
             closer = containers[str[i]];
             if (word && mods.has){
@@ -185,7 +191,16 @@ var tokenize = function (str){
             // still accumulating property name
             word += str[i];
         }
+        if (i === escaped){
+            escaped = 0;
+        }
     }
+
+    if (escaped){
+        // Path ended in an escape character
+        return undefined;
+    }
+
     // add trailing word to tokens, if present
     if (word && mods.has){
         word = {'w': word, 'mods': mods};
@@ -224,25 +239,25 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         ret,
         newValueHere = false;
 
-    // Strip all escaped characters from path then test for presence of
-    // special characters other than <propertySeparator>. If no other
-    // specials are found, this is a "simple path" that can be evaluated
-    // with a very fast while loop. E.g., "foo.bar.2" or "people.John Q\. Doe.id"
-    if (typeof path === 'string' && !path.replace(escapedSpecialsRegEx,'').match(specialRegEx)){
-        tk = path.split(propertySeparator);
-        tkLength = tk.length;
-        while (prev !== undefined && i < tkLength){
-            if (tk[i] === EMPTY_STRING){ return undefined; }
-            else if (change){
-                if (i === tkLength - 1){
-                    prev[tk[i]] = newValue;
-                }
-            }
-            prev = prev[tk[i]];
-            i++;
-        }
-        return prev;
-    }
+    // // Strip all escaped characters from path then test for presence of
+    // // special characters other than <propertySeparator>. If no other
+    // // specials are found, this is a "simple path" that can be evaluated
+    // // with a very fast while loop. E.g., "foo.bar.2" or "people.John Q\. Doe.id"
+    // if (typeof path === 'string' && !path.replace(escapedSpecialsRegEx,'').match(specialRegEx)){
+    //     tk = path.split(propertySeparator);
+    //     tkLength = tk.length;
+    //     while (prev !== undefined && i < tkLength){
+    //         if (tk[i] === EMPTY_STRING){ return undefined; }
+    //         else if (change){
+    //             if (i === tkLength - 1){
+    //                 prev[tk[i]] = newValue;
+    //             }
+    //         }
+    //         prev = prev[tk[i]];
+    //         i++;
+    //     }
+    //     return prev;
+    // }
 
     // Either a full token set was provided or else the path includes
     // some special characters and must be evaluated more carefully.
@@ -413,6 +428,8 @@ var scanForValue = function(obj, val, savePath, path){
 };
 
 var getTokens = function(path){
+    var tokens = tokenize(path);
+    if (typeof tokens === 'undefined'){ return undefined; }
     return {t: tokenize(path)};
 };
 

@@ -58,7 +58,6 @@ describe( 'tk', function(){
 
         it( 'should return undefined for paths that do not exist', function(){
             var str = 'xaccounts.1.checking.id';
-            // console.log(JSON.stringify(tk.getPath(data, str)));
             expect(tk.getPath(data, str)).to.be.undefined;
             str = 'accounts.9.checking.id';
             expect(tk.getPath(data, str)).to.be.undefined;
@@ -428,6 +427,18 @@ describe( 'tk', function(){
             expect(tokens).to.be.an.object;
             expect(tokens.t).to.be.an.array;
             expect(tokens.t.length).to.equal(3);
+        });
+        it('should return a token array from an escaped string path', function () {
+            var str = 'f\\(oo\\).b\\.ar';
+            var tokens = tk.getTokens(str);
+            expect(tokens).to.be.an.object;
+            expect(tokens.t).to.be.an.array;
+            expect(tokens.t.length).to.equal(2);
+            expect(tokens.t.join('.')).to.equal(str);
+        });
+        it('should return undefined if path ends in an escape character', function () {
+            var str = 'foo.bar\\';
+            expect(tk.getTokens(str)).to.be.undefined;
         });
     });
 
