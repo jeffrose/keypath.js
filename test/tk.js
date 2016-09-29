@@ -49,9 +49,6 @@ describe( 'tk', function(){
 
     });
 
-    // describe( 'debug', function(){
-    // });
-
     // xdescribe( 'disable', function(){
     describe( 'getPath', function(){
         it( 'should get simple dot-separated properties', function(){
@@ -434,6 +431,23 @@ describe( 'tk', function(){
         });
     });
 
+    describe('isValid', function () {
+        it('should correctly identify valid and invalid paths', function () {
+            expect(tk.isValid('accounts.1.test2')).to.be.true;
+            expect(tk.isValid('accounts.{1.test2')).to.be.false;
+            expect(tk.isValid('accounts(.test2')).to.be.false;
+            expect(tk.isValid('accounts{{a()},{b.c,d}}')).to.be.true;
+            expect(tk.isValid('accounts{{a(),{b.c,d}}')).to.be.false;
+        });
+    });
+
+    describe('escape', function () {
+        it('should escape special characters', function () {
+            expect(tk.escape('accounts.1.test2')).to.equal('accounts\\.1\\.test2');
+            expect(tk.escape('accounts{{a()},{b.c,d}}')).to.equal('accounts\\{\\{a\\(\\)\\}\\,\\{b\\.c\\,d\\}\\}');
+        });
+    });
+    
     describe('setOptions', function () {
         afterEach(function () {
             tk.setOptions({
@@ -723,6 +737,9 @@ describe( 'tk', function(){
         });
 
     });
+    // });
+
+    // describe( 'debug', function(){
     // });
 
 } );

@@ -41,7 +41,8 @@ var containers = {
         'exec': 'property'
         }
 },
-containerList = Object.keys(containers);
+containerList = Object.keys(containers),
+containerCloseList = containerList.map(function(key){ return containers[key].closer; });
 
 var wildCardMatch = function(template, str){
     var pos = template.indexOf('*'),
@@ -55,8 +56,16 @@ var wildCardMatch = function(template, str){
     }
     return match;
 };
+// Find all special characters except .
 var specials = '[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
 var specialRegEx = new RegExp(specials);
+
+// Find all special characters, including backslash
+var allSpecials = '[\\\\\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
+var allSpecialsRegEx = new RegExp(allSpecials, 'g');
+
+// Find all escaped special characters
+var escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
 
 var isObject = function(val) {
     if (val === null) { return false;}
@@ -218,7 +227,11 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         ret,
         newValueHere = false;
 
-    if (typeof path === 'string' && !path.match(specialRegEx)){
+    // Strip all escaped characters from path then test for presence of
+    // special characters other than <propertySeparator>. If no other
+    // specials are found, this is a "simple path" that can be evaluated
+    // with a very fast while loop. E.g., "foo.bar.2" or "people.John Q\. Doe.id"
+    if (typeof path === 'string' && !path.replace(escapedSpecialsRegEx,'').match(specialRegEx)){
         tk = path.split(propertySeparator);
         tkLength = tk.length;
         while (prev !== undefined && i < tkLength){
@@ -234,6 +247,8 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         return prev;
     }
 
+    // Either a full token set was provided or else the path includes
+    // some special characters and must be evaluated more carefully.
     tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
     if (typeof tk === 'undefined'){ return undefined; }
     tkLength = tk.length;
@@ -404,6 +419,14 @@ export var getTokens = function(path){
     return {t: tokenize(path)};
 };
 
+export var isValid = function(path){
+    return typeof tokenize(path) !== 'undefined';
+};
+
+export var escape = function(path){
+    return path.replace(allSpecialsRegEx, '\\$&');
+};
+
 export var getPath = function (obj, path){
     var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
     return resolvePath(obj, path, undefined, args);
@@ -463,6 +486,10 @@ export var setOptions = function(options){
     if (typeof options.cache !== 'undefined'){
         useCache = !!options.cache;
     }
+    // Reset all special character sets and regular expressions
     specials = ('[\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
     specialRegEx = new RegExp(specials);
+    allSpecials = '[\\\\\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
+    allSpecialsRegEx = new RegExp(allSpecials, 'g');
+    escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
 };

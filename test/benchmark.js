@@ -10,7 +10,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
         foo: {
             bar: {
                 qux: {
-                    baz: true
+                    'baz': true
                 }
             }
         }
