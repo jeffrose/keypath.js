@@ -5,6 +5,8 @@
 }(this, (function (exports) { 'use strict';
 
 // Parsing, tokeninzing, etc
+var EMPTY_STRING = '';
+
 var prefixes = {
     '<': {
         'exec': 'parent'
@@ -239,25 +241,25 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         ret,
         newValueHere = false;
 
-    // // Strip all escaped characters from path then test for presence of
-    // // special characters other than <propertySeparator>. If no other
-    // // specials are found, this is a "simple path" that can be evaluated
-    // // with a very fast while loop. E.g., "foo.bar.2" or "people.John Q\. Doe.id"
-    // if (typeof path === 'string' && !path.replace(escapedSpecialsRegEx,'').match(specialRegEx)){
-    //     tk = path.split(propertySeparator);
-    //     tkLength = tk.length;
-    //     while (prev !== undefined && i < tkLength){
-    //         if (tk[i] === EMPTY_STRING){ return undefined; }
-    //         else if (change){
-    //             if (i === tkLength - 1){
-    //                 prev[tk[i]] = newValue;
-    //             }
-    //         }
-    //         prev = prev[tk[i]];
-    //         i++;
-    //     }
-    //     return prev;
-    // }
+    // Strip all escaped characters from path then test for presence of
+    // special characters other than <propertySeparator>. If no other
+    // specials are found, this is a "simple path" that can be evaluated
+    // with a very fast while loop. E.g., "foo.bar.2" or "people.John Q\. Doe.id"
+    if (typeof path === 'string' && !path.replace(escapedSpecialsRegEx,'').match(specialRegEx)){
+        tk = path.split(propertySeparator);
+        tkLength = tk.length;
+        while (prev !== undefined && i < tkLength){
+            if (tk[i] === EMPTY_STRING){ return undefined; }
+            else if (change){
+                if (i === tkLength - 1){
+                    prev[tk[i]] = newValue;
+                }
+            }
+            prev = prev[tk[i]];
+            i++;
+        }
+        return prev;
+    }
 
     // Either a full token set was provided or else the path includes
     // some special characters and must be evaluated more carefully.
