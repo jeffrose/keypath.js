@@ -446,12 +446,12 @@ export var escape = function(path){
     return path.replace(allSpecialsRegEx, '\\$&');
 };
 
-export var getPath = function (obj, path){
+export var get = function (obj, path){
     var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
     return resolvePath(obj, path, undefined, args);
 };
 
-export var setPath = function(obj, path, val){
+export var set = function(obj, path, val){
     var args = arguments.length > 3 ? Array.prototype.slice.call(arguments, 3) : [],
         ref = resolvePath(obj, path, val, args);
     if (Array.isArray(ref)){
@@ -460,7 +460,7 @@ export var setPath = function(obj, path, val){
     return typeof ref !== 'undefined';
 };
 
-export var getPathFor = function(obj, val, oneOrMany){
+export var find = function(obj, val, oneOrMany){
     var retVal = [];
     var savePath = function(path){
         retVal.push(path.substr(1));

@@ -443,12 +443,12 @@ var escape = function(path){
     return path.replace(allSpecialsRegEx, '\\$&');
 };
 
-var getPath = function (obj, path){
+var get = function (obj, path){
     var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
     return resolvePath(obj, path, undefined, args);
 };
 
-var setPath = function(obj, path, val){
+var set = function(obj, path, val){
     var args = arguments.length > 3 ? Array.prototype.slice.call(arguments, 3) : [],
         ref = resolvePath(obj, path, val, args);
     if (Array.isArray(ref)){
@@ -457,7 +457,7 @@ var setPath = function(obj, path, val){
     return typeof ref !== 'undefined';
 };
 
-var getPathFor = function(obj, val, oneOrMany){
+var find = function(obj, val, oneOrMany){
     var retVal = [];
     var savePath = function(path){
         retVal.push(path.substr(1));
@@ -513,9 +513,9 @@ var setOptions = function(options){
 exports.getTokens = getTokens;
 exports.isValid = isValid;
 exports.escape = escape;
-exports.getPath = getPath;
-exports.setPath = setPath;
-exports.getPathFor = getPathFor;
+exports.get = get;
+exports.set = set;
+exports.find = find;
 exports.setOptions = setOptions;
 
 Object.defineProperty(exports, '__esModule', { value: true });

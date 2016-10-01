@@ -50,44 +50,44 @@ describe( 'tk', function(){
     });
 
     // xdescribe( 'disable', function(){
-    describe( 'getPath', function(){
+    describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
-            expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+            expect(tk.get(data, str)).to.equal(data.accounts[1].checking.id);
         } );
 
         it( 'should return undefined for paths that do not exist', function(){
             var str = 'xaccounts.1.checking.id';
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.9.checking.id';
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.1.checking.x';
-            expect(tk.getPath(data, str)).to.be.undefined;
-            expect(tk.getPath(undefined, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
+            expect(tk.get(undefined, str)).to.be.undefined;
         } );
 
         it( 'should be able to evaluate container and execute function', function(){
             var str = 'accounts{2()}checking.id';
             var tmp = data.accounts[2]();
-            expect(tk.getPath(data, str)).to.equal(data.accounts[tmp].checking.id);
+            expect(tk.get(data, str)).to.equal(data.accounts[tmp].checking.id);
         } );
 
         it( 'should execute function at tail of path', function(){
             var str = 'accounts{2()}checking.fn()';
             var tmp = data.accounts[2]();
-            expect(tk.getPath(data, str)).to.equal(data.accounts[tmp].checking.fn());
+            expect(tk.get(data, str)).to.equal(data.accounts[tmp].checking.fn());
         } );
         
         it( 'should execute functions defined on base types', function(){
             var str = 'accounts.0.ary.sort()';
-            expect(tk.getPath(data, str)).to.equal(data.accounts[0].ary.sort());
+            expect(tk.get(data, str)).to.equal(data.accounts[0].ary.sort());
         } );
         
         it( 'should allow wildcard * for array indices, resolved as array of values', function(){
             var str = 'accounts.0.ary.*';
-            expect(tk.getPath(data, str)).to.be.an.array;
-            expect(tk.getPath(data, str).length).to.equal(data.accounts[0].ary.length);
-            expect(tk.getPath(data, str).join(',')).to.equal(data.accounts[0].ary.join(','));
+            expect(tk.get(data, str)).to.be.an.array;
+            expect(tk.get(data, str).length).to.equal(data.accounts[0].ary.length);
+            expect(tk.get(data, str).join(',')).to.equal(data.accounts[0].ary.join(','));
         } );
         
         it( 'should allow wildcards for properties, resulting array may be further evaluated', function(){
@@ -98,7 +98,7 @@ describe( 'tk', function(){
                     ary.push(data.accounts[1][prop]);
                 }
             }
-            expect(tk.getPath(data, str)).to.equal(ary.sort()[0]);
+            expect(tk.get(data, str)).to.equal(ary.sort()[0]);
         } );
         
         it( 'should allow interior wildcards', function(){
@@ -109,32 +109,32 @@ describe( 'tk', function(){
                     ary.push(data.accounts[1][prop]);
                 }
             }
-            expect(tk.getPath(data, str)).to.be.an.array;
-            expect(tk.getPath(data, str).length).to.equal(ary.length);
-            expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+            expect(tk.get(data, str)).to.be.an.array;
+            expect(tk.get(data, str).length).to.equal(ary.length);
+            expect(tk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
 
         it('should allow parent prefix to shift context within object', function () {
             var str = 'accounts.0.<1.checking.id';
-            expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+            expect(tk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
         
         it('should allow root prefix to shift context within object', function () {
             var str = 'accounts.0.~accounts.1.checking.id';
-            expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+            expect(tk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
         
         it('should allow multiple prefixes in one word', function () {
             var str = 'accounts.3.propAry.<<1.checking.id';
-            expect(tk.getPath(data, str)).to.equal(data.accounts[1].checking.id);
+            expect(tk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
         
         it('should allow container to leave outer context alone while processing internal prefix paths', function () {
             var str = 'accounts.1.{<3.propAry.0}';
             var str2 = 'accounts.1.{~accounts.3.propAry.0}';
             var val = data.accounts[1][ data.accounts[3].propAry[0] ];
-            expect(tk.getPath(data, str)).to.equal(val);
-            expect(tk.getPath(data, str2)).to.equal(val);
+            expect(tk.get(data, str)).to.equal(val);
+            expect(tk.get(data, str2)).to.equal(val);
         });
         
         it('should allow parent prefix to shift context for all wildcard props', function () {
@@ -145,7 +145,7 @@ describe( 'tk', function(){
                     ary.push(data.accounts[1][prop]);
                 }
             }
-            expect(tk.getPath(data, str).join(',')).to.equal(ary.sort().join(','));
+            expect(tk.get(data, str).join(',')).to.equal(ary.sort().join(','));
         });
 
         it( 'should let grouping separator create array of results', function(){
@@ -153,14 +153,14 @@ describe( 'tk', function(){
             var ary = [];
             ary.push(data.accounts[0].ary[0]);
             ary.push(data.accounts[0].ary[2]);
-            expect(tk.getPath(data, str)).to.be.an.array;
-            expect(tk.getPath(data, str).length).to.equal(ary.length);
-            expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+            expect(tk.get(data, str)).to.be.an.array;
+            expect(tk.get(data, str).length).to.equal(ary.length);
+            expect(tk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
         
         it('should continue to process collection results with further properties', function () {
             var str = 'accounts.1.test1,test2.0';
-            expect(tk.getPath(data, str)).to.equal(data.accounts[1].test1);
+            expect(tk.get(data, str)).to.equal(data.accounts[1].test1);
         });
 
         it( 'should allow wildcards inside group', function(){
@@ -172,9 +172,9 @@ describe( 'tk', function(){
                 }
             }
             ary.push(data.accounts[1].savBa);
-            expect(tk.getPath(data, str)).to.be.an.array;
-            expect(tk.getPath(data, str).length).to.equal(ary.length);
-            expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+            expect(tk.get(data, str)).to.be.an.array;
+            expect(tk.get(data, str).length).to.equal(ary.length);
+            expect(tk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
         
         it( 'should allow container inside group', function(){
@@ -186,9 +186,9 @@ describe( 'tk', function(){
                     ary.push(data.accounts[1][prop]);
                 }
             }
-            expect(tk.getPath(data, str)).to.be.an.array;
-            expect(tk.getPath(data, str).length).to.equal(ary.length);
-            expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+            expect(tk.get(data, str)).to.be.an.array;
+            expect(tk.get(data, str).length).to.equal(ary.length);
+            expect(tk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
         
         it( 'should allow path of only a comma group', function(){
@@ -196,51 +196,51 @@ describe( 'tk', function(){
             var ary = [];
             ary.push(data[data.accounts[1].test1]);
             ary.push(data[data.accounts[1].test2]);
-            expect(tk.getPath(data, str)).to.be.an.array;
-            expect(tk.getPath(data, str).length).to.equal(ary.length);
-            expect(tk.getPath(data, str).join(',')).to.equal(ary.join(','));
+            expect(tk.get(data, str)).to.be.an.array;
+            expect(tk.get(data, str).length).to.equal(ary.length);
+            expect(tk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
 
         it( 'should process placeholders', function(){
             var str = 'accounts.%1.%2';
             var key = 'savX';
-            expect(tk.getPath(data, str, 1, key)).to.equal(data.accounts[1].savX);
+            expect(tk.get(data, str, 1, key)).to.equal(data.accounts[1].savX);
         });
         
         it( 'should call functions with placeholder arg', function(){
             var str = 'accounts.1.checking.fnArg(%1)';
             var key = 'hello';
-            expect(tk.getPath(data, str, key)).to.equal(data.accounts[1].checking.fnArg(key));
+            expect(tk.get(data, str, key)).to.equal(data.accounts[1].checking.fnArg(key));
         });
 
         it( 'should call functions with multiple placeholder args', function(){
             var str = 'accounts.1.checking.fnArg(%1, %2)';
             var key = 'hello';
-            expect(tk.getPath(data, str, key, key)).to.equal(data.accounts[1].checking.fnArg(key, key));
+            expect(tk.get(data, str, key, key)).to.equal(data.accounts[1].checking.fnArg(key, key));
         });
 
         it('should get undefined as result', function () {
             var empty;
             var str = ''; // empty string
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.1..checking.id'; // empty segment
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts{2()checking.id'; // mismatched container
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.1.checking.id,missing'; // cannot get missing property inside collection
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.undef'; // data object is undefined
-            expect(tk.getPath(empty, str)).to.be.undefined;
+            expect(tk.get(empty, str)).to.be.undefined;
             str = {t: ['propA', undefined, 'propB']}; // undefined path segment in token list
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.1.<<<<checking'; // too many parent refs
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.%.checking.id'; // missing placeholder number
-            expect(tk.getPath(data, str, 1)).to.be.undefined;
+            expect(tk.get(data, str, 1)).to.be.undefined;
             str = 'accounts.%1.checking.id'; // missing placeholder argument
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
             str = 'accounts.1.<missing.id'; // invalid property using modifier
-            expect(tk.getPath(data, str)).to.be.undefined;
+            expect(tk.get(data, str)).to.be.undefined;
         });
 
         it('should execute crazy function path', function () {
@@ -252,39 +252,39 @@ describe( 'tk', function(){
                 }
             }
             var str = '()()()'
-            expect(tk.getPath(fn, str)).to.equal('abc');
+            expect(tk.get(fn, str)).to.equal('abc');
         });
     });
 
-    describe( 'setPath', function(){
+    describe( 'set', function(){
 
         it( 'should set simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
             var newVal = 'new';
-            tk.setPath(data, str, newVal);
-            expect(tk.getPath(data, str)).to.equal(newVal);
+            tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.equal(newVal);
         } );
 
         it( 'should return true if set was successful', function(){
             var str = 'accounts.1.checking.id';
             var newVal = 'new';
-            expect(tk.setPath(data, str, newVal)).to.be.true;
-            expect(tk.getPath(data, str)).to.equal(newVal);
+            expect(tk.set(data, str, newVal)).to.be.true;
+            expect(tk.get(data, str)).to.equal(newVal);
         } );
 
         it( 'should return false if set was not successful', function(){
             var str = 'accounts.1.checking.newProperty';
             var strBad = 'accounts.1.badProperty.newProperty';
             var newVal = 'new';
-            expect(tk.setPath(data, str, newVal)).to.be.true;
-            expect(tk.getPath(data, str)).to.equal(newVal);
-            expect(tk.setPath(data, strBad, newVal)).to.be.false;
+            expect(tk.set(data, str, newVal)).to.be.true;
+            expect(tk.get(data, str)).to.equal(newVal);
+            expect(tk.set(data, strBad, newVal)).to.be.false;
         } );
 
         it( 'should set value to all entries in array for wildcard path', function(){
             var str = 'accounts.1.sav*';
             var newVal = 'new';
-            expect(tk.setPath(data, str, newVal)).to.be.true;
+            expect(tk.set(data, str, newVal)).to.be.true;
 
             var ary = [];
             var testAry = [];
@@ -300,7 +300,7 @@ describe( 'tk', function(){
         it( 'should set value to all entries in simple comma group', function(){
             var str = 'accounts.1.savX,savY';
             var newVal = 'new';
-            expect(tk.setPath(data, str, newVal)).to.be.true;
+            expect(tk.set(data, str, newVal)).to.be.true;
             expect(data.accounts[1].savX).to.equal(newVal);
             expect(data.accounts[1].savY).to.equal(newVal);
         });
@@ -315,7 +315,7 @@ describe( 'tk', function(){
                     oldNotAry.push(data.accounts[1][prop]);
                 }
             }
-            expect(tk.setPath(data, str, newVal)).to.be.true;
+            expect(tk.set(data, str, newVal)).to.be.true;
 
             var ary = [];
             var testAry = [];
@@ -340,7 +340,7 @@ describe( 'tk', function(){
             var ary = [];
             var resultAry = [];
 
-            tk.setPath(data, str, newVal);
+            tk.set(data, str, newVal);
             for(var prop in data.accounts[1]){
                 if (prop.substr(0,4) === 'test'){
                     ary.push(data.accounts[1][prop]);
@@ -353,7 +353,7 @@ describe( 'tk', function(){
         it( 'should set value to all entries in comma group of containers', function(){
             var str = '{accounts.1.test1},{accounts.1.test2}';
             var newVal = 'new';
-            expect(tk.setPath(data, str, newVal)).to.be.true;
+            expect(tk.set(data, str, newVal)).to.be.true;
             expect(data[data.accounts[1].test1]).to.equal(newVal);
             expect(data[data.accounts[1].test2]).to.equal(newVal);
             expect(data[data.accounts[1].test3]).to.not.equal(newVal);
@@ -364,16 +364,16 @@ describe( 'tk', function(){
             var str2 = 'accounts.1.{~accounts.3.propAry.0}';
             var newVal = 'new';
             var newVal2 = 'new2';
-            tk.setPath(data, str, newVal);
+            tk.set(data, str, newVal);
             expect(data.accounts[1][ data.accounts[3].propAry[0] ]).to.equal(newVal);
-            tk.setPath(data, str2, newVal2);
+            tk.set(data, str2, newVal2);
             expect(data.accounts[1][ data.accounts[3].propAry[0] ]).to.equal(newVal2);
         });
         
         it('should allow last segment to process prefix paths and set value', function () {
             var str = 'accounts.1.checking.<savX';
             var newVal = 'new';
-            tk.setPath(data, str, newVal);
+            tk.set(data, str, newVal);
             expect(data.accounts[1].savX).to.equal(newVal);
         });
 
@@ -381,40 +381,40 @@ describe( 'tk', function(){
             var str = 'accounts.1.%1.id';
             var key = 'checking'
             var newVal = 'new';
-            tk.setPath(data, str, newVal, key);
-            expect(tk.getPath(data, str, key)).to.equal(newVal);
+            tk.set(data, str, newVal, key);
+            expect(tk.get(data, str, key)).to.equal(newVal);
         } );
     });
 
-    describe( 'getPathFor', function(){
+    describe( 'find', function(){
         it( 'should return a valid path to the value if present in the root object', function(){
             var val = data.accounts[1].test2;
-            expect(tk.getPathFor(data, val)).to.equal('accounts.1.test2');
-            expect(tk.getPath(data, tk.getPathFor(data, val))).to.equal(val);
+            expect(tk.find(data, val)).to.equal('accounts.1.test2');
+            expect(tk.get(data, tk.find(data, val))).to.equal(val);
         });
 
-        it( 'should be identity: getPath(getPathFor) and getPathFor(getPath)', function(){
+        it( 'should be identity: get(find) and find(get)', function(){
             var val = data.accounts[1].test2;
             var str = 'accounts.1.test2';
-            expect(tk.getPath(data, tk.getPathFor(data, val))).to.equal(val);
-            expect(tk.getPathFor(data, tk.getPath(data, str))).to.equal(str);
+            expect(tk.get(data, tk.find(data, val))).to.equal(val);
+            expect(tk.find(data, tk.get(data, str))).to.equal(str);
         });
 
         it( 'should return undefined if no path found', function(){
             var val = 12345;
-            expect(tk.getPathFor(data, val)).to.be.undefined;
+            expect(tk.find(data, val)).to.be.undefined;
         });
 
         it( 'should return one valid path if "one" option is set or if not specified', function(){
             var val = data.accounts[1].test2;
-            expect(tk.getPathFor(data, val)).to.be.a.string;
-            expect(tk.getPathFor(data, val, 'one')).to.be.a.string;
+            expect(tk.find(data, val)).to.be.a.string;
+            expect(tk.find(data, val, 'one')).to.be.a.string;
         });
 
         it( 'should return all valid path if "many" option is set', function(){
             var val = data.accounts[1].test1;
-            expect(tk.getPathFor(data, val, 'many')).to.be.an.array;
-            expect(tk.getPathFor(data, val, 'many').sort().join(',')).to.equal('accounts.1.checking.repeat,accounts.1.test1');
+            expect(tk.find(data, val, 'many')).to.be.an.array;
+            expect(tk.find(data, val, 'many').sort().join(',')).to.equal('accounts.1.checking.repeat,accounts.1.test1');
         });
 
 
@@ -529,19 +529,19 @@ describe( 'tk', function(){
             });
             var str1 = 'accounts!1!test2';
             var val1 = data.accounts[1].test2;
-            expect(tk.getPath(data, str1)).to.equal(val1);
+            expect(tk.get(data, str1)).to.equal(val1);
             var str2 = 'accounts[2()]checking!id';
             var val2 = data.accounts[2]();
-            expect(tk.getPath(data, str2)).to.equal(data.accounts[val2].checking.id);
+            expect(tk.get(data, str2)).to.equal(data.accounts[val2].checking.id);
             var str3 = 'accounts!0!^1!checking!id';
-            expect(tk.getPath(data, str3)).to.equal(data.accounts[1].checking.id);
+            expect(tk.get(data, str3)).to.equal(data.accounts[1].checking.id);
             var str4 = 'accounts!0!ary!0;2';
             var ary4 = [];
             ary4.push(data.accounts[0].ary[0]);
             ary4.push(data.accounts[0].ary[2]);
-            expect(tk.getPath(data, str4)).to.be.an.array;
-            expect(tk.getPath(data, str4).length).to.equal(ary4.length);
-            expect(tk.getPath(data, str4).join(',')).to.equal(ary4.join(','));
+            expect(tk.get(data, str4)).to.be.an.array;
+            expect(tk.get(data, str4).length).to.equal(ary4.length);
+            expect(tk.get(data, str4).join(',')).to.equal(ary4.join(','));
         });
     });
 
@@ -690,7 +690,7 @@ describe( 'tk', function(){
 
         it('should run a perf test', function () {
             var str = 'accounts.1.checking.id';
-            var result = timeFunctionString(repeat, tk.getPath, complexObj, str);
+            var result = timeFunctionString(repeat, tk.get, complexObj, str);
             expect(result).to.be.a.string;
             expect(result.length).not.to.equal(0);
         });
@@ -702,29 +702,29 @@ describe( 'tk', function(){
 
         it('should find first level property', function () {
             var str = 'sub';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, deepObj, str));
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, deepObj, str));
         });
 
         it('should find 10th level property', function () {
             var str = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, deepObj, str));
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, deepObj, str));
         });
 
         it('should find 20th level property', function () {
             var str = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, deepObj, str));
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, deepObj, str));
         });
 
         it('should find complex value', function () {
             var str = 'accounts.1.{<3.propAry.0},savA*';
             // var str = 'accounts[accounts.2()]checking.fn()';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.getPath, complexObj, str));
+            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, complexObj, str));
         });
 
         it('should compare first level property with 10th level property', function () {
             var strA = 'sub';
             var strB = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
-            var result = compareString(repeat, [ tk.getPath, deepObj, strA ], [ tk.getPath, deepObj, strB ]);
+            var result = compareString(repeat, [ tk.get, deepObj, strA ], [ tk.get, deepObj, strB ]);
             testResult = ('A ("' + strA + '"): ' + result[0] + '\nB ("' + strB + '"): ' + result[1] + '\n' +
                 'A - B: ' + result[2]);
         });
@@ -742,7 +742,7 @@ describe( 'tk', function(){
                 return ary;
             }
             // var str = 'accounts[accounts.2()]checking.fn()';
-            var result = compareString(repeat, [ tk.getPath, complexObj, str ], [ testFunc, complexObj ]);
+            var result = compareString(repeat, [ tk.get, complexObj, str ], [ testFunc, complexObj ]);
             testResult = ('A ("' + str + '"): ' + result[0] + '\nB (testFunc): ' + result[1] + '\n' +
                 'A - B: ' + result[2]);
         });

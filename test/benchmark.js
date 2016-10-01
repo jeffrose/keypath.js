@@ -27,7 +27,7 @@ module.exports = {
             kpex.get( data );
         },
         'tk#getPath': function(){
-            tk.getPath( data, path );
+            tk.get( data, path );
         },
         'keypather#get': function(){
             keypather.get( data, path );
