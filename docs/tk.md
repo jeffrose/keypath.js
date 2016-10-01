@@ -54,7 +54,7 @@ tk.get(data, 'foo.bar.0'); // 'a'
 tk.get(data, 'foo.a'); // 'one'
 // Use the value at "foo.bar.0" as a property of "foo"...
 tk.get(data, 'foo{bar.0}'); // 'one'
-tk.get(data, 'foo{bar.0,2.sort().0'); // 'one'
+tk.get(data, 'foo{bar.0,2.sort().0}'); // 'one'
 ```
 
 Object context can be shifted upwards using prefixes `<` for 'parent' and `~` for 'root'. These prefixes apply in the base keypath as well as internal sub-keypaths.
@@ -90,7 +90,7 @@ tk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
 ### set
 ```javascript
 var result1 = tk.set(obj, path, newVal);
-var result2 = tk.get(obj, path, newVal, arg1, arg2,..., argN);
+var result2 = tk.set(obj, path, newVal, arg1, arg2,..., argN);
 ```
 
 Any property specified in a keypath may be set to a new value. The set function returns the newValue if the set was successful, `undefined` if not. Only the final property in the keypath may be set - any intermediate properties must be defined and valid or `set` will fail. The final property does not need to exist prior to `set`, it will be created if necessary. This behavior is equivalent to setting an object property in plain javascript code.
@@ -112,7 +112,7 @@ var path = tk.find(obj, val); // first found path to value
 var allPaths = tk.find(obj, val, 'all'); // all paths to value
 ```
 
-Does a seep scan through the data object, executing a `===` test on each against the provided value. If the equals test returns true, the path is returned. By default, only one path is returned and the `find` function aborts as soon as it succeeds. If the last argument is 'all', `find` will scan the full object and return all paths with matching values.
+Does a seep scan through the data object, executing a `===` test on each node against the provided value. If the equals test returns true, the path is returned. By default, only one path is returned and the `find` function aborts as soon as it succeeds. If the last argument is 'all', `find` will scan the full object and return all paths with matching values.
 
 **Note:** Object keys will be iterated in an unpredictable order, so if the same value is found in more than one place in the object, the default execution of `find` may not always return the same path as a result.
 
@@ -132,11 +132,19 @@ tk.find(data, 'b', 'all'); // ['foo.bar.1','xyz'] with array order unknown
 tk.setOptions(opts);
 ```
 
-Sets new operator characters for path interpretation. Can also be used to govern caching. For any path beyond the simple case (see `get` above), a tokenizing function parses the path before it is resolved. By default, the results of the tokenizing function are cached so repeated calls for the same path string can skip the tokenizing step. This cache behavior can be disabled with the `setOptions` function. Aside from caching, the operator characters come in three categories: separators, prefixes, and containers. Any or all of these may be set when calling `setOptions`, the function will simply overwrite the existing values with whatever is found in the provided options object. The default options are:
+Sets new operator characters for path interpretation. Can also be used to govern caching. For any path beyond the simple case (see `get` above), a tokenizing function parses the path before it is resolved. By default, the results of the tokenizing function are cached so repeated calls for the same path string can skip the tokenizing step. This cache behavior can be disabled with the `setOptions` function. The operator characters come in three categories: separators, prefixes, and containers. Any or all of these may be set when calling `setOptions`, the function will simply overwrite the existing values with whatever is found in the provided options object. The default options are:
 
 ```javascript
 {
     cache: true,
+    separators: {
+        '.': {
+            'exec': 'property'
+            },
+        ',': {
+            'exec': 'collection'
+            }
+    },
     prefixes: {
         '<': {
             'exec': 'parent'
@@ -147,14 +155,6 @@ Sets new operator characters for path interpretation. Can also be used to govern
         '%': {
             'exec': 'placeholder'
         }
-    },
-    separators: {
-        '.': {
-            'exec': 'property'
-            },
-        ',': {
-            'exec': 'collection'
-            }
     },
     containers: {
         '(': {
