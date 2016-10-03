@@ -13,16 +13,20 @@ function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
 
-let id = 0;
+var id = 0;
 
 function nextId(){
     return ++id;
 }
 
 /**
+ * @typedef {external:string} NodeType
+ */
+
+/**
  * @class Node
  * @extends Null
- * @param {external:string} type The type of node
+ * @param {NodeType} type A node type
  */
 function Node( type ){
     
@@ -30,7 +34,13 @@ function Node( type ){
         throw new TypeError( 'type must be a string' );
     }
     
+    /**
+     * @member {external:number} 
+     */
     this.id = nextId();
+    /**
+     * @member {NodeType}
+     */
     this.type = type;
 }
 
@@ -38,14 +48,19 @@ Node.prototype = new Null();
 
 Node.prototype.constructor = Node;
 
-Node.prototype.equals = function( node ){
-    return node instanceof Node && this.valueOf() === node.valueOf();
-};
-
+/**
+ * @function
+ * @param {NodeType} type A node type
+ * @returns {external:boolean} Whether or not the node is of the type provided.
+ */
 Node.prototype.is = function( type ){
     return this.type === type;
 };
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the node
+ */
 Node.prototype.toJSON = function(){
     const json = new Null();
     
@@ -54,6 +69,10 @@ Node.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @function
+ * @returns {external:string} A string representation of the node
+ */
 Node.prototype.toString = function(){
     return String( this.type );
 };
@@ -62,6 +81,11 @@ Node.prototype.valueOf = function(){
     return this.id;
 };
 
+/**
+ * @class Statement
+ * @extends Node
+ * @param {NodeType} statementType A node type
+ */
 function Statement( statementType ){
     Node.call( this, statementType );
 }
@@ -70,6 +94,11 @@ Statement.prototype = Object.create( Node.prototype );
 
 Statement.prototype.constructor = Statement;
 
+/**
+ * @class Expression
+ * @extends Node
+ * @param {NodeType} expressionType A node type
+ */
 function Expression( expressionType ){
     Node.call( this, expressionType );
 }
@@ -78,6 +107,11 @@ Expression.prototype = Object.create( Node.prototype );
 
 Expression.prototype.constructor = Expression;
 
+/**
+ * @class Program
+ * @extends Node
+ * @param {external:Array<Statement>} body
+ */
 function Program( body ){
     Node.call( this, 'Program' );
     
@@ -85,6 +119,9 @@ function Program( body ){
         throw new TypeError( 'body must be an array' );
     }
     
+    /**
+     * @member {external:Array<Statement>}
+     */
     this.body = body || [];
 }
 
@@ -92,6 +129,10 @@ Program.prototype = Object.create( Node.prototype );
 
 Program.prototype.constructor = Program;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the program
+ */
 Program.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -100,6 +141,11 @@ Program.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class ArrayExpression
+ * @extends Expression
+ * @param {external:Array<Expression>} elements A list of expressions
+ */
 function ArrayExpression( elements ){
     Expression.call( this, 'ArrayExpression' );
     
@@ -107,6 +153,9 @@ function ArrayExpression( elements ){
         throw new TypeError( 'elements must be a list of expressions' );
     }
     
+    /**
+     * @member {external:Array<Expression>}
+     */
     this.elements = elements;
 }
 
@@ -114,6 +163,10 @@ ArrayExpression.prototype = Object.create( Expression.prototype );
 
 ArrayExpression.prototype.constructor = ArrayExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the array expression
+ */
 ArrayExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -124,6 +177,10 @@ ArrayExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class ExpressionStatement
+ * @extends Statement
+ */
 function ExpressionStatement( expression ){
     Statement.call( this, 'ExpressionStatement' );
     
@@ -131,6 +188,9 @@ function ExpressionStatement( expression ){
         throw new TypeError( 'argument must be an expression' );
     }
     
+    /**
+     * @member {Expression}
+     */
     this.expression = expression;
 }
 
@@ -138,6 +198,10 @@ ExpressionStatement.prototype = Object.create( Statement.prototype );
 
 ExpressionStatement.prototype.constructor = ExpressionStatement;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the expression statement
+ */
 ExpressionStatement.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -146,6 +210,12 @@ ExpressionStatement.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class CallExpression
+ * @extends Expression
+ * @param {Expression} callee
+ * @param {external:Array<Expression>} args
+ */
 function CallExpression( callee, args ){
     Expression.call( this, 'CallExpression' );
     
@@ -153,7 +223,13 @@ function CallExpression( callee, args ){
         throw new TypeError( 'arguments must be an array' );
     }
     
+    /**
+     * @member {Expression}
+     */
     this.callee = callee;
+    /**
+     * @member {external:Array<Expression>}
+     */
     this.arguments = args;
 }
 
@@ -161,6 +237,10 @@ CallExpression.prototype = Object.create( Expression.prototype );
 
 CallExpression.prototype.constructor = CallExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the call expression
+ */
 CallExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -170,6 +250,13 @@ CallExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class MemberExpression
+ * @extends Expression
+ * @param {Expression} object
+ * @param {Expression|Identifier} property
+ * @param {external:boolean} computed=false
+ */
 function MemberExpression( object, property, computed ){
     Expression.call( this, 'MemberExpression' );
     
@@ -183,8 +270,17 @@ function MemberExpression( object, property, computed ){
         }
     }
     
+    /**
+     * @member {Expression}
+     */
     this.object = object;
+    /**
+     * @member {Expression|Identifier}
+     */
     this.property = property;
+    /**
+     * @member {external:boolean}
+     */
     this.computed = computed || false;
 }
 
@@ -192,6 +288,10 @@ MemberExpression.prototype = Object.create( Expression.prototype );
 
 MemberExpression.prototype.constructor = MemberExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the member expression
+ */
 MemberExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -202,6 +302,11 @@ MemberExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Identifier
+ * @extends Expression
+ * @param {external:string} name The name of the identifier
+ */
 function Identifier( name ){
     Expression.call( this, 'Identifier' );
     
@@ -209,6 +314,9 @@ function Identifier( name ){
         throw new TypeError( 'name must be a string' );
     }
     
+    /**
+     * @member {external:string}
+     */
     this.name = name;
 }
 
@@ -216,6 +324,10 @@ Identifier.prototype = Object.create( Expression.prototype );
 
 Identifier.prototype.constructor = Identifier;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the identifier
+ */
 Identifier.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -224,6 +336,11 @@ Identifier.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Literal
+ * @extends Expression
+ * @param {external:string|external:number} value The value of the literal
+ */
 function Literal( value ){
     Expression.call( this, 'Literal' );
     
@@ -233,6 +350,9 @@ function Literal( value ){
         throw new TypeError( 'value must be a boolean, number, string, null, or instance of RegExp' );
     }
     
+    /**
+     * @member {external:string|external:number}
+     */
     this.value = value;
 }
 
@@ -240,6 +360,10 @@ Literal.prototype = Object.create( Expression.prototype );
 
 Literal.prototype.constructor = Literal;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the literal
+ */
 Literal.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -248,6 +372,11 @@ Literal.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class SequenceExpression
+ * @extends Expression
+ * @param {external:Array<Expression>} expressions The expressions in the sequence
+ */
 function SequenceExpression( expressions ){
     Expression.call( this, 'SequenceExpression' );
     
@@ -255,6 +384,9 @@ function SequenceExpression( expressions ){
         throw new TypeError( 'expressions must be a list of expressions' );
     }
     
+    /**
+     * @member {external:Array<Expression>}
+     */
     this.expressions = expressions;
 }
 
@@ -262,6 +394,10 @@ SequenceExpression.prototype = Object.create( Expression.prototype );
 
 SequenceExpression.prototype.constructor = SequenceExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the sequence expression
+ */
 SequenceExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -271,6 +407,12 @@ SequenceExpression.prototype.toJSON = function(){
     
     return json;
 };
+
+/**
+ * @class Punctuator
+ * @extends Node
+ * @param {external:string} value
+ */
 
 /**
  * @class Builder
@@ -295,13 +437,19 @@ Builder.prototype.constructor = Builder;
  * @returns {Program} The built abstract syntax tree
  */
 Builder.prototype.build = function( text ){
-    this.buffer = text;
+    /**
+     * @member {external:string}
+     */
+    this.text = text;
+    /**
+     * @member {external:Array<Token>}
+     */
     this.tokens = this.lexer.lex( text );
     
-    const program = this.program();
+    var program = this.program();
     
     if( this.tokens.length ){
-        this.throwError( `Unexpected token ${ this.tokens[ 0 ] } remaining` );
+        this.throwError( 'Unexpected token ' + this.tokens[ 0 ] + ' remaining' );
     }
     
     return program;
@@ -312,9 +460,9 @@ Builder.prototype.build = function( text ){
  * @returns {CallExpression} The call expression node
  */
 Builder.prototype.callExpression = function(){
-    const args = this.list( '(' );
+    var args = this.list( '(' );
     this.consume( '(' );
-    const callee = this.expression();
+    var callee = this.expression();
     
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
@@ -333,10 +481,10 @@ Builder.prototype.consume = function( expected ){
         this.throwError( 'Unexpected end of expression' );
     }
     
-    const token = this.expect( expected );
+    var token = this.expect( expected );
     
     if( !token ){
-        this.throwError( `Unexpected token ${ token.value } consumed` );
+        this.throwError( 'Unexpected token ' + token.value + ' consumed' );
     }
     
     return token;
@@ -351,7 +499,7 @@ Builder.prototype.consume = function( expected ){
  * @returns {Token} The next token in the list
  */
 Builder.prototype.expect = function( first, second, third, fourth ){
-    const token = this.peek( first, second, third, fourth );
+    var token = this.peek( first, second, third, fourth );
     
     if( token ){
         this.tokens.pop();
@@ -366,10 +514,10 @@ Builder.prototype.expect = function( first, second, third, fourth ){
  * @returns {Expression} An expression node
  */
 Builder.prototype.expression = function(){
-    let expression = null,
-        list;
+    var expression = null,
+        list, next, token;
     
-    if( this.peek() ){
+    if( next = this.peek() ){
         if( this.expect( ']' ) ){
             list = this.list( '[' );
             if( this.tokens.length === 1 ){
@@ -380,30 +528,29 @@ Builder.prototype.expression = function(){
             } else {
                 expression = list[ 0 ];
             }
-        } else if( this.peek().is( 'identifier' ) ){
+        } else if( next.type === 'identifier' ){
             expression = this.identifier();
+            next = this.peek();
             
             // Implied member expression
-            if( this.peek() && this.peek().is( 'punctuator' ) ){
-                if( this.peek( ')' ) || this.peek( ']' ) ){
+            if( next && next.type === 'punctuator' ){
+                if( next.value === ')' || next.value === ']' ){
                     expression = this.memberExpression( expression, false );
                 }
             }
-        } else if( this.peek().is( 'literal' ) ){
+        } else if( next.type === 'literal' ){
             expression = this.literal();
         }
         
-        let next;
-        
-        while( ( next = this.expect( ')', '[', '.' ) ) ){
-            if( next.value === ')' ){
+        while( ( token = this.expect( ')', '[', '.' ) ) ){
+            if( token.value === ')' ){
                 expression = this.callExpression();
-            } else if( next.value === '[' ){
+            } else if( token.value === '[' ){
                 expression = this.memberExpression( expression, true );
-            } else if( next.value === '.' ){
+            } else if( token.value === '.' ){
                 expression = this.memberExpression( expression, false );
             } else {
-                this.throwError( `Unexpected token ${ next }` );
+                this.throwError( 'Unexpected token ' + token );
             }
         }
     }
@@ -411,12 +558,21 @@ Builder.prototype.expression = function(){
     return expression;
 };
 
+/**
+ * @function
+ * @returns {ExpressionStatement} An expression statement
+ */
 Builder.prototype.expressionStatement = function(){
     return new ExpressionStatement( this.expression() );
 };
 
+/**
+ * @function
+ * @returns {Identifier} An identifier
+ * @throws {SyntaxError} If the token is not an identifier
+ */
 Builder.prototype.identifier = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'identifier' ) ){
         this.throwError( 'Identifier expected' );
@@ -430,13 +586,13 @@ Builder.prototype.identifier = function(){
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'literal' ) ){
         this.throwError( 'Literal expected' );
     }
     
-    const value = token.value,
+    var value = token.value,
     
         literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
             // String Literal
@@ -453,7 +609,7 @@ Builder.prototype.literal = function(){
  * @returns {external:Array<Literal>} The list of literals
  */
 Builder.prototype.list = function( terminator ){
-    const list = [];
+    var list = [];
     
     if( this.peek().value !== terminator ){
         do {
@@ -471,7 +627,7 @@ Builder.prototype.list = function( terminator ){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
-    const object = this.expression();
+    var object = this.expression();
     
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
@@ -482,7 +638,7 @@ Builder.prototype.memberExpression = function( property, computed ){
 };
 
 Builder.prototype.peek = function( first, second, third, fourth ){
-    const length = this.tokens.length;
+    var length = this.tokens.length;
     return length ?
         this.peekAt( length - 1, first, second, third, fourth ) :
         undefined;
@@ -490,7 +646,7 @@ Builder.prototype.peek = function( first, second, third, fourth ){
 
 Builder.prototype.peekAt = function( index, first, second, third, fourth ){
     if( typeof index === 'number' ){
-        const token = this.tokens[ index ],
+        var token = this.tokens[ index ],
             value = token.value;
         
         if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
@@ -506,7 +662,7 @@ Builder.prototype.peekAt = function( index, first, second, third, fourth ){
  * @returns {Program} A program node
  */
 Builder.prototype.program = function(){
-    const body = [];
+    var body = [];
     
     while( true ){
         if( this.tokens.length ){
@@ -519,7 +675,7 @@ Builder.prototype.program = function(){
 
 /*
 Builder.prototype.punctuator = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'punctuator' ) ){
         this.throwError( 'Punctuator expected' );
