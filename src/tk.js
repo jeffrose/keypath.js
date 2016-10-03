@@ -447,13 +447,24 @@ export var escape = function(path){
 };
 
 export var get = function (obj, path){
-    var args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
+    var i = 0,
+        len = arguments.length,
+        args = len > 2 ? new Array(len - 2) : [];
+    if (len > 2){
+        for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
+    }
     return resolvePath(obj, path, undefined, args);
 };
 
 export var set = function(obj, path, val){
-    var args = arguments.length > 3 ? Array.prototype.slice.call(arguments, 3) : [],
-        ref = resolvePath(obj, path, val, args);
+    var i = 0,
+        len = arguments.length,
+        args = len > 3 ? new Array(len - 3) : [],
+        ref;
+    if (len > 3){
+        for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
+    }
+    ref = resolvePath(obj, path, val, args);
     if (Array.isArray(ref)){
         return ref.indexOf(undefined) === -1;
     }
