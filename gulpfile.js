@@ -6,6 +6,7 @@ const gulp = require( 'gulp' ),
     buffer = require( 'vinyl-buffer' ),
     concat = require( 'gulp-concat' ),
     debug = require( 'gulp-debug' ),
+    filter = require( 'gulp-filter' ),
     gutil = require( 'gulp-util' ),
     istanbul = require( 'gulp-istanbul' ),
     jsdoc = require( 'gulp-jsdoc-to-markdown' ),
@@ -102,83 +103,18 @@ gulp.task( 'docs', () => {
 } );
 
 gulp.task( 'test', [ 'dist' ], ( done ) => {
+    const fileFilter = filter( yargs.argv.fgrep ?
+        `**/*${ yargs.argv.fgrep }*.js` :
+        '**' );
     gulp.src( [ 'dist/*.js' ] )
+        .pipe( fileFilter )
+        .pipe( debug() )
         .pipe( istanbul() )
         .pipe( istanbul.hookRequire() )
         .on( 'finish', () => {
             gulp.src( [ 'test/*.js' ], { read: false } )
-                .pipe( debug() )
                 .pipe( mocha( {
-                    grep: yargs.argv.grep
-                } ) )
-                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
-                .on( 'end', done );
-        } );
-} );
-
-gulp.task( 'test:lexer', [ 'dist' ], ( done ) => {
-    gulp.src( [ 'dist/lexer-umd.js' ] )
-        .pipe( istanbul() )
-        .pipe( istanbul.hookRequire() )
-        .on( 'finish', () => {
-            gulp.src( [ 'test/lexer.js' ], { read: false } )
-                .pipe( debug() )
-                .pipe( mocha( {
-                    grep: yargs.argv.grep
-                } ) )
-                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
-                .on( 'end', done );
-        } );
-} );
-
-gulp.task( 'test:builder', [ 'dist' ], ( done ) => {
-    gulp.src( [ 'dist/builder-umd.js' ] )
-        .pipe( istanbul() )
-        .pipe( istanbul.hookRequire() )
-        .on( 'finish', () => {
-            gulp.src( [ 'test/builder.js' ], { read: false } )
-                .pipe( debug() )
-                .pipe( mocha( {
-                    grep: yargs.argv.grep
-                } ) )
-                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
-                .on( 'end', done );
-        } );
-} );
-
-gulp.task( 'test:interpreter', [ 'dist' ], ( done ) => {
-    gulp.src( [ 'dist/interpreter-umd.js' ] )
-        .pipe( istanbul() )
-        .pipe( istanbul.hookRequire() )
-        .on( 'finish', () => {
-            gulp.src( [ 'test/interpreter.js' ], { read: false } )
-                .pipe( debug() )
-                .pipe( mocha( {
-                    grep: yargs.argv.grep
-                } ) )
-                .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
-                .on( 'end', done );
-        } );
-} );
-
-gulp.task( 'test-all', ( done ) => {
-    gulp.src( [ 'test/lexer.js', 'test/builder.js', 'test/compiler.js', 'test/interpreter.js', 'test/keypath.js' ] )
-        .pipe( debug() )
-        .pipe( mocha( {
-            grep: yargs.argv.grep
-        } ) )
-        .on( 'end', done );
-} );
-
-gulp.task( 'tk-test', [ 'dist' ], ( done ) => {
-    gulp.src( [ 'dist/tk-umd.js' ] )
-        .pipe( istanbul() )
-        .pipe( istanbul.hookRequire() )
-        .on( 'finish', () => {
-            gulp.src( [ 'test/tk.js' ], { read: false } )
-                .pipe( debug() )
-                .pipe( mocha( {
-                    grep: yargs.argv.grep
+                    grep: yargs.argv.tgrep
                 } ) )
                 .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
                 .on( 'end', done );
