@@ -161,10 +161,23 @@ describe( 'Builder', function(){
             
             expect( expression.type ).to.equal( 'MemberExpression' );
             expect( expression.computed ).to.equal( false );
+            expect( expression ).to.have.property( 'object' );
+            expect( expression ).to.have.property( 'property' );
             expect( expression.object.type ).to.equal( 'Identifier' );
             expect( expression.object.name ).to.equal( 'foo' );
             expect( expression.property.type ).to.equal( 'Identifier' );
             expect( expression.property.name ).to.equal( 'bar' );
+            
+            program = builder.build( '["foo","bar"].qux' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            expect( expression.computed ).to.equal( false );
+            expect( expression ).to.have.property( 'object' );
+            expect( expression ).to.have.property( 'property' );
+            expect( expression.object.type ).to.equal( 'ArrayExpression' );
+            expect( expression.property.type ).to.equal( 'Identifier' );
+            expect( expression.property.name ).to.equal( 'qux' );
         } );
         
         it( 'should parse implied member expressions', function(){
@@ -179,6 +192,17 @@ describe( 'Builder', function(){
             
             expect( expression.type ).to.equal( 'MemberExpression' );
             expect( expression.computed ).to.equal( false );
+            
+            program = builder.build( '["foo","bar"]qux' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            expect( expression.computed ).to.equal( false );
+            expect( expression ).to.have.property( 'object' );
+            expect( expression ).to.have.property( 'property' );
+            expect( expression.object.type ).to.equal( 'ArrayExpression' );
+            expect( expression.property.type ).to.equal( 'Identifier' );
+            expect( expression.property.name ).to.equal( 'qux' );
         } );
         
         it( 'should not consume non-existent tokens', function(){

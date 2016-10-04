@@ -472,9 +472,11 @@ Builder.prototype.callExpression = function(){
 };
 
 /**
+ * Removes the next token in the token list. If a comparison is provided, the token will only be returned if the value matches. Otherwise an error is thrown.
  * @function
- * @param {external:string} [expected]
+ * @param {external:string} [expected] An expected comparison value
  * @returns {Token} The next token in the list
+ * @throws {SyntaxError} If token did not exist
  */
 Builder.prototype.consume = function( expected ){
     if( !this.tokens.length ){
@@ -491,12 +493,13 @@ Builder.prototype.consume = function( expected ){
 };
 
 /**
+ * Removes the next token in the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
  * @function
- * @param {external:string} [first]
- * @param {external:string} [second]
- * @param {external:string} [third]
- * @param {external:string} [fourth]
- * @returns {Token} The next token in the list
+ * @param {external:string} [first] The first comparison value
+ * @param {external:string} [second] The second comparison value
+ * @param {external:string} [third] The third comparison value
+ * @param {external:string} [fourth] The fourth comparison value
+ * @returns {Token} The next token in the list or `undefined` if it did not exist
  */
 Builder.prototype.expect = function( first, second, third, fourth ){
     var token = this.peek( first, second, third, fourth );
@@ -637,20 +640,45 @@ Builder.prototype.memberExpression = function( property, computed ){
     return new MemberExpression( object, property, computed );
 };
 
+/**
+ * Provides the next token in the token list _without removing it_. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+ * @function
+ * @param {external:string} [first] The first comparison value
+ * @param {external:string} [second] The second comparison value
+ * @param {external:string} [third] The third comparison value
+ * @param {external:string} [fourth] The fourth comparison value
+ * @returns {Lexer~Token} The next token in the list or `undefined` if it did not exist
+ */
 Builder.prototype.peek = function( first, second, third, fourth ){
-    var length = this.tokens.length;
-    return length ?
-        this.peekAt( length - 1, first, second, third, fourth ) :
+    return this.tokens.length ?
+        this.peekAt( 0, first, second, third, fourth ) :
         undefined;
 };
 
-Builder.prototype.peekAt = function( index, first, second, third, fourth ){
-    if( typeof index === 'number' ){
-        var token = this.tokens[ index ],
-            value = token.value;
+/**
+ * Provides the token at the requested position _without removing it_ from the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+ * @function
+ * @param {external:number} position The position where the token will be peeked
+ * @param {external:string} [first] The first comparison value
+ * @param {external:string} [second] The second comparison value
+ * @param {external:string} [third] The third comparison value
+ * @param {external:string} [fourth] The fourth comparison value
+ * @returns {Lexer~Token} The token at the requested position or `undefined` if it did not exist
+ */
+Builder.prototype.peekAt = function( position, first, second, third, fourth ){
+    var index, length, token, value;
+    
+    if( typeof position === 'number' && position > -1 ){
+        length = this.tokens.length;
+        index = length - position - 1;
         
-        if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
-            return token;
+        if( index > -1 && index < length ){
+            token = this.tokens[ index ];
+            value = token.value;
+            
+            if( value === first || value === second || value === third || value === fourth || ( !first && !second && !third && !fourth ) ){
+                return token;
+            }
         }
     }
     

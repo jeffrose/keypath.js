@@ -13,32 +13,45 @@ function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
 
-let id = 0;
+var id = 0;
 
 function nextId(){
     return ++id;
 }
 
 /**
- * @class Token
+ * @class Lexer~Token
  * @extends Null
  * @param {external:string} type The type of the token
- * @param {*} value The value of the token
+ * @param {external:string} value The value of the token
  * @throws {external:TypeError} If `type` is not a string
- * @throws {external:TypeError} If `value` is undefined.
+ * @throws {external:TypeError} If `value` is not a string
  */
 function Token( type, value ){
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
     }
     
-    if( typeof value === 'undefined' ){
-        throw new TypeError( 'value cannot be undefined' );
+    if( typeof value !== 'string' ){
+        throw new TypeError( 'value must be a string' );
     }
     
+    /**
+     * @member {external:number}
+     */
     this.id = nextId();
+    /**
+     * @member {external:string}
+     */
     this.type = type;
+    /**
+     * @member {external:string}
+     */
     this.value = value;
+    /**
+     * The length of the token value
+     * @member {external:number}
+     */
     this.length = value.length;
 }
 
@@ -46,19 +59,10 @@ Token.prototype = new Null();
 
 Token.prototype.constructor = Token;
 
-Token.prototype.equals = function( token ){
-    return token instanceof Token && this.valueOf() === token.valueOf();
-};
-
 /**
  * @function
- * @param {external:string} type
- * @returns {external:boolean} Whether or not the token is the `type` provided.
+ * @returns {external:Object} A JSON representation of the token
  */
-Token.prototype.is = function( type ){
-    return this.type === type;
-};
-
 Token.prototype.toJSON = function(){
     var json = new Null();
     
@@ -68,14 +72,19 @@ Token.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @function
+ * @returns {external:string} A string representation of the token
+ */
 Token.prototype.toString = function(){
     return String( this.value );
 };
 
-Token.prototype.valueOf = function(){
-    return this.id;
-};
-
+/**
+ * @class Lexer~Identifier
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
 function Identifier( value ){
     Token.call( this, 'identifier', value );
 }
@@ -84,6 +93,11 @@ Identifier.prototype = Object.create( Token.prototype );
 
 Identifier.prototype.constructor = Identifier;
 
+/**
+ * @class Lexer~Literal
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
 function Literal( value ){
     Token.call( this, 'literal', value );
 }
@@ -92,6 +106,11 @@ Literal.prototype = Object.create( Token.prototype );
 
 Literal.prototype.constructor = Literal;
 
+/**
+ * @class Lexer~Punctuator
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
 function Punctuator( value ){
     Token.call( this, 'punctuator', value );
 }
@@ -101,7 +120,52 @@ Punctuator.prototype = Object.create( Token.prototype );
 Punctuator.prototype.constructor = Punctuator;
 
 /**
- * @class LexerError
+ * @function Lexer~isIdentifier
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is an identifier character
+ */
+function isIdentifier( char ){
+    return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || '_' === char || char === '$';
+}
+
+/**
+ * @function Lexer~isNumeric
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a numeric character
+ */
+function isNumeric( char ){
+    return '0' <= char && char <= '9';
+}
+
+/**
+ * @function Lexer~isPunctuator
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a punctuator character
+ */
+function isPunctuator( char ){
+    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === ',' || char === '%';
+}
+
+/**
+ * @function Lexer~isQuote
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a quote character
+ */
+function isQuote( char ){
+    return char === '"' || char === "'";
+}
+
+/**
+ * @function Lexer~isWhitespace
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a whitespace character
+ */
+function isWhitespace( char ){
+    return char === ' ' || char === '\r' || char === '\t' || char === '\n' || char === '\v' || char === '\u00A0';
+}
+
+/**
+ * @class Lexer~LexerError
  * @extends SyntaxError
  * @param {external:string} message The error message
  */
@@ -123,34 +187,48 @@ Lexer.prototype = new Null();
 
 Lexer.prototype.constructor = Lexer;
 
+/**
+ * @function
+ * @param {external:string} text
+ */
 Lexer.prototype.lex = function( text ){
+    /**
+     * @member {external:string}
+     * @default ''
+     */
     this.buffer = text;
+    /**
+     * @member {external:number}
+     */
     this.index = 0;
+    /**
+     * @member {Array<Lexer~Token>}
+     */
     this.tokens = [];
     
-    const length = this.buffer.length;
-    let word = '',
-        char;
+    var length = this.buffer.length,
+        word = '',
+        char, quote;
     
     while( this.index < length ){
         char = this.buffer[ this.index ];
         
         // Identifier
-        if( this.isIdentifier( char ) ){
+        if( isIdentifier( char ) ){
             word = this.read( function( char ){
-                return !this.isIdentifier( char ) && !this.isNumeric( char );
+                return !isIdentifier( char ) && !isNumeric( char );
             } );
             
             this.tokens.push( new Identifier( word ) );
         
         // Punctuator
-        } else if( this.isPunctuator( char ) ){
+        } else if( isPunctuator( char ) ){
             this.tokens.push( new Punctuator( char ) );
             this.index++;
         
         // Quoted String
-        } else if( this.isQuote( char ) ){
-            let quote = char;
+        } else if( isQuote( char ) ){
+            quote = char;
             
             this.index++;
             
@@ -158,25 +236,25 @@ Lexer.prototype.lex = function( text ){
                 return char === quote;
             } );
             
-            this.tokens.push( new Literal( `${ quote }${ word }${ quote }` ) );
+            this.tokens.push( new Literal( quote + word + quote ) );
             
             this.index++;
         
         // Numeric
-        } else if( this.isNumeric( char ) ){
+        } else if( isNumeric( char ) ){
             word = this.read( function( char ){
-                return !this.isNumeric( char );
+                return !isNumeric( char );
             } );
             
             this.tokens.push( new Literal( word ) );
         
         // Whitespace
-        } else if( this.isWhitespace( char ) ){
+        } else if( isWhitespace( char ) ){
             this.index++;
         
         // Error
         } else {
-            this.throwError( `"${ char }" is an invalid character` );
+            this.throwError( '"' + char + '" is an invalid character' );
         }
         
         word = '';
@@ -185,34 +263,19 @@ Lexer.prototype.lex = function( text ){
     return this.tokens;
 };
 
-Lexer.prototype.isIdentifier = function( char ){
-    return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || '_' === char || char === '$';
-};
-
-Lexer.prototype.isPunctuator = function( char ){
-    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === ',' || char === '%';
-};
-
-Lexer.prototype.isWhitespace = function( char ){
-    return char === ' ' || char === '\r' || char === '\t' || char === '\n' || char === '\v' || char === '\u00A0';
-};
-
-Lexer.prototype.isQuote = function( char ){
-    return char === '"' || char === "'";
-};
-
-Lexer.prototype.isNumeric = function( char ){
-    return '0' <= char && char <= '9';
-};
-
+/**
+ * @function
+ * @param {external:function} until A condition that when met will stop the reading of the buffer
+ * @returns {external:string} The portion of the buffer read
+ */
 Lexer.prototype.read = function( until ){
-    let start = this.index,
+    var start = this.index,
         char;
     
     while( this.index < this.buffer.length ){
         char = this.buffer[ this.index ];
         
-        if( until.call( this, char ) ){
+        if( until( char ) ){
             break;
         }
         
@@ -222,12 +285,20 @@ Lexer.prototype.read = function( until ){
     return this.buffer.slice( start, this.index );
 };
 
+/**
+ * @function
+ * @throws {Lexer~LexerError} When it executes
+ */
 Lexer.prototype.throwError = function( message ){
     throw new LexerError( message );
 };
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the lexer
+ */
 Lexer.prototype.toJSON = function(){
-    const json = new Null();
+    var json = new Null();
     
     json.buffer = this.buffer;
     json.tokens = this.tokens.map( function( token ){
@@ -238,9 +309,21 @@ Lexer.prototype.toJSON = function(){
 };
 
 /**
+ * @function
+ * @returns {external:string} A string representation of the lexer
+ */
+Lexer.prototype.toString = function(){
+    return this.buffer;
+};
+
+/**
+ * @typedef {external:string} NodeType
+ */
+
+/**
  * @class Node
  * @extends Null
- * @param {external:string} type The type of node
+ * @param {NodeType} type A node type
  */
 function Node( type ){
     
@@ -248,7 +331,13 @@ function Node( type ){
         throw new TypeError( 'type must be a string' );
     }
     
+    /**
+     * @member {external:number} 
+     */
     this.id = nextId();
+    /**
+     * @member {NodeType}
+     */
     this.type = type;
 }
 
@@ -256,14 +345,19 @@ Node.prototype = new Null();
 
 Node.prototype.constructor = Node;
 
-Node.prototype.equals = function( node ){
-    return node instanceof Node && this.valueOf() === node.valueOf();
-};
-
+/**
+ * @function
+ * @param {NodeType} type A node type
+ * @returns {external:boolean} Whether or not the node is of the type provided.
+ */
 Node.prototype.is = function( type ){
     return this.type === type;
 };
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the node
+ */
 Node.prototype.toJSON = function(){
     const json = new Null();
     
@@ -272,6 +366,10 @@ Node.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @function
+ * @returns {external:string} A string representation of the node
+ */
 Node.prototype.toString = function(){
     return String( this.type );
 };
@@ -280,6 +378,11 @@ Node.prototype.valueOf = function(){
     return this.id;
 };
 
+/**
+ * @class Statement
+ * @extends Node
+ * @param {NodeType} statementType A node type
+ */
 function Statement( statementType ){
     Node.call( this, statementType );
 }
@@ -288,6 +391,11 @@ Statement.prototype = Object.create( Node.prototype );
 
 Statement.prototype.constructor = Statement;
 
+/**
+ * @class Expression
+ * @extends Node
+ * @param {NodeType} expressionType A node type
+ */
 function Expression( expressionType ){
     Node.call( this, expressionType );
 }
@@ -296,6 +404,11 @@ Expression.prototype = Object.create( Node.prototype );
 
 Expression.prototype.constructor = Expression;
 
+/**
+ * @class Program
+ * @extends Node
+ * @param {external:Array<Statement>} body
+ */
 function Program( body ){
     Node.call( this, 'Program' );
     
@@ -303,6 +416,9 @@ function Program( body ){
         throw new TypeError( 'body must be an array' );
     }
     
+    /**
+     * @member {external:Array<Statement>}
+     */
     this.body = body || [];
 }
 
@@ -310,6 +426,10 @@ Program.prototype = Object.create( Node.prototype );
 
 Program.prototype.constructor = Program;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the program
+ */
 Program.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -318,6 +438,11 @@ Program.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class ArrayExpression
+ * @extends Expression
+ * @param {external:Array<Expression>} elements A list of expressions
+ */
 function ArrayExpression( elements ){
     Expression.call( this, 'ArrayExpression' );
     
@@ -325,6 +450,9 @@ function ArrayExpression( elements ){
         throw new TypeError( 'elements must be a list of expressions' );
     }
     
+    /**
+     * @member {external:Array<Expression>}
+     */
     this.elements = elements;
 }
 
@@ -332,6 +460,10 @@ ArrayExpression.prototype = Object.create( Expression.prototype );
 
 ArrayExpression.prototype.constructor = ArrayExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the array expression
+ */
 ArrayExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -342,6 +474,10 @@ ArrayExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class ExpressionStatement
+ * @extends Statement
+ */
 function ExpressionStatement( expression ){
     Statement.call( this, 'ExpressionStatement' );
     
@@ -349,6 +485,9 @@ function ExpressionStatement( expression ){
         throw new TypeError( 'argument must be an expression' );
     }
     
+    /**
+     * @member {Expression}
+     */
     this.expression = expression;
 }
 
@@ -356,6 +495,10 @@ ExpressionStatement.prototype = Object.create( Statement.prototype );
 
 ExpressionStatement.prototype.constructor = ExpressionStatement;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the expression statement
+ */
 ExpressionStatement.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -364,6 +507,12 @@ ExpressionStatement.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class CallExpression
+ * @extends Expression
+ * @param {Expression} callee
+ * @param {external:Array<Expression>} args
+ */
 function CallExpression( callee, args ){
     Expression.call( this, 'CallExpression' );
     
@@ -371,7 +520,13 @@ function CallExpression( callee, args ){
         throw new TypeError( 'arguments must be an array' );
     }
     
+    /**
+     * @member {Expression}
+     */
     this.callee = callee;
+    /**
+     * @member {external:Array<Expression>}
+     */
     this.arguments = args;
 }
 
@@ -379,6 +534,10 @@ CallExpression.prototype = Object.create( Expression.prototype );
 
 CallExpression.prototype.constructor = CallExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the call expression
+ */
 CallExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -388,6 +547,13 @@ CallExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class MemberExpression
+ * @extends Expression
+ * @param {Expression} object
+ * @param {Expression|Identifier} property
+ * @param {external:boolean} computed=false
+ */
 function MemberExpression( object, property, computed ){
     Expression.call( this, 'MemberExpression' );
     
@@ -401,8 +567,17 @@ function MemberExpression( object, property, computed ){
         }
     }
     
+    /**
+     * @member {Expression}
+     */
     this.object = object;
+    /**
+     * @member {Expression|Identifier}
+     */
     this.property = property;
+    /**
+     * @member {external:boolean}
+     */
     this.computed = computed || false;
 }
 
@@ -410,6 +585,10 @@ MemberExpression.prototype = Object.create( Expression.prototype );
 
 MemberExpression.prototype.constructor = MemberExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the member expression
+ */
 MemberExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -420,6 +599,11 @@ MemberExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Identifier
+ * @extends Expression
+ * @param {external:string} name The name of the identifier
+ */
 function Identifier$1( name ){
     Expression.call( this, 'Identifier' );
     
@@ -427,6 +611,9 @@ function Identifier$1( name ){
         throw new TypeError( 'name must be a string' );
     }
     
+    /**
+     * @member {external:string}
+     */
     this.name = name;
 }
 
@@ -434,6 +621,10 @@ Identifier$1.prototype = Object.create( Expression.prototype );
 
 Identifier$1.prototype.constructor = Identifier$1;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the identifier
+ */
 Identifier$1.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -442,6 +633,11 @@ Identifier$1.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Literal
+ * @extends Expression
+ * @param {external:string|external:number} value The value of the literal
+ */
 function Literal$1( value ){
     Expression.call( this, 'Literal' );
     
@@ -451,6 +647,9 @@ function Literal$1( value ){
         throw new TypeError( 'value must be a boolean, number, string, null, or instance of RegExp' );
     }
     
+    /**
+     * @member {external:string|external:number}
+     */
     this.value = value;
 }
 
@@ -458,6 +657,10 @@ Literal$1.prototype = Object.create( Expression.prototype );
 
 Literal$1.prototype.constructor = Literal$1;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the literal
+ */
 Literal$1.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -466,6 +669,11 @@ Literal$1.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class SequenceExpression
+ * @extends Expression
+ * @param {external:Array<Expression>} expressions The expressions in the sequence
+ */
 function SequenceExpression( expressions ){
     Expression.call( this, 'SequenceExpression' );
     
@@ -473,6 +681,9 @@ function SequenceExpression( expressions ){
         throw new TypeError( 'expressions must be a list of expressions' );
     }
     
+    /**
+     * @member {external:Array<Expression>}
+     */
     this.expressions = expressions;
 }
 
@@ -480,6 +691,10 @@ SequenceExpression.prototype = Object.create( Expression.prototype );
 
 SequenceExpression.prototype.constructor = SequenceExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the sequence expression
+ */
 SequenceExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
@@ -489,6 +704,12 @@ SequenceExpression.prototype.toJSON = function(){
     
     return json;
 };
+
+/**
+ * @class Punctuator
+ * @extends Node
+ * @param {external:string} value
+ */
 
 /**
  * @class Builder
@@ -513,13 +734,19 @@ Builder.prototype.constructor = Builder;
  * @returns {Program} The built abstract syntax tree
  */
 Builder.prototype.build = function( text ){
-    this.buffer = text;
+    /**
+     * @member {external:string}
+     */
+    this.text = text;
+    /**
+     * @member {external:Array<Token>}
+     */
     this.tokens = this.lexer.lex( text );
     
-    const program = this.program();
+    var program = this.program();
     
     if( this.tokens.length ){
-        this.throwError( `Unexpected token ${ this.tokens[ 0 ] } remaining` );
+        this.throwError( 'Unexpected token ' + this.tokens[ 0 ] + ' remaining' );
     }
     
     return program;
@@ -530,9 +757,9 @@ Builder.prototype.build = function( text ){
  * @returns {CallExpression} The call expression node
  */
 Builder.prototype.callExpression = function(){
-    const args = this.list( '(' );
+    var args = this.list( '(' );
     this.consume( '(' );
-    const callee = this.expression();
+    var callee = this.expression();
     
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
@@ -542,34 +769,37 @@ Builder.prototype.callExpression = function(){
 };
 
 /**
+ * Removes the next token in the token list. If a comparison is provided, the token will only be returned if the value matches. Otherwise an error is thrown.
  * @function
- * @param {external:string} [expected]
+ * @param {external:string} [expected] An expected comparison value
  * @returns {Token} The next token in the list
+ * @throws {SyntaxError} If token did not exist
  */
 Builder.prototype.consume = function( expected ){
     if( !this.tokens.length ){
         this.throwError( 'Unexpected end of expression' );
     }
     
-    const token = this.expect( expected );
+    var token = this.expect( expected );
     
     if( !token ){
-        this.throwError( `Unexpected token ${ token.value } consumed` );
+        this.throwError( 'Unexpected token ' + token.value + ' consumed' );
     }
     
     return token;
 };
 
 /**
+ * Removes the next token in the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
  * @function
- * @param {external:string} [first]
- * @param {external:string} [second]
- * @param {external:string} [third]
- * @param {external:string} [fourth]
- * @returns {Token} The next token in the list
+ * @param {external:string} [first] The first comparison value
+ * @param {external:string} [second] The second comparison value
+ * @param {external:string} [third] The third comparison value
+ * @param {external:string} [fourth] The fourth comparison value
+ * @returns {Token} The next token in the list or `undefined` if it did not exist
  */
 Builder.prototype.expect = function( first, second, third, fourth ){
-    const token = this.peek( first, second, third, fourth );
+    var token = this.peek( first, second, third, fourth );
     
     if( token ){
         this.tokens.pop();
@@ -584,10 +814,10 @@ Builder.prototype.expect = function( first, second, third, fourth ){
  * @returns {Expression} An expression node
  */
 Builder.prototype.expression = function(){
-    let expression = null,
-        list;
+    var expression = null,
+        list, next, token;
     
-    if( this.peek() ){
+    if( next = this.peek() ){
         if( this.expect( ']' ) ){
             list = this.list( '[' );
             if( this.tokens.length === 1 ){
@@ -598,30 +828,29 @@ Builder.prototype.expression = function(){
             } else {
                 expression = list[ 0 ];
             }
-        } else if( this.peek().is( 'identifier' ) ){
+        } else if( next.type === 'identifier' ){
             expression = this.identifier();
+            next = this.peek();
             
             // Implied member expression
-            if( this.peek() && this.peek().is( 'punctuator' ) ){
-                if( this.peek( ')' ) || this.peek( ']' ) ){
+            if( next && next.type === 'punctuator' ){
+                if( next.value === ')' || next.value === ']' ){
                     expression = this.memberExpression( expression, false );
                 }
             }
-        } else if( this.peek().is( 'literal' ) ){
+        } else if( next.type === 'literal' ){
             expression = this.literal();
         }
         
-        let next;
-        
-        while( ( next = this.expect( ')', '[', '.' ) ) ){
-            if( next.value === ')' ){
+        while( ( token = this.expect( ')', '[', '.' ) ) ){
+            if( token.value === ')' ){
                 expression = this.callExpression();
-            } else if( next.value === '[' ){
+            } else if( token.value === '[' ){
                 expression = this.memberExpression( expression, true );
-            } else if( next.value === '.' ){
+            } else if( token.value === '.' ){
                 expression = this.memberExpression( expression, false );
             } else {
-                this.throwError( `Unexpected token ${ next }` );
+                this.throwError( 'Unexpected token ' + token );
             }
         }
     }
@@ -629,12 +858,21 @@ Builder.prototype.expression = function(){
     return expression;
 };
 
+/**
+ * @function
+ * @returns {ExpressionStatement} An expression statement
+ */
 Builder.prototype.expressionStatement = function(){
     return new ExpressionStatement( this.expression() );
 };
 
+/**
+ * @function
+ * @returns {Identifier} An identifier
+ * @throws {SyntaxError} If the token is not an identifier
+ */
 Builder.prototype.identifier = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'identifier' ) ){
         this.throwError( 'Identifier expected' );
@@ -648,13 +886,13 @@ Builder.prototype.identifier = function(){
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'literal' ) ){
         this.throwError( 'Literal expected' );
     }
     
-    const value = token.value,
+    var value = token.value,
     
         literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
             // String Literal
@@ -671,7 +909,7 @@ Builder.prototype.literal = function(){
  * @returns {external:Array<Literal>} The list of literals
  */
 Builder.prototype.list = function( terminator ){
-    const list = [];
+    var list = [];
     
     if( this.peek().value !== terminator ){
         do {
@@ -689,7 +927,7 @@ Builder.prototype.list = function( terminator ){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
-    const object = this.expression();
+    var object = this.expression();
     
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
@@ -699,20 +937,45 @@ Builder.prototype.memberExpression = function( property, computed ){
     return new MemberExpression( object, property, computed );
 };
 
+/**
+ * Provides the next token in the token list _without removing it_. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+ * @function
+ * @param {external:string} [first] The first comparison value
+ * @param {external:string} [second] The second comparison value
+ * @param {external:string} [third] The third comparison value
+ * @param {external:string} [fourth] The fourth comparison value
+ * @returns {Lexer~Token} The next token in the list or `undefined` if it did not exist
+ */
 Builder.prototype.peek = function( first, second, third, fourth ){
-    const length = this.tokens.length;
-    return length ?
-        this.peekAt( length - 1, first, second, third, fourth ) :
+    return this.tokens.length ?
+        this.peekAt( 0, first, second, third, fourth ) :
         undefined;
 };
 
-Builder.prototype.peekAt = function( index, first, second, third, fourth ){
-    if( typeof index === 'number' ){
-        const token = this.tokens[ index ],
-            value = token.value;
+/**
+ * Provides the token at the requested position _without removing it_ from the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+ * @function
+ * @param {external:number} position The position where the token will be peeked
+ * @param {external:string} [first] The first comparison value
+ * @param {external:string} [second] The second comparison value
+ * @param {external:string} [third] The third comparison value
+ * @param {external:string} [fourth] The fourth comparison value
+ * @returns {Lexer~Token} The token at the requested position or `undefined` if it did not exist
+ */
+Builder.prototype.peekAt = function( position, first, second, third, fourth ){
+    var index, length, token, value;
+    
+    if( typeof position === 'number' && position > -1 ){
+        length = this.tokens.length;
+        index = length - position - 1;
         
-        if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
-            return token;
+        if( index > -1 && index < length ){
+            token = this.tokens[ index ];
+            value = token.value;
+            
+            if( value === first || value === second || value === third || value === fourth || ( !first && !second && !third && !fourth ) ){
+                return token;
+            }
         }
     }
     
@@ -724,7 +987,7 @@ Builder.prototype.peekAt = function( index, first, second, third, fourth ){
  * @returns {Program} A program node
  */
 Builder.prototype.program = function(){
-    const body = [];
+    var body = [];
     
     while( true ){
         if( this.tokens.length ){
@@ -737,7 +1000,7 @@ Builder.prototype.program = function(){
 
 /*
 Builder.prototype.punctuator = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'punctuator' ) ){
         this.throwError( 'Punctuator expected' );
@@ -763,254 +1026,26 @@ function forEach( arrayLike, callback ){
     
     for( ; index < length; index++ ){
         item = arrayLike[ index ];
-        callback( item );
+        callback( item, index );
     }
 }
 
-const noop = function(){};
-const interpret = new Null();
+var noop = function(){};
 
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.ArrayExpression = function( interpreter, node, context ){
-    const args = [];
-    
-    forEach( node.elements, function( expr ){
-        args.push( interpreter.recurse( expr, false ) );
-    } );
-    
-    return function( base, value ){
-        //console.log( 'ARRAY EXPRESSION' );
-        
-        let result = [];
-        
-        forEach( args, function( arg ){
-            result.push( base[ arg( base, value ) ] );
-        } );
-        
-        if( result.length === 1 ){
-            result = result[ 0 ];
-        }
-        
-        //console.log( '- ARRAY RESULT', result );
-        
-        return context ?
-            { value: result } :
-            result;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.CallExpression = function( interpreter, node, context ){
-    const args = [];
-            
-    forEach( node.arguments, function( expr ){
-        args.push( interpreter.recurse( expr, false ) );
-    } );
-    
-    const right = interpreter.recurse( node.callee, true );
-    
-    return function( base, value ){
-        //console.log( 'CALL EXPRESSION' );
-        const rhs = right( base, value );
-        let result;
-        
-        if( typeof rhs.value === 'function' ){
-            const values = args.map( function( arg ){
-                return arg( base, value );
-            } );
-            result = rhs.value.apply( rhs.context, values );
-        } else if( typeof value !== 'undefined' ){
-            throw new Error( 'cannot create functions' );
-        }
-        
-        //console.log( '- CALL RESULT', result );
-        
-        return context ?
-            { value: result }:
-            result;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.Identifier = function( interpreter, node, context ){
-    const name = node.name;
-    return function( base, value ){
-        //console.log( 'IDENTIFIER' );
-        let result;
-        
-        if( typeof base !== 'undefined' ){
-            if( typeof value !== 'undefined' && !( name in base ) ){
-                base[ name ] = new Null();
-            }
-            
-            result = base[ name ];
-        }
-        
-        //console.log( '- NAME', name );
-        //console.log( '- IDENTIFIER RESULT', result );
-        
-        return context ?
-            { context: base, name: name, value: result } :
-            result;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.Literal = function( interpreter, node, context ){
-    const value = node.value;
-    return function(){
-        //console.log( 'LITERAL' );
-        //console.log( '- LITERAL RESULT', value );
-        return context ?
-            { context: undefined, name: undefined, value: value } :
-            value;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.MemberExpression = function( interpreter, node, context ){
-    const left = interpreter.recurse( node.object, false );
-    
-    let fn, lhs, result, rhs, right;
-    
-    if( node.computed ){
-        right = interpreter.recurse( node.property, false );
-        fn = function( base, value ){
-            //console.log( 'COMPUTED MEMBER' );
-            lhs = left( base, value );
-            
-            //console.log( '- COMPUTED LHS', lhs );
-            
-            if( typeof lhs !== 'undefined' ){
-                rhs = right( base, value );
-                
-                if( typeof value !== 'undefined' && !( rhs in lhs ) ){
-                    lhs[ rhs ] = new Null();
-                }
-                
-                //console.log( '- COMPUTED RHS', rhs );
-                
-                if( Array.isArray( lhs ) ){
-                    // Sequence expression
-                    if( Array.isArray( rhs ) ){
-                        result = rhs.map( function( index ){
-                            return lhs[ index ];
-                        } );
-                    // Literal expression
-                    } else if( lhs.length === 1 ){
-                        result = lhs[ 0 ];
-                    // Array expression
-                    } else {
-                        result = lhs.map( function( index ){
-                            return lhs[ index ];
-                        } );
-                    }
-                } else {
-                    result = lhs[ rhs ];
-                }
-            }
-            
-            //console.log( '- COMPUTED RESULT', result );
-            
-            return context ?
-                { context: lhs, name: rhs, value: result } :
-                result;
-        };
-    } else {
-        right = node.property.name;
-        fn = function( base, value ){
-            //console.log( 'NON-COMPUTED MEMBER' );
-            lhs = left( base, value );
-            
-            //console.log( '- NON-COMPUTED LHS', lhs );
-            
-            if( typeof lhs !== 'undefined' ){
-                if( typeof value !== 'undefined' && !( right in lhs ) ){
-                    lhs[ right ] = value || new Null();
-                }
-                
-                //console.log( '- NON-COMPUTED RIGHT', right );
-                
-                if( Array.isArray( lhs ) ){
-                    result = lhs.map( function( item ){
-                       return item[ right ];
-                    } );
-                } else {
-                    result = lhs[ right ];
-                }
-            }
-            
-            //console.log( '- NON-COMPUTED RESULT', result );
-            
-            return context ?
-                { context: lhs, name: right, value: result } :
-                result;
-        };
+function getValue( target, key, create ){
+    if( create && !( key in target ) ){
+        target[ key ] = {};
     }
-    
-    return fn;
-};
+    return target[ key ];
+}
 
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.SequenceExpression = function( interpreter, node, context ){
-    const args = [];
-    
-    forEach( node.expressions, function( expr ){
-        args.push( interpreter.recurse( expr, false ) );
+function intepretList( interpreter, list, context, create ){
+    var result = [];
+    forEach( list, function( expression ){
+        result.push( interpreter.recurse( expression, context, create ) );
     } );
-    
-    return function( base, value ){
-        //console.log( 'SEQUENCE EXPRESSION' );
-        
-        const result = [];
-        
-        forEach( args, function( arg ){
-            result.push( arg( base, value ) );
-        } );
-        
-        //console.log( '- SEQUENCE RESULT', result );
-        
-        return context ?
-            { value: result } :
-            result;
-    };
-};
+    return result;
+}
 
 /**
  * @class Interpreter
@@ -1022,6 +1057,9 @@ function Interpreter( builder ){
         throw new TypeError( 'builder cannot be undefined' );
     }
     
+    /**
+     * @member {Builder}
+     */
     this.builder = builder;
 }
 
@@ -1033,29 +1071,36 @@ Interpreter.prototype.constructor = Interpreter;
  * @function
  * @param {external:string} expression
  */
-Interpreter.prototype.compile = function( expression ){
-    const ast = this.builder.build( expression ),
+Interpreter.prototype.compile = function( expression, create ){
+    var ast = this.builder.build( expression ),
         body = ast.body,
-        interpreter = this;
+        interpreter = this,
+        fn;
     
-    let fn;
+    if( typeof create !== 'boolean' ){
+        create = false;
+    }
     
+    /**
+     * @member {external:string}
+     */
     interpreter.expression = expression;
+    
+    //console.log( '-------------------------------------------------' );
+    //console.log( 'Interpreting ', expression );
+    //console.log( '-------------------------------------------------' );
     
     switch( body.length ){
         case 0:
             fn = noop;
             break;
         case 1:
-            fn = interpreter.recurse( body[ 0 ].expression, false );
+            fn = interpreter.recurse( body[ 0 ].expression, false, create );
             break;
         default:
-            const expressions = [];
-            forEach( body, function( statement ){
-                expressions.push( interpreter.recurse( statement.expression, false ) );
-            } );
+            var expressions = intepretList( interpreter, body, false, create );
             fn = function( base, value ){
-                let lastValue;
+                var lastValue;
                 
                 forEach( expressions, function( expression ){
                     lastValue = expression( base, value );
@@ -1069,14 +1114,194 @@ Interpreter.prototype.compile = function( expression ){
     return fn;
 };
 
-Interpreter.prototype.recurse = function( node, context ){
-    ////console.log( 'RECURSE', node );
+Interpreter.prototype.recurse = function( node, context, create ){
+    var interpreter = this,
+        
+        args, fn, left, lhs, name, rhs, right, value;
     
-    if( !( node.type in interpret ) ){
-        this.throwError( `Unknown node type ${ node.type }` );
+    switch( node.type ){
+        case 'ArrayExpression': {
+            args = intepretList( interpreter, node.elements, false );
+            value = [];
+            
+            return function getArrayExpression( base, setValue ){
+                //console.log( 'Getting ARRAY EXPRESSION' );
+                
+                forEach( args, function( arg, index ){
+                    name = arg( base, setValue );
+                    value[ index ] = getValue( base, name, create );
+                } );
+                
+                if( value.length === 1 ){
+                    value = value[ 0 ];
+                }
+                //console.log( '- ARRAY EXPRESSION RESULT', value );
+                return context ?
+                    { value: value } :
+                    value;
+            };
+        }
+        case 'CallExpression': {
+            args = intepretList( interpreter, node.arguments, false );
+            right = interpreter.recurse( node.callee, true, create );
+            
+            return function getCallExpression( base, setValue ){
+                //console.log( 'Getting CALL EXPRESSION' );
+                var values = [], value;
+                rhs = right( base );
+                
+                if( typeof rhs.value === 'function' ){
+                    values = [];
+                    
+                    forEach( args, function( arg, index ){
+                        values[ index ] = arg( base );
+                    } );
+                    
+                    value = rhs.value.apply( rhs.context, values );
+                } else if( create && typeof rhs.value === 'undefined' ){
+                    throw new Error( 'cannot create call expressions' );
+                } else {
+                    throw new TypeError( 'call expression must be a function' );
+                }
+                //console.log( '- CALL RESULT', value );
+                return context ?
+                    { value: value }:
+                    value;
+            };
+        }
+        case 'Identifier': {
+            name = node.name;
+            return function getIdentifier( base, setValue ){
+                //console.log( 'Getting IDENTIFIER' );
+                if( typeof base !== 'undefined' ){
+                    value = getValue( base, name, create );
+                }
+                //console.log( '- NAME', name );
+                //console.log( '- IDENTIFIER RESULT', value );
+                return context ?
+                    { context: base, name: name, value: value } :
+                    value;
+            };
+        }
+        case 'Literal': {
+            value = node.value;
+            return function getLiteral( base, setValue ){
+                //console.log( 'Getting LITERAL' );
+                //console.log( '- LITERAL RESULT', value );
+                return context ?
+                    { context: undefined, name: undefined, value: value } :
+                    value;
+            };
+        }
+        case 'MemberExpression': {
+            left = interpreter.recurse( node.object, false, create );
+            
+            // Computed
+            if( node.computed ){
+                right = interpreter.recurse( node.property, false, create );
+                fn = function getComputedMember( base, setValue ){
+                    //console.log( 'Getting COMPUTED MEMBER' );
+                    //console.log( '- COMPUTED LEFT', left.name );
+                    //console.log( '- COMPUTED RIGHT', right.name );
+                    lhs = left( base, setValue );
+                    //console.log( '- COMPUTED LHS', lhs );
+                    if( typeof lhs !== 'undefined' ){
+                        rhs = right( base, setValue );
+                        //console.log( '- COMPUTED RHS', rhs );
+                        if( Array.isArray( lhs ) ){
+                            value = [];
+                            
+                            if( Array.isArray( rhs ) ){
+                                forEach( rhs, function( object, index ){
+                                    value[ index ] = getValue( lhs, object, create );
+                                } );
+                                //console.log( '-- LIST:LIST', value );
+                            } else {
+                                if( typeof rhs === 'number' ){
+                                    value[ 0 ] = lhs[ rhs ];
+                                } else {
+                                    forEach( lhs, function( object, index ){
+                                        value[ index ] = getValue( object, rhs, create );
+                                    } );
+                                }
+                                //console.log( '-- LIST:VALUE', value );
+                            }
+                            
+                            if( value.length === 1 ){
+                                value = value[ 0 ];
+                            }
+                        } else if( Array.isArray( rhs ) ){
+                            value = [];
+                            
+                            forEach( rhs, function( object, index ){
+                                value[ index ] = getValue( lhs, object, create );
+                            } );
+                            
+                            //console.log( '-- VALUE:LIST', value );
+                            
+                            if( value.length === 1 ){
+                                value = value[ 0 ];
+                            }
+                        } else {
+                            value = getValue( lhs, rhs, create );
+                            
+                            //console.log( '-- VALUE:VALUE', value );
+                        }
+                    }
+                    //console.log( '- COMPUTED RESULT', value );
+                    return context ?
+                        { context: lhs, name: rhs, value: value } :
+                        value;
+                };
+            
+            // Non-computed
+            } else {
+                right = node.property.name;
+                fn = function getNonComputedMember( base, setValue ){
+                    //console.log( 'Getting NON-COMPUTED MEMBER' );
+                    //console.log( '- NON-COMPUTED LEFT', left.name );
+                    //console.log( '- NON-COMPUTED RIGHT', right );
+                    lhs = left( base, setValue );
+                    //console.log( '- NON-COMPUTED LHS', lhs );
+                    if( typeof lhs !== 'undefined' ){
+                        if( Array.isArray( lhs ) ){
+                            value = [];
+                            forEach( lhs, function( object, index ){
+                                value[ index ] = getValue( object, right, create );
+                            } );
+                            //console.log( '-- LIST:VALUE', value );
+                        } else {
+                            value = getValue( lhs, right, create );
+                            //console.log( '-- VALUE:VALUE', value );
+                        }
+                    }
+                    //console.log( '- NON-COMPUTED RESULT', value );
+                    return context ?
+                        { context: lhs, name: right, value: value } :
+                        value;
+                };
+            }
+            
+            return fn;
+        }
+        case 'SequenceExpression': {
+            args = intepretList( interpreter, node.expressions, false );
+            
+            return function getSequenceExpression( base, setValue ){
+                //console.log( 'Getting SEQUENCE EXPRESSION' );
+                value = [];
+                forEach( args, function( arg, index ){
+                    value[ index ] = arg( base );
+                } );
+                //console.log( '- SEQUENCE RESULT', value );
+                return context ?
+                    { value: value } :
+                    value;
+            };
+        }
+        default:
+            this.throwError( 'Unknown node type ' + node.type );
     }
-    
-    return interpret[ node.type ]( this, node, context );
 };
 
 Interpreter.prototype.throwError = function( message ){
