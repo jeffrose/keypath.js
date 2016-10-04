@@ -15,7 +15,6 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             }
         }
     },
-    
     kpex = new KeyPathExp( path );
     // var tkTokens = tk.getTokens( path );
 
