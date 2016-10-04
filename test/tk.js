@@ -8,6 +8,8 @@ var chai        = require( 'chai' ),
 
 //chai.use( sinon_chai );
 
+// tk.setOptions({cache:false});
+
 describe( 'tk', function(){
     var data;
 
@@ -18,6 +20,7 @@ describe( 'tk', function(){
             'propA': 'one',
             'propB': 'two',
             'propC': 'three',
+            'foo.bar': 'FooBar',
             'accounts': [
                 /* 0 */ { 'ary': [9,8,7,6] },
                 /* 1 */ {
@@ -49,7 +52,8 @@ describe( 'tk', function(){
 
     });
 
-    // xdescribe( 'disable', function(){
+
+    describe( 'disable', function(){
     describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -434,7 +438,7 @@ describe( 'tk', function(){
             expect(tokens).to.be.an.object;
             expect(tokens.t).to.be.an.array;
             expect(tokens.t.length).to.equal(2);
-            expect(tokens.t.join('.')).to.equal(str);
+            expect(tokens.t.join('|')).to.equal('f(oo)|b.ar');
         });
         it('should return undefined if path ends in an escape character', function () {
             var str = 'foo.bar\\';
@@ -487,9 +491,13 @@ describe( 'tk', function(){
                         'closer': ')',
                         'exec': 'call'
                     },
+                    '[': {
+                        'closer': ']',
+                        'exec': 'property'
+                    },
                     '{': {
                         'closer': '}',
-                        'exec': 'property'
+                        'exec': 'evalProperty'
                     }
                 }
             });
@@ -523,6 +531,10 @@ describe( 'tk', function(){
                     },
                     '[': {
                         'closer': ']',
+                        'exec': 'evalProperty'
+                    },
+                    '{': {
+                        'closer': '}',
                         'exec': 'property'
                     }
                 }
@@ -748,9 +760,30 @@ describe( 'tk', function(){
         });
 
     });
-    // });
+    });
 
-    // describe( 'debug', function(){
-    // });
+    describe( 'debug', function(){
+        it('should return undefined if path ends in an escape character', function () {
+            var str = 'foo.bar\\';
+            expect(tk.getTokens(str)).to.be.undefined;
+        });
+        it('should handle plain property container, treats contents as property name', function () {
+            var str1 = 'accounts[0]ary[0]';
+            expect(tk.get(data, str1)).to.equal(data.accounts[0].ary[0]);
+            var str2 = '[foo.bar]';
+            expect(tk.get(data, str2)).to.equal(data['foo.bar']);
+            var str22 = 'foo\\.bar';
+            expect(tk.get(data, str22)).to.equal(data['foo.bar']);
+            var str3 = '%1';
+            expect(tk.get(data, str3, 'foo.bar')).to.equal(data['foo.bar']);
+        });
+        // it( 'should be able to evaluate container and execute function', function(){
+        //     var str = 'accounts{2()}checking.id';
+        //     var tmp = data.accounts[2]();
+        //     console.log('tmp:', data.accounts[2]());
+        //     console.log('tk.getTokens:', tk.getTokens(str));
+        //     expect(tk.get(data, str)).to.equal(data.accounts[tmp].checking.id);
+        // } );
+    });
 
 } );
