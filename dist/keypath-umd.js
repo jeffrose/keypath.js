@@ -513,13 +513,19 @@ Builder.prototype.constructor = Builder;
  * @returns {Program} The built abstract syntax tree
  */
 Builder.prototype.build = function( text ){
-    this.buffer = text;
+    /**
+     * @member {external:string}
+     */
+    this.text = text;
+    /**
+     * @member {external:Array<Token>}
+     */
     this.tokens = this.lexer.lex( text );
     
-    const program = this.program();
+    var program = this.program();
     
     if( this.tokens.length ){
-        this.throwError( `Unexpected token ${ this.tokens[ 0 ] } remaining` );
+        this.throwError( 'Unexpected token ' + this.tokens[ 0 ] + ' remaining' );
     }
     
     return program;
@@ -530,9 +536,9 @@ Builder.prototype.build = function( text ){
  * @returns {CallExpression} The call expression node
  */
 Builder.prototype.callExpression = function(){
-    const args = this.list( '(' );
+    var args = this.list( '(' );
     this.consume( '(' );
-    const callee = this.expression();
+    var callee = this.expression();
     
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
@@ -551,10 +557,10 @@ Builder.prototype.consume = function( expected ){
         this.throwError( 'Unexpected end of expression' );
     }
     
-    const token = this.expect( expected );
+    var token = this.expect( expected );
     
     if( !token ){
-        this.throwError( `Unexpected token ${ token.value } consumed` );
+        this.throwError( 'Unexpected token ' + token.value + ' consumed' );
     }
     
     return token;
@@ -569,7 +575,7 @@ Builder.prototype.consume = function( expected ){
  * @returns {Token} The next token in the list
  */
 Builder.prototype.expect = function( first, second, third, fourth ){
-    const token = this.peek( first, second, third, fourth );
+    var token = this.peek( first, second, third, fourth );
     
     if( token ){
         this.tokens.pop();
@@ -584,10 +590,10 @@ Builder.prototype.expect = function( first, second, third, fourth ){
  * @returns {Expression} An expression node
  */
 Builder.prototype.expression = function(){
-    let expression = null,
-        list;
+    var expression = null,
+        list, next, token;
     
-    if( this.peek() ){
+    if( next = this.peek() ){
         if( this.expect( ']' ) ){
             list = this.list( '[' );
             if( this.tokens.length === 1 ){
@@ -598,30 +604,29 @@ Builder.prototype.expression = function(){
             } else {
                 expression = list[ 0 ];
             }
-        } else if( this.peek().is( 'identifier' ) ){
+        } else if( next.type === 'identifier' ){
             expression = this.identifier();
+            next = this.peek();
             
             // Implied member expression
-            if( this.peek() && this.peek().is( 'punctuator' ) ){
-                if( this.peek( ')' ) || this.peek( ']' ) ){
+            if( next && next.type === 'punctuator' ){
+                if( next.value === ')' || next.value === ']' ){
                     expression = this.memberExpression( expression, false );
                 }
             }
-        } else if( this.peek().is( 'literal' ) ){
+        } else if( next.type === 'literal' ){
             expression = this.literal();
         }
         
-        let next;
-        
-        while( ( next = this.expect( ')', '[', '.' ) ) ){
-            if( next.value === ')' ){
+        while( ( token = this.expect( ')', '[', '.' ) ) ){
+            if( token.value === ')' ){
                 expression = this.callExpression();
-            } else if( next.value === '[' ){
+            } else if( token.value === '[' ){
                 expression = this.memberExpression( expression, true );
-            } else if( next.value === '.' ){
+            } else if( token.value === '.' ){
                 expression = this.memberExpression( expression, false );
             } else {
-                this.throwError( `Unexpected token ${ next }` );
+                this.throwError( 'Unexpected token ' + token );
             }
         }
     }
@@ -629,12 +634,21 @@ Builder.prototype.expression = function(){
     return expression;
 };
 
+/**
+ * @function
+ * @returns {ExpressionStatement} An expression statement
+ */
 Builder.prototype.expressionStatement = function(){
     return new ExpressionStatement( this.expression() );
 };
 
+/**
+ * @function
+ * @returns {Identifier} An identifier
+ * @throws {SyntaxError} If the token is not an identifier
+ */
 Builder.prototype.identifier = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'identifier' ) ){
         this.throwError( 'Identifier expected' );
@@ -648,13 +662,13 @@ Builder.prototype.identifier = function(){
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'literal' ) ){
         this.throwError( 'Literal expected' );
     }
     
-    const value = token.value,
+    var value = token.value,
     
         literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
             // String Literal
@@ -671,7 +685,7 @@ Builder.prototype.literal = function(){
  * @returns {external:Array<Literal>} The list of literals
  */
 Builder.prototype.list = function( terminator ){
-    const list = [];
+    var list = [];
     
     if( this.peek().value !== terminator ){
         do {
@@ -689,7 +703,7 @@ Builder.prototype.list = function( terminator ){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
-    const object = this.expression();
+    var object = this.expression();
     
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
@@ -700,7 +714,7 @@ Builder.prototype.memberExpression = function( property, computed ){
 };
 
 Builder.prototype.peek = function( first, second, third, fourth ){
-    const length = this.tokens.length;
+    var length = this.tokens.length;
     return length ?
         this.peekAt( length - 1, first, second, third, fourth ) :
         undefined;
@@ -708,7 +722,7 @@ Builder.prototype.peek = function( first, second, third, fourth ){
 
 Builder.prototype.peekAt = function( index, first, second, third, fourth ){
     if( typeof index === 'number' ){
-        const token = this.tokens[ index ],
+        var token = this.tokens[ index ],
             value = token.value;
         
         if( value === first || value === second || value === third || value === fourth || !arguments.length || ( !first && !second && !third && !fourth ) ){
@@ -724,7 +738,7 @@ Builder.prototype.peekAt = function( index, first, second, third, fourth ){
  * @returns {Program} A program node
  */
 Builder.prototype.program = function(){
-    const body = [];
+    var body = [];
     
     while( true ){
         if( this.tokens.length ){
@@ -737,7 +751,7 @@ Builder.prototype.program = function(){
 
 /*
 Builder.prototype.punctuator = function(){
-    const token = this.consume();
+    var token = this.consume();
     
     if( !( token.type === 'punctuator' ) ){
         this.throwError( 'Punctuator expected' );
@@ -763,7 +777,7 @@ function forEach( arrayLike, callback ){
     
     for( ; index < length; index++ ){
         item = arrayLike[ index ];
-        callback( item );
+        callback( item, index );
     }
 }
 

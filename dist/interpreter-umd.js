@@ -11,7 +11,7 @@ function forEach( arrayLike, callback ){
     
     for( ; index < length; index++ ){
         item = arrayLike[ index ];
-        callback( item );
+        callback( item, index );
     }
 }
 
