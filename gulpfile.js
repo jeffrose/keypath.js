@@ -186,7 +186,7 @@ gulp.task( 'tk-test', [ 'dist' ], ( done ) => {
 } );
 
 gulp.task( 'benchmark', [ 'dist' ], () => {
-    return gulp.src( [ 'test/benchmark.js' ] )
+    return gulp.src( [ 'benchmark/keypath.js' ] )
         .pipe( benchmark() )
         .pipe( gulp.dest( './benchmark' ) );
 } );

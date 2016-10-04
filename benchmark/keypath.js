@@ -20,9 +20,11 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     data2 = {
         foo: [ 'val' ]
     },
-    
-    kpex = new KeyPathExp( path );
-    // var tkTokens = tk.getTokens( path );
+
+    kpex = new KeyPathExp( path ),
+    kpex2 = new KeyPathExp( path2 );
+
+    var tkTokens = tk.getTokens( path2 );
 
 module.exports = {
     name: 'KeyPathExp vs. tk vs. keypather vs. _.get',
@@ -31,7 +33,7 @@ module.exports = {
         'KeyPathExp#get': function(){
             kpex.get( data );
         },
-        'tk#getPath': function(){
+        'tk#get': function(){
             tk.get( data, path );
         },
         'keypather#get': function(){
@@ -39,6 +41,19 @@ module.exports = {
         },
         'lodash#get': function(){
             _get( data, path );
+        },
+
+        'bracket KeyPathExp#get': function(){
+            kpex2.get( data2 );
+        },
+        'bracket tk#get': function(){
+            tk.get( data2, tkTokens );
+        },
+        'bracket keypather#get': function(){
+            keypather.get( data2, path2 );
+        },
+        'bracket lodash#get': function(){
+            _get( data2, path2 );
         }
     }
 };
