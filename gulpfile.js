@@ -89,7 +89,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( rename( 'tk-umd.js' ) )
         .pipe( sourcemaps.write( '.' ) )
         .pipe( gulp.dest( 'dist' ) )
-    )
+    ).pipe( debug( { title: 'Distributing' } ) )
 );
 
 gulp.task( 'docs', () => {
@@ -108,7 +108,7 @@ gulp.task( 'test', [ 'dist' ], ( done ) => {
         '**' );
     gulp.src( [ 'dist/*.js' ] )
         .pipe( fileFilter )
-        .pipe( debug() )
+        .pipe( debug( { title: 'Testing' } ) )
         .pipe( istanbul() )
         .pipe( istanbul.hookRequire() )
         .on( 'finish', () => {
