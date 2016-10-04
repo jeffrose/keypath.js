@@ -7,92 +7,122 @@ var chai        = require( 'chai' ),
 
     expect      = chai.expect;
 
-/*
-RECURSE { [Number: 7]
-  id: 7,
-  type: 'MemberExpression',
-  object: 
-   { [Number: 6]
-     id: 6,
-     type: 'MemberExpression',
-     object: 
-      { [Number: 5]
-        id: 5,
-        type: 'MemberExpression',
-        object: [Object],
-        property: [Object],
-        computed: true },
-     property: { [Number: 2] id: 2, type: 'Literal', value: 'qux' },
-     computed: true },
-  property: { [Number: 1] id: 1, type: 'Literal', value: 'baz' },
-  computed: true }
-RECURSE { [Number: 6]
-  id: 6,
-  type: 'MemberExpression',
-  object: 
-   { [Number: 5]
-     id: 5,
-     type: 'MemberExpression',
-     object: { [Number: 4] id: 4, type: 'Identifier', name: 'foo' },
-     property: { [Number: 3] id: 3, type: 'Literal', value: 'bar' },
-     computed: true },
-  property: { [Number: 2] id: 2, type: 'Literal', value: 'qux' },
-  computed: true }
-RECURSE { [Number: 5]
-  id: 5,
-  type: 'MemberExpression',
-  object: { [Number: 4] id: 4, type: 'Identifier', name: 'foo' },
-  property: { [Number: 3] id: 3, type: 'Literal', value: 'bar' },
-  computed: true }
-RECURSE { [Number: 4] id: 4, type: 'Identifier', name: 'foo' }
-RECURSE { [Number: 3] id: 3, type: 'Literal', value: 'bar' }
-RECURSE { [Number: 2] id: 2, type: 'Literal', value: 'qux' }
-RECURSE { [Number: 1] id: 1, type: 'Literal', value: 'baz' }
-*/
-
 describe( 'Interpreter', function(){
+    
+    it( 'should create instances', function(){
+        var lexer = new Lexer(),
+            builder = new Builder( lexer ),
+            interpreter = new Interpreter( builder );
+        
+        expect( interpreter ).to.be.instanceOf( Interpreter );
+        expect( () => new Interpreter() ).to.throw( TypeError );
+    } );
 
     describe( 'interpreter', function(){
         var lexer = new Lexer(),
             builder = new Builder( lexer ),
             interpreter = new Interpreter( builder );
         
-        it( 'should compile member expressions', function(){
-            var data = { foo: { bar: { qux: { baz: true } } } },
+        it( 'should interpret empty string', function(){
+            var fn = interpreter.compile( '' );
+            
+            expect( fn ).to.be.a( 'function' );
+            expect( fn( {} ) ).to.be.undefined;
+        } );
+        
+        it( 'should interpret member expressions', function(){
+            var object = { foo: { bar: { qux: { baz: true } } } },
+                array = {
+                    foo: [
+                        { bar: { qux: 123 } },
+                        { bar: { qux: 456 } }
+                    ],
+                },
                 fn;
             
             fn = interpreter.compile( 'foo.bar.qux.baz' );
-            expect( fn( data ) ).to.equal( true );
-            
-            console.log( '------------------------' );
+            expect( fn( object ) ).to.equal( true );
             
             fn = interpreter.compile( 'foo["bar"]["qux"]["baz"]' );
-            expect( fn( data ) ).to.equal( true );
-            
-            console.log( '------------------------' );
+            expect( fn( object ) ).to.equal( true );
             
             fn = interpreter.compile( '["foo"]["bar"]["qux"]["baz"]' );
-            expect( fn( data ) ).to.equal( true );
+            expect( fn( object ) ).to.equal( true );
+            
+            fn = interpreter.compile( 'foo[0].bar.qux' );
+            expect( fn( array ) ).to.equal( 123 );
+            
+            fn = interpreter.compile( 'foo[1]bar.qux' );
+            expect( fn( array ) ).to.equal( 456 );
         } );
         
-        it( 'should compile an expression', function(){
-            var fn = interpreter.compile( 'foo[1,2]bar' ),
-                object = {
-                    foo: [ { bar: 'a' }, { bar: 'b' }, { bar: 'c' }, { bar: 'd' } ]
-                };
+        it( 'should interpret array expressions', function(){
+            var data1 = {
+                    foo: { qux: { baz: 1 } },
+                    bar: { qux: { baz: 2 } }
+                },
+                data2 = [
+                    { qux: { baz: 1 } },
+                    { qux: { baz: 2 } },
+                    { qux: { baz: 3 } },
+                    { qux: { baz: 4 } }
+                ],
+                fn, result;
             
-            expect( fn ).to.be.a( 'function' );
+            fn = interpreter.compile( '["foo","bar"]qux.baz', false );
+            result = fn( data1 );
+            expect( result ).to.instanceOf( Array );
+            expect( result[ 0 ] ).to.equal( 1 );
+            expect( result[ 1 ] ).to.equal( 2 );
+            result = undefined;
             
-            console.log( fn( object ) );
+            fn = interpreter.compile( '[0,3]["qux"].baz', false );
+            result = fn( data2 );
+            expect( result ).to.instanceOf( Array );
+            expect( result[ 0 ] ).to.equal( 1 );
+            expect( result[ 1 ] ).to.equal( 4 );
+            result = undefined;
         } );
         
-        xit( 'should create', function(){
-            var fn = interpreter.compile( 'foo[0]baz' ),
-                empty = {};
+        it( 'should interpret sequence expressions', function(){
+            var data1 = {
+                    foo: { baz: 1, qux: 2 }
+                },
+                data2 = {
+                    foo: [
+                        { bar: 1 },
+                        { bar: 2 },
+                        { bar: 3 },
+                        { bar: 4 }
+                    ]
+                },
+                fn, result;
             
-            fn( empty, 'EMPTY' );
-            //console.log( 'GET' );
-            //console.log( fn( empty ) );
+            fn = interpreter.compile( 'foo["baz","qux"]', false );
+            result = fn( data1 );
+            expect( result ).to.instanceOf( Array );
+            expect( result[ 0 ] ).to.equal( 1 );
+            expect( result[ 1 ] ).to.equal( 2 );
+            result = undefined;
+            
+            fn = interpreter.compile( 'foo[0,3]bar', false );
+            result = fn( data2 );
+            expect( result ).to.instanceOf( Array );
+            expect( result[ 0 ] ).to.equal( 1 );
+            expect( result[ 1 ] ).to.equal( 4 );
+            result = undefined;
         } );
+        
+        it( 'should interpret call expressions', function(){
+            var data = { foo: { bar: { qux: function( value ){ return { baz: value }; } } } },
+                fn;
+            
+            fn = interpreter.compile( 'foo.bar.qux().baz' );
+            expect( fn( data ) ).to.be.undefined;
+            
+            fn = interpreter.compile( 'foo.bar.qux(123)baz' );
+            expect( fn( data ) ).to.equal( 123 );
+        } );
+        
     } );
 } );

@@ -36,9 +36,9 @@ const
 interpreter.compile( path );
 interpreter.compile( path );
 
-%OptimizeFunctionOnNextCall( interpreter.compile );
+%OptimizeFunctionOnNextCall( interpreter.recurse );
 
 interpreter.compile( path );
 
-console.log( chalk.bold( 'Interpreter#compile' ) );
-printStatus( interpreter.compile );
+console.log( chalk.bold( 'Interpreter#recurse' ) );
+printStatus( interpreter.recurse );

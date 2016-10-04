@@ -6,7 +6,6 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     keypather = require( 'keypather' )(),
     
     path = 'foo.bar.qux.baz',
-    path2 = 'foo[0]',
     data = {
         foo: {
             bar: {
@@ -16,9 +15,12 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             }
         }
     },
+
+    path2 = 'foo[0]',
     data2 = {
         foo: [ 'val' ]
     },
+    
     kpex = new KeyPathExp( path );
     // var tkTokens = tk.getTokens( path );
 

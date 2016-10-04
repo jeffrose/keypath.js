@@ -1,5 +1,5 @@
 .c9/**
-benchmark/**
+benchmark/benchmark-results.json
 coverage/**
 node_modules/**
 npm-debug.log

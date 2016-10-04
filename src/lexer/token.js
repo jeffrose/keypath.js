@@ -4,25 +4,38 @@ import Null from '../null';
 import nextId from '../uuid';
 
 /**
- * @class Token
+ * @class Lexer~Token
  * @extends Null
  * @param {external:string} type The type of the token
- * @param {*} value The value of the token
+ * @param {external:string} value The value of the token
  * @throws {external:TypeError} If `type` is not a string
- * @throws {external:TypeError} If `value` is undefined.
+ * @throws {external:TypeError} If `value` is not a string
  */
 function Token( type, value ){
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
     }
     
-    if( typeof value === 'undefined' ){
-        throw new TypeError( 'value cannot be undefined' );
+    if( typeof value !== 'string' ){
+        throw new TypeError( 'value must be a string' );
     }
     
+    /**
+     * @member {external:number}
+     */
     this.id = nextId();
+    /**
+     * @member {external:string}
+     */
     this.type = type;
+    /**
+     * @member {external:string}
+     */
     this.value = value;
+    /**
+     * The length of the token value
+     * @member {external:number}
+     */
     this.length = value.length;
 }
 
@@ -30,19 +43,10 @@ Token.prototype = new Null();
 
 Token.prototype.constructor = Token;
 
-Token.prototype.equals = function( token ){
-    return token instanceof Token && this.valueOf() === token.valueOf();
-};
-
 /**
  * @function
- * @param {external:string} type
- * @returns {external:boolean} Whether or not the token is the `type` provided.
+ * @returns {external:Object} A JSON representation of the token
  */
-Token.prototype.is = function( type ){
-    return this.type === type;
-};
-
 Token.prototype.toJSON = function(){
     var json = new Null();
     
@@ -52,16 +56,21 @@ Token.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @function
+ * @returns {external:string} A string representation of the token
+ */
 Token.prototype.toString = function(){
     return String( this.value );
 };
 
-Token.prototype.valueOf = function(){
-    return this.id;
-};
-
 export { Token as default };
 
+/**
+ * @class Lexer~Identifier
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
 export function Identifier( value ){
     Token.call( this, 'identifier', value );
 }
@@ -70,6 +79,11 @@ Identifier.prototype = Object.create( Token.prototype );
 
 Identifier.prototype.constructor = Identifier;
 
+/**
+ * @class Lexer~Literal
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
 export function Literal( value ){
     Token.call( this, 'literal', value );
 }
@@ -78,6 +92,11 @@ Literal.prototype = Object.create( Token.prototype );
 
 Literal.prototype.constructor = Literal;
 
+/**
+ * @class Lexer~Punctuator
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
 export function Punctuator( value ){
     Token.call( this, 'punctuator', value );
 }

@@ -5,6 +5,8 @@
  * @class Null
  * @extends external:null
  */
-export default function Null(){}
+function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
+
+export { Null as default };

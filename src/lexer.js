@@ -4,7 +4,52 @@ import Null from './null';
 import { Identifier, Literal, Punctuator } from './lexer/token';
 
 /**
- * @class LexerError
+ * @function Lexer~isIdentifier
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is an identifier character
+ */
+function isIdentifier( char ){
+    return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || '_' === char || char === '$';
+}
+
+/**
+ * @function Lexer~isNumeric
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a numeric character
+ */
+function isNumeric( char ){
+    return '0' <= char && char <= '9';
+}
+
+/**
+ * @function Lexer~isPunctuator
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a punctuator character
+ */
+function isPunctuator( char ){
+    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === ',' || char === '%';
+}
+
+/**
+ * @function Lexer~isQuote
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a quote character
+ */
+function isQuote( char ){
+    return char === '"' || char === "'";
+}
+
+/**
+ * @function Lexer~isWhitespace
+ * @param {external:string} char
+ * @returns {external:boolean} Whether or not the character is a whitespace character
+ */
+function isWhitespace( char ){
+    return char === ' ' || char === '\r' || char === '\t' || char === '\n' || char === '\v' || char === '\u00A0';
+}
+
+/**
+ * @class Lexer~LexerError
  * @extends SyntaxError
  * @param {external:string} message The error message
  */
@@ -18,7 +63,7 @@ LexerError.prototype = Object.create( SyntaxError.prototype );
  * @class Lexer
  * @extends Null
  */
-export default function Lexer(){
+function Lexer(){
     this.buffer = '';
 }
 
@@ -26,34 +71,48 @@ Lexer.prototype = new Null();
 
 Lexer.prototype.constructor = Lexer;
 
+/**
+ * @function
+ * @param {external:string} text
+ */
 Lexer.prototype.lex = function( text ){
+    /**
+     * @member {external:string}
+     * @default ''
+     */
     this.buffer = text;
+    /**
+     * @member {external:number}
+     */
     this.index = 0;
+    /**
+     * @member {Array<Lexer~Token>}
+     */
     this.tokens = [];
     
-    const length = this.buffer.length;
-    let word = '',
-        char;
+    var length = this.buffer.length,
+        word = '',
+        char, quote;
     
     while( this.index < length ){
         char = this.buffer[ this.index ];
         
         // Identifier
-        if( this.isIdentifier( char ) ){
+        if( isIdentifier( char ) ){
             word = this.read( function( char ){
-                return !this.isIdentifier( char ) && !this.isNumeric( char );
+                return !isIdentifier( char ) && !isNumeric( char );
             } );
             
             this.tokens.push( new Identifier( word ) );
         
         // Punctuator
-        } else if( this.isPunctuator( char ) ){
+        } else if( isPunctuator( char ) ){
             this.tokens.push( new Punctuator( char ) );
             this.index++;
         
         // Quoted String
-        } else if( this.isQuote( char ) ){
-            let quote = char;
+        } else if( isQuote( char ) ){
+            quote = char;
             
             this.index++;
             
@@ -61,25 +120,25 @@ Lexer.prototype.lex = function( text ){
                 return char === quote;
             } );
             
-            this.tokens.push( new Literal( `${ quote }${ word }${ quote }` ) );
+            this.tokens.push( new Literal( quote + word + quote ) );
             
             this.index++;
         
         // Numeric
-        } else if( this.isNumeric( char ) ){
+        } else if( isNumeric( char ) ){
             word = this.read( function( char ){
-                return !this.isNumeric( char );
+                return !isNumeric( char );
             } );
             
             this.tokens.push( new Literal( word ) );
         
         // Whitespace
-        } else if( this.isWhitespace( char ) ){
+        } else if( isWhitespace( char ) ){
             this.index++;
         
         // Error
         } else {
-            this.throwError( `"${ char }" is an invalid character` );
+            this.throwError( '"' + char + '" is an invalid character' );
         }
         
         word = '';
@@ -88,34 +147,19 @@ Lexer.prototype.lex = function( text ){
     return this.tokens;
 };
 
-Lexer.prototype.isIdentifier = function( char ){
-    return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || '_' === char || char === '$';
-};
-
-Lexer.prototype.isPunctuator = function( char ){
-    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === ',' || char === '%';
-};
-
-Lexer.prototype.isWhitespace = function( char ){
-    return char === ' ' || char === '\r' || char === '\t' || char === '\n' || char === '\v' || char === '\u00A0';
-};
-
-Lexer.prototype.isQuote = function( char ){
-    return char === '"' || char === "'";
-};
-
-Lexer.prototype.isNumeric = function( char ){
-    return '0' <= char && char <= '9';
-};
-
+/**
+ * @function
+ * @param {external:function} until A condition that when met will stop the reading of the buffer
+ * @returns {external:string} The portion of the buffer read
+ */
 Lexer.prototype.read = function( until ){
-    let start = this.index,
+    var start = this.index,
         char;
     
     while( this.index < this.buffer.length ){
         char = this.buffer[ this.index ];
         
-        if( until.call( this, char ) ){
+        if( until( char ) ){
             break;
         }
         
@@ -125,12 +169,20 @@ Lexer.prototype.read = function( until ){
     return this.buffer.slice( start, this.index );
 };
 
+/**
+ * @function
+ * @throws {Lexer~LexerError} When it executes
+ */
 Lexer.prototype.throwError = function( message ){
     throw new LexerError( message );
 };
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the lexer
+ */
 Lexer.prototype.toJSON = function(){
-    const json = new Null();
+    var json = new Null();
     
     json.buffer = this.buffer;
     json.tokens = this.tokens.map( function( token ){
@@ -139,3 +191,13 @@ Lexer.prototype.toJSON = function(){
     
     return json;
 };
+
+/**
+ * @function
+ * @returns {external:string} A string representation of the lexer
+ */
+Lexer.prototype.toString = function(){
+    return this.buffer;
+};
+
+export { Lexer as default };

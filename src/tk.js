@@ -258,21 +258,21 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
     // special characters other than <propertySeparator>. If no other
     // specials are found, this is a "simple path" that can be evaluated
     // with a very fast while loop. E.g., "foo.bar.2" or "people.John Q\. Doe.id"
-    // if (typeof path === 'string' && !path.match(specialRegEx) /* !path.replace(escapedSpecialsRegEx,'').match(specialRegEx) */ ){
-    //     tk = path.split(propertySeparator);
-    //     tkLength = tk.length;
-    //     while (prev !== undefined && i < tkLength){
-    //         if (tk[i] === EMPTY_STRING){ return undefined; }
-    //         else if (change){
-    //             if (i === tkLength - 1){
-    //                 prev[tk[i]] = newValue;
-    //             }
-    //         }
-    //         prev = prev[tk[i]];
-    //         i++;
-    //     }
-    //     return prev;
-    // }
+    if (typeof path === 'string' && !path.match(specialRegEx) /* !path.replace(escapedSpecialsRegEx,'').match(specialRegEx) */ ){
+        tk = path.split(propertySeparator);
+        tkLength = tk.length;
+        while (prev !== undefined && i < tkLength){
+            if (tk[i] === EMPTY_STRING){ return undefined; }
+            else if (change){
+                if (i === tkLength - 1){
+                    prev[tk[i]] = newValue;
+                }
+            }
+            prev = prev[tk[i]];
+            i++;
+        }
+        return prev;
+    }
 
 
     // Either a full token set was provided or else the path includes

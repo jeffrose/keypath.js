@@ -3,254 +3,22 @@
 import forEach from './forEach';
 import Null from './null';
 
-const noop = function(){},
+var noop = function(){};
 
-    /**
-     * @namespace
-     */
-    interpret = new Null();
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.ArrayExpression = function( interpreter, node, context ){
-    const args = [];
-    
-    forEach( node.elements, function( expr ){
-        args.push( interpreter.recurse( expr, false ) );
-    } );
-    
-    return function( base, value ){
-        //console.log( 'ARRAY EXPRESSION' );
-        
-        let result = [];
-        
-        forEach( args, function( arg ){
-            result.push( base[ arg( base, value ) ] );
-        } );
-        
-        if( result.length === 1 ){
-            result = result[ 0 ];
-        }
-        
-        //console.log( '- ARRAY RESULT', result );
-        
-        return context ?
-            { value: result } :
-            result;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.CallExpression = function( interpreter, node, context ){
-    const args = [];
-            
-    forEach( node.arguments, function( expr ){
-        args.push( interpreter.recurse( expr, false ) );
-    } );
-    
-    const right = interpreter.recurse( node.callee, true );
-    
-    return function( base, value ){
-        //console.log( 'CALL EXPRESSION' );
-        const rhs = right( base, value );
-        let result;
-        
-        if( typeof rhs.value === 'function' ){
-            const values = args.map( function( arg ){
-                return arg( base, value );
-            } );
-            result = rhs.value.apply( rhs.context, values );
-        } else if( typeof value !== 'undefined' ){
-            throw new Error( 'cannot create functions' );
-        }
-        
-        //console.log( '- CALL RESULT', result );
-        
-        return context ?
-            { value: result }:
-            result;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.Identifier = function( interpreter, node, context ){
-    const name = node.name;
-    return function( base, value ){
-        //console.log( 'IDENTIFIER' );
-        let result;
-        
-        if( typeof base !== 'undefined' ){
-            if( typeof value !== 'undefined' && !( name in base ) ){
-                base[ name ] = new Null();
-            }
-            
-            result = base[ name ];
-        }
-        
-        //console.log( '- NAME', name );
-        //console.log( '- IDENTIFIER RESULT', result );
-        
-        return context ?
-            { context: base, name: name, value: result } :
-            result;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.Literal = function( interpreter, node, context ){
-    const value = node.value;
-    return function(){
-        //console.log( 'LITERAL' );
-        //console.log( '- LITERAL RESULT', value );
-        return context ?
-            { context: undefined, name: undefined, value: value } :
-            value;
-    };
-};
-
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.MemberExpression = function( interpreter, node, context ){
-    const left = interpreter.recurse( node.object, false );
-    
-    let fn, lhs, result, rhs, right;
-    
-    if( node.computed ){
-        right = interpreter.recurse( node.property, false );
-        fn = function( base, value ){
-            //console.log( 'COMPUTED MEMBER' );
-            lhs = left( base, value );
-            
-            //console.log( '- COMPUTED LHS', lhs );
-            
-            if( typeof lhs !== 'undefined' ){
-                rhs = right( base, value );
-                
-                if( typeof value !== 'undefined' && !( rhs in lhs ) ){
-                    lhs[ rhs ] = new Null();
-                }
-                
-                //console.log( '- COMPUTED RHS', rhs );
-                
-                if( Array.isArray( lhs ) ){
-                    // Sequence expression
-                    if( Array.isArray( rhs ) ){
-                        result = rhs.map( function( index ){
-                            return lhs[ index ];
-                        } );
-                    // Literal expression
-                    } else if( lhs.length === 1 ){
-                        result = lhs[ 0 ];
-                    // Array expression
-                    } else {
-                        result = lhs.map( function( index ){
-                            return lhs[ index ];
-                        } );
-                    }
-                } else {
-                    result = lhs[ rhs ];
-                }
-            }
-            
-            //console.log( '- COMPUTED RESULT', result );
-            
-            return context ?
-                { context: lhs, name: rhs, value: result } :
-                result;
-        };
-    } else {
-        right = node.property.name;
-        fn = function( base, value ){
-            //console.log( 'NON-COMPUTED MEMBER' );
-            lhs = left( base, value );
-            
-            //console.log( '- NON-COMPUTED LHS', lhs );
-            
-            if( typeof lhs !== 'undefined' ){
-                if( typeof value !== 'undefined' && !( right in lhs ) ){
-                    lhs[ right ] = value || new Null();
-                }
-                
-                //console.log( '- NON-COMPUTED RIGHT', right );
-                
-                if( Array.isArray( lhs ) ){
-                    result = lhs.map( function( item ){
-                       return item[ right ];
-                    } );
-                } else {
-                    result = lhs[ right ];
-                }
-            }
-            
-            //console.log( '- NON-COMPUTED RESULT', result );
-            
-            return context ?
-                { context: lhs, name: right, value: result } :
-                result;
-        };
+function getValue( target, key, create ){
+    if( create && !( key in target ) ){
+        target[ key ] = {};
     }
-    
-    return fn;
-};
+    return target[ key ];
+}
 
-/**
- * @function
- * @param {Interpreter} interpeter
- * @param {Node} node
- * @param {external:boolean} context
- * @returns {external:Function} The interpreted expression.
- */
-interpret.SequenceExpression = function( interpreter, node, context ){
-    const args = [];
-    
-    forEach( node.expressions, function( expr ){
-        args.push( interpreter.recurse( expr, false ) );
+function intepretList( interpreter, list, context, create ){
+    var result = [];
+    forEach( list, function( expression ){
+        result.push( interpreter.recurse( expression, context, create ) );
     } );
-    
-    return function( base, value ){
-        //console.log( 'SEQUENCE EXPRESSION' );
-        
-        const result = [];
-        
-        forEach( args, function( arg ){
-            result.push( arg( base, value ) );
-        } );
-        
-        //console.log( '- SEQUENCE RESULT', result );
-        
-        return context ?
-            { value: result } :
-            result;
-    };
-};
+    return result;
+}
 
 /**
  * @class Interpreter
@@ -262,6 +30,9 @@ function Interpreter( builder ){
         throw new TypeError( 'builder cannot be undefined' );
     }
     
+    /**
+     * @member {Builder}
+     */
     this.builder = builder;
 }
 
@@ -273,29 +44,36 @@ Interpreter.prototype.constructor = Interpreter;
  * @function
  * @param {external:string} expression
  */
-Interpreter.prototype.compile = function( expression ){
-    const ast = this.builder.build( expression ),
+Interpreter.prototype.compile = function( expression, create ){
+    var ast = this.builder.build( expression ),
         body = ast.body,
-        interpreter = this;
+        interpreter = this,
+        fn;
     
-    let fn;
+    if( typeof create !== 'boolean' ){
+        create = false;
+    }
     
+    /**
+     * @member {external:string}
+     */
     interpreter.expression = expression;
+    
+    //console.log( '-------------------------------------------------' );
+    //console.log( 'Interpreting ', expression );
+    //console.log( '-------------------------------------------------' );
     
     switch( body.length ){
         case 0:
             fn = noop;
             break;
         case 1:
-            fn = interpreter.recurse( body[ 0 ].expression, false );
+            fn = interpreter.recurse( body[ 0 ].expression, false, create );
             break;
         default:
-            const expressions = [];
-            forEach( body, function( statement ){
-                expressions.push( interpreter.recurse( statement.expression, false ) );
-            } );
+            var expressions = intepretList( interpreter, body, false, create );
             fn = function( base, value ){
-                let lastValue;
+                var lastValue;
                 
                 forEach( expressions, function( expression ){
                     lastValue = expression( base, value );
@@ -309,14 +87,190 @@ Interpreter.prototype.compile = function( expression ){
     return fn;
 };
 
-Interpreter.prototype.recurse = function( node, context ){
-    ////console.log( 'RECURSE', node );
+Interpreter.prototype.recurse = function( node, context, create ){
+    var interpreter = this,
+        
+        args, fn, left, lhs, name, rhs, right, value;
     
-    if( !( node.type in interpret ) ){
-        this.throwError( `Unknown node type ${ node.type }` );
+    switch( node.type ){
+        case 'ArrayExpression': {
+            args = intepretList( interpreter, node.elements, false );
+            value = [];
+            
+            return function getArrayExpression( base, setValue ){
+                //console.log( 'Getting ARRAY EXPRESSION' );
+                forEach( args, function( arg, index ){
+                    name = arg( base, setValue );
+                    value[ index ] = getValue( base, name, create );
+                } );
+                
+                if( value.length === 1 ){
+                    value = value[ 0 ];
+                }
+                //console.log( '- ARRAY EXPRESSION RESULT', value );
+                return context ?
+                    { value: value } :
+                    value;
+            };
+        }
+        case 'CallExpression': {
+            args = intepretList( interpreter, node.arguments, false );
+            right = interpreter.recurse( node.callee, true, create );
+            
+            return function getCallExpression( base, setValue ){
+                //console.log( 'Getting CALL EXPRESSION' );
+                var values = [], value;
+                rhs = right( base );
+                
+                if( typeof rhs.value === 'function' ){
+                    values = [];
+                    
+                    forEach( args, function( arg, index ){
+                        values[ index ] = arg( base );
+                    } );
+                    
+                    value = rhs.value.apply( rhs.context, values );
+                } else if( create && typeof rhs.value === 'undefined' ){
+                    throw new Error( 'cannot create call expressions' );
+                } else {
+                    throw new TypeError( 'call expression must be a function' );
+                }
+                //console.log( '- CALL RESULT', value );
+                return context ?
+                    { value: value }:
+                    value;
+            };
+        }
+        case 'Identifier': {
+            name = node.name;
+            return function getIdentifier( base, setValue ){
+                //console.log( 'Getting IDENTIFIER' );
+                if( typeof base !== 'undefined' ){
+                    value = getValue( base, name, create );
+                }
+                //console.log( '- NAME', name );
+                //console.log( '- IDENTIFIER RESULT', value );
+                return context ?
+                    { context: base, name: name, value: value } :
+                    value;
+            };
+        }
+        case 'Literal': {
+            value = node.value;
+            return function getLiteral( base, setValue ){
+                //console.log( 'Getting LITERAL' );
+                //console.log( '- LITERAL RESULT', value );
+                return context ?
+                    { context: undefined, name: undefined, value: value } :
+                    value;
+            };
+        }
+        case 'MemberExpression': {
+            left = interpreter.recurse( node.object, false, create );
+            
+            // Computed
+            if( node.computed ){
+                right = interpreter.recurse( node.property, false, create );
+                fn = function getComputedMember( base, setValue ){
+                    //console.log( 'Getting COMPUTED MEMBER' );
+                    //console.log( '- COMPUTED LEFT', left.name );
+                    //console.log( '- COMPUTED RIGHT', right.name );
+                    lhs = left( base, setValue );
+                    //console.log( '- COMPUTED LHS', lhs );
+                    if( typeof lhs !== 'undefined' ){
+                        rhs = right( base, setValue );
+                        //console.log( '- COMPUTED RHS', rhs );
+                        if( Array.isArray( lhs ) ){
+                            value = [];
+                            
+                            if( Array.isArray( rhs ) ){
+                                forEach( rhs, function( item, index ){
+                                    value[ index ] = getValue( lhs, item, create );
+                                } );
+                                //console.log( '-- LIST:LIST', value );
+                            } else {
+                                if( typeof rhs === 'number' ){
+                                    value[ 0 ] = lhs[ rhs ];
+                                } else {
+                                    forEach( lhs, function( item, index ){
+                                        value[ index ] = getValue( item, rhs, create );
+                                    } );
+                                }
+                                //console.log( '-- LIST:VALUE', value );
+                            }
+                            
+                            if( value.length === 1 ){
+                                value = value[ 0 ];
+                            }
+                        } else if( Array.isArray( rhs ) ){
+                            value = [];
+                            
+                            forEach( rhs, function( item, index ){
+                                value[ index ] = getValue( lhs, item, create );
+                            } );
+                            //console.log( '-- VALUE:LIST', value );
+                            if( value.length === 1 ){
+                                value = value[ 0 ];
+                            }
+                        } else {
+                            value = getValue( lhs, rhs, create );
+                            //console.log( '-- VALUE:VALUE', value );
+                        }
+                    }
+                    //console.log( '- COMPUTED RESULT', value );
+                    return context ?
+                        { context: lhs, name: rhs, value: value } :
+                        value;
+                };
+            
+            // Non-computed
+            } else {
+                right = node.property.name;
+                fn = function getNonComputedMember( base, setValue ){
+                    //console.log( 'Getting NON-COMPUTED MEMBER' );
+                    //console.log( '- NON-COMPUTED LEFT', left.name );
+                    //console.log( '- NON-COMPUTED RIGHT', right );
+                    lhs = left( base, setValue );
+                    //console.log( '- NON-COMPUTED LHS', lhs );
+                    if( typeof lhs !== 'undefined' ){
+                        if( Array.isArray( lhs ) ){
+                            value = [];
+                            forEach( lhs, function( item, index ){
+                                value[ index ] = getValue( item, right, create );
+                            } );
+                            //console.log( '-- LIST:VALUE', value );
+                        } else {
+                            value = getValue( lhs, right, create );
+                            //console.log( '-- VALUE:VALUE', value );
+                        }
+                    }
+                    //console.log( '- NON-COMPUTED RESULT', value );
+                    return context ?
+                        { context: lhs, name: right, value: value } :
+                        value;
+                };
+            }
+            
+            return fn;
+        }
+        case 'SequenceExpression': {
+            args = intepretList( interpreter, node.expressions, false );
+            
+            return function getSequenceExpression( base, setValue ){
+                //console.log( 'Getting SEQUENCE EXPRESSION' );
+                value = [];
+                forEach( args, function( arg, index ){
+                    value[ index ] = arg( base );
+                } );
+                //console.log( '- SEQUENCE RESULT', value );
+                return context ?
+                    { value: value } :
+                    value;
+            };
+        }
+        default:
+            this.throwError( 'Unknown node type ' + node.type );
     }
-    
-    return interpret[ node.type ]( this, node, context );
 };
 
 Interpreter.prototype.throwError = function( message ){

@@ -7,8 +7,6 @@
 <dd></dd>
 <dt><a href="#KeyPathExp">KeyPathExp</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
-<dt><a href="#LexerError">LexerError</a> ⇐ <code>SyntaxError</code></dt>
-<dd></dd>
 <dt><a href="#Lexer">Lexer</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
 <dt><a href="#Null">Null</a> ⇐ <code><a href="#external_null">null</a></code></dt>
@@ -37,24 +35,26 @@
 <dd></dd>
 <dt><a href="#Punctuator">Punctuator</a> ⇐ <code><a href="#Node">Node</a></code></dt>
 <dd></dd>
-<dt><a href="#Token">Token</a> ⇐ <code><a href="#Null">Null</a></code></dt>
-<dd></dd>
 </dl>
 
 ## Members
 
 <dl>
+<dt><a href="#builder">builder</a> : <code><a href="#Builder">Builder</a></code></dt>
+<dd></dd>
 <dt><a href="#id">id</a> : <code><a href="#external_number">number</a></code></dt>
 <dd></dd>
 <dt><a href="#type">type</a> : <code><a href="#NodeType">NodeType</a></code></dt>
 <dd></dd>
-</dl>
-
-## Objects
-
-<dl>
-<dt><a href="#interpret">interpret</a> : <code>object</code></dt>
+<dt><a href="#id">id</a> : <code><a href="#external_number">number</a></code></dt>
 <dd></dd>
+<dt><a href="#type">type</a> : <code><a href="#external_string">string</a></code></dt>
+<dd></dd>
+<dt><a href="#value">value</a> : <code><a href="#external_string">string</a></code></dt>
+<dd></dd>
+<dt><a href="#length">length</a> : <code><a href="#external_number">number</a></code></dt>
+<dd><p>The length of the token value</p>
+</dd>
 </dl>
 
 ## Functions
@@ -124,13 +124,19 @@
 * [Builder](#Builder) ⇐ <code>[Null](#Null)</code>
     * [new Builder(lexer)](#new_Builder_new)
     * [.build(text)](#Builder+build) ⇒ <code>[Program](#Program)</code>
+        * [.text](#Builder+build+text) : <code>[string](#external_string)</code>
+        * [.tokens](#Builder+build+tokens) : <code>external:Array.&lt;Token&gt;</code>
     * [.callExpression()](#Builder+callExpression) ⇒ <code>[CallExpression](#CallExpression)</code>
-    * [.consume([expected])](#Builder+consume) ⇒ <code>[Token](#Token)</code>
-    * [.expect([first], [second], [third], [fourth])](#Builder+expect) ⇒ <code>[Token](#Token)</code>
+    * [.consume([expected])](#Builder+consume) ⇒ <code>Token</code>
+    * [.expect([first], [second], [third], [fourth])](#Builder+expect) ⇒ <code>Token</code>
     * [.expression()](#Builder+expression) ⇒ <code>[Expression](#Expression)</code>
+    * [.expressionStatement()](#Builder+expressionStatement) ⇒ <code>[ExpressionStatement](#ExpressionStatement)</code>
+    * [.identifier()](#Builder+identifier) ⇒ <code>[Identifier](#Identifier)</code>
     * [.literal()](#Builder+literal) ⇒ <code>[Literal](#Literal)</code>
     * [.list(terminator)](#Builder+list) ⇒ <code>[external:Array.&lt;Literal&gt;](#Literal)</code>
     * [.memberExpression(property, computed)](#Builder+memberExpression) ⇒ <code>[MemberExpression](#MemberExpression)</code>
+    * [.peek([first], [second], [third], [fourth])](#Builder+peek) ⇒ <code>[Token](#Lexer..Token)</code>
+    * [.peekAt(position, [first], [second], [third], [fourth])](#Builder+peekAt) ⇒ <code>[Token](#Lexer..Token)</code>
     * [.program()](#Builder+program) ⇒ <code>[Program](#Program)</code>
     * [.throwError(message)](#Builder+throwError)
 
@@ -152,6 +158,19 @@
 | --- | --- |
 | text | <code>[string](#external_string)</code> | 
 
+
+* [.build(text)](#Builder+build) ⇒ <code>[Program](#Program)</code>
+    * [.text](#Builder+build+text) : <code>[string](#external_string)</code>
+    * [.tokens](#Builder+build+tokens) : <code>external:Array.&lt;Token&gt;</code>
+
+<a name="Builder+build+text"></a>
+
+#### build.text : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[build](#Builder+build)</code>  
+<a name="Builder+build+tokens"></a>
+
+#### build.tokens : <code>external:Array.&lt;Token&gt;</code>
+**Kind**: instance property of <code>[build](#Builder+build)</code>  
 <a name="Builder+callExpression"></a>
 
 ### builder.callExpression() ⇒ <code>[CallExpression](#CallExpression)</code>
@@ -159,32 +178,54 @@
 **Returns**: <code>[CallExpression](#CallExpression)</code> - The call expression node  
 <a name="Builder+consume"></a>
 
-### builder.consume([expected]) ⇒ <code>[Token](#Token)</code>
-**Kind**: instance method of <code>[Builder](#Builder)</code>  
-**Returns**: <code>[Token](#Token)</code> - The next token in the list  
+### builder.consume([expected]) ⇒ <code>Token</code>
+Removes the next token in the token list. If a comparison is provided, the token will only be returned if the value matches. Otherwise an error is thrown.
 
-| Param | Type |
-| --- | --- |
-| [expected] | <code>[string](#external_string)</code> | 
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Token</code> - The next token in the list  
+**Throws**:
+
+- <code>SyntaxError</code> If token did not exist
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [expected] | <code>[string](#external_string)</code> | An expected comparison value |
 
 <a name="Builder+expect"></a>
 
-### builder.expect([first], [second], [third], [fourth]) ⇒ <code>[Token](#Token)</code>
-**Kind**: instance method of <code>[Builder](#Builder)</code>  
-**Returns**: <code>[Token](#Token)</code> - The next token in the list  
+### builder.expect([first], [second], [third], [fourth]) ⇒ <code>Token</code>
+Removes the next token in the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
 
-| Param | Type |
-| --- | --- |
-| [first] | <code>[string](#external_string)</code> | 
-| [second] | <code>[string](#external_string)</code> | 
-| [third] | <code>[string](#external_string)</code> | 
-| [fourth] | <code>[string](#external_string)</code> | 
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Token</code> - The next token in the list or `undefined` if it did not exist  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [first] | <code>[string](#external_string)</code> | The first comparison value |
+| [second] | <code>[string](#external_string)</code> | The second comparison value |
+| [third] | <code>[string](#external_string)</code> | The third comparison value |
+| [fourth] | <code>[string](#external_string)</code> | The fourth comparison value |
 
 <a name="Builder+expression"></a>
 
 ### builder.expression() ⇒ <code>[Expression](#Expression)</code>
 **Kind**: instance method of <code>[Builder](#Builder)</code>  
 **Returns**: <code>[Expression](#Expression)</code> - An expression node  
+<a name="Builder+expressionStatement"></a>
+
+### builder.expressionStatement() ⇒ <code>[ExpressionStatement](#ExpressionStatement)</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>[ExpressionStatement](#ExpressionStatement)</code> - An expression statement  
+<a name="Builder+identifier"></a>
+
+### builder.identifier() ⇒ <code>[Identifier](#Identifier)</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>[Identifier](#Identifier)</code> - An identifier  
+**Throws**:
+
+- <code>SyntaxError</code> If the token is not an identifier
+
 <a name="Builder+literal"></a>
 
 ### builder.literal() ⇒ <code>[Literal](#Literal)</code>
@@ -210,6 +251,37 @@
 | --- | --- | --- |
 | property | <code>[Expression](#Expression)</code> | The expression assigned to the property of the member expression |
 | computed | <code>[boolean](#external_boolean)</code> | Whether or not the member expression is computed |
+
+<a name="Builder+peek"></a>
+
+### builder.peek([first], [second], [third], [fourth]) ⇒ <code>[Token](#Lexer..Token)</code>
+Provides the next token in the token list _without removing it_. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>[Token](#Lexer..Token)</code> - The next token in the list or `undefined` if it did not exist  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [first] | <code>[string](#external_string)</code> | The first comparison value |
+| [second] | <code>[string](#external_string)</code> | The second comparison value |
+| [third] | <code>[string](#external_string)</code> | The third comparison value |
+| [fourth] | <code>[string](#external_string)</code> | The fourth comparison value |
+
+<a name="Builder+peekAt"></a>
+
+### builder.peekAt(position, [first], [second], [third], [fourth]) ⇒ <code>[Token](#Lexer..Token)</code>
+Provides the token at the requested position _without removing it_ from the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>[Token](#Lexer..Token)</code> - The token at the requested position or `undefined` if it did not exist  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| position | <code>[number](#external_number)</code> | The position where the token will be peeked |
+| [first] | <code>[string](#external_string)</code> | The first comparison value |
+| [second] | <code>[string](#external_string)</code> | The second comparison value |
+| [third] | <code>[string](#external_string)</code> | The third comparison value |
+| [fourth] | <code>[string](#external_string)</code> | The fourth comparison value |
 
 <a name="Builder+program"></a>
 
@@ -270,24 +342,216 @@
 | pattern | <code>[string](#external_string)</code> | 
 | flags | <code>[string](#external_string)</code> | 
 
-<a name="LexerError"></a>
-
-## LexerError ⇐ <code>SyntaxError</code>
-**Kind**: global class  
-**Extends:** <code>SyntaxError</code>  
-<a name="new_LexerError_new"></a>
-
-### new LexerError(message)
-
-| Param | Type | Description |
-| --- | --- | --- |
-| message | <code>[string](#external_string)</code> | The error message |
-
 <a name="Lexer"></a>
 
 ## Lexer ⇐ <code>[Null](#Null)</code>
 **Kind**: global class  
 **Extends:** <code>[Null](#Null)</code>  
+
+* [Lexer](#Lexer) ⇐ <code>[Null](#Null)</code>
+    * _instance_
+        * [.lex(text)](#Lexer+lex)
+            * [.buffer](#Lexer+lex+buffer) : <code>[string](#external_string)</code>
+            * [.index](#Lexer+lex+index) : <code>[number](#external_number)</code>
+            * [.tokens](#Lexer+lex+tokens) : <code>[Array.&lt;Token&gt;](#Lexer..Token)</code>
+        * [.read(until)](#Lexer+read) ⇒ <code>[string](#external_string)</code>
+        * [.throwError()](#Lexer+throwError)
+        * [.toJSON()](#Lexer+toJSON) ⇒ <code>[Object](#external_Object)</code>
+        * [.toString()](#Lexer+toString) ⇒ <code>[string](#external_string)</code>
+    * _inner_
+        * [~LexerError](#Lexer..LexerError) ⇐ <code>SyntaxError</code>
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+        * [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+            * [new Token(type, value)](#new_Lexer..Token_new)
+        * [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
+        * [~Literal](#Lexer..Literal) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Literal(value)](#new_Lexer..Literal_new)
+        * [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+        * [~isIdentifier(char)](#Lexer..isIdentifier) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isNumeric(char)](#Lexer..isNumeric) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isPunctuator(char)](#Lexer..isPunctuator) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isQuote(char)](#Lexer..isQuote) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isWhitespace(char)](#Lexer..isWhitespace) ⇒ <code>[boolean](#external_boolean)</code>
+
+<a name="Lexer+lex"></a>
+
+### lexer.lex(text)
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+
+| Param | Type |
+| --- | --- |
+| text | <code>[string](#external_string)</code> | 
+
+
+* [.lex(text)](#Lexer+lex)
+    * [.buffer](#Lexer+lex+buffer) : <code>[string](#external_string)</code>
+    * [.index](#Lexer+lex+index) : <code>[number](#external_number)</code>
+    * [.tokens](#Lexer+lex+tokens) : <code>[Array.&lt;Token&gt;](#Lexer..Token)</code>
+
+<a name="Lexer+lex+buffer"></a>
+
+#### lex.buffer : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[lex](#Lexer+lex)</code>  
+**Default**: <code>&#x27;&#x27;</code>  
+<a name="Lexer+lex+index"></a>
+
+#### lex.index : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[lex](#Lexer+lex)</code>  
+<a name="Lexer+lex+tokens"></a>
+
+#### lex.tokens : <code>[Array.&lt;Token&gt;](#Lexer..Token)</code>
+**Kind**: instance property of <code>[lex](#Lexer+lex)</code>  
+<a name="Lexer+read"></a>
+
+### lexer.read(until) ⇒ <code>[string](#external_string)</code>
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[string](#external_string)</code> - The portion of the buffer read  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| until | <code>external:function</code> | A condition that when met will stop the reading of the buffer |
+
+<a name="Lexer+throwError"></a>
+
+### lexer.throwError()
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Throws**:
+
+- <code>[LexerError](#Lexer..LexerError)</code> When it executes
+
+<a name="Lexer+toJSON"></a>
+
+### lexer.toJSON() ⇒ <code>[Object](#external_Object)</code>
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[Object](#external_Object)</code> - A JSON representation of the lexer  
+<a name="Lexer+toString"></a>
+
+### lexer.toString() ⇒ <code>[string](#external_string)</code>
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[string](#external_string)</code> - A string representation of the lexer  
+<a name="Lexer..LexerError"></a>
+
+### Lexer~LexerError ⇐ <code>SyntaxError</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>SyntaxError</code>  
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Lexer..Token"></a>
+
+### Lexer~Token ⇐ <code>[Null](#Null)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Null](#Null)</code>  
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
+**Throws**:
+
+- <code>[TypeError](#external_TypeError)</code> If `type` is not a string
+- <code>[TypeError](#external_TypeError)</code> If `value` is not a string
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
+
+<a name="Lexer..Identifier"></a>
+
+### Lexer~Identifier ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Literal"></a>
+
+### Lexer~Literal ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+<a name="new_Lexer..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Punctuator"></a>
+
+### Lexer~Punctuator ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isIdentifier"></a>
+
+### Lexer~isIdentifier(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is an identifier character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isNumeric"></a>
+
+### Lexer~isNumeric(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a numeric character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isPunctuator"></a>
+
+### Lexer~isPunctuator(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a punctuator character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isQuote"></a>
+
+### Lexer~isQuote(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a quote character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isWhitespace"></a>
+
+### Lexer~isWhitespace(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a whitespace character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
 <a name="Null"></a>
 
 ## Null ⇐ <code>[null](#external_null)</code>
@@ -841,40 +1105,10 @@ A "clean", empty container. Instantiating this is faster than explicitly calling
 ### punctuator.toString() ⇒ <code>[string](#external_string)</code>
 **Kind**: instance method of <code>[Punctuator](#Punctuator)</code>  
 **Returns**: <code>[string](#external_string)</code> - A string representation of the node  
-<a name="Token"></a>
+<a name="builder"></a>
 
-## Token ⇐ <code>[Null](#Null)</code>
-**Kind**: global class  
-**Extends:** <code>[Null](#Null)</code>  
-
-* [Token](#Token) ⇐ <code>[Null](#Null)</code>
-    * [new Token(type, value)](#new_Token_new)
-    * [.is(type)](#Token+is) ⇒ <code>[boolean](#external_boolean)</code>
-
-<a name="new_Token_new"></a>
-
-### new Token(type, value)
-**Throws**:
-
-- <code>[TypeError](#external_TypeError)</code> If `type` is not a string
-- <code>[TypeError](#external_TypeError)</code> If `value` is undefined.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| type | <code>[string](#external_string)</code> | The type of the token |
-| value | <code>\*</code> | The value of the token |
-
-<a name="Token+is"></a>
-
-### token.is(type) ⇒ <code>[boolean](#external_boolean)</code>
-**Kind**: instance method of <code>[Token](#Token)</code>  
-**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the token is the `type` provided.  
-
-| Param | Type |
-| --- | --- |
-| type | <code>[string](#external_string)</code> | 
-
+## builder : <code>[Builder](#Builder)</code>
+**Kind**: global variable  
 <a name="id"></a>
 
 ## id : <code>[number](#external_number)</code>
@@ -883,91 +1117,24 @@ A "clean", empty container. Instantiating this is faster than explicitly calling
 
 ## type : <code>[NodeType](#NodeType)</code>
 **Kind**: global variable  
-<a name="interpret"></a>
+<a name="id"></a>
 
-## interpret : <code>object</code>
-**Kind**: global namespace  
+## id : <code>[number](#external_number)</code>
+**Kind**: global variable  
+<a name="type"></a>
 
-* [interpret](#interpret) : <code>object</code>
-    * [.ArrayExpression(interpeter, node, context)](#interpret.ArrayExpression) ⇒ <code>[Function](#external_Function)</code>
-    * [.CallExpression(interpeter, node, context)](#interpret.CallExpression) ⇒ <code>[Function](#external_Function)</code>
-    * [.Identifier(interpeter, node, context)](#interpret.Identifier) ⇒ <code>[Function](#external_Function)</code>
-    * [.Literal(interpeter, node, context)](#interpret.Literal) ⇒ <code>[Function](#external_Function)</code>
-    * [.MemberExpression(interpeter, node, context)](#interpret.MemberExpression) ⇒ <code>[Function](#external_Function)</code>
-    * [.SequenceExpression(interpeter, node, context)](#interpret.SequenceExpression) ⇒ <code>[Function](#external_Function)</code>
+## type : <code>[string](#external_string)</code>
+**Kind**: global variable  
+<a name="value"></a>
 
-<a name="interpret.ArrayExpression"></a>
+## value : <code>[string](#external_string)</code>
+**Kind**: global variable  
+<a name="length"></a>
 
-### interpret.ArrayExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
-**Kind**: static method of <code>[interpret](#interpret)</code>  
-**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
+## length : <code>[number](#external_number)</code>
+The length of the token value
 
-| Param | Type |
-| --- | --- |
-| interpeter | <code>[Interpreter](#Interpreter)</code> | 
-| node | <code>[Node](#Node)</code> | 
-| context | <code>[boolean](#external_boolean)</code> | 
-
-<a name="interpret.CallExpression"></a>
-
-### interpret.CallExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
-**Kind**: static method of <code>[interpret](#interpret)</code>  
-**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
-
-| Param | Type |
-| --- | --- |
-| interpeter | <code>[Interpreter](#Interpreter)</code> | 
-| node | <code>[Node](#Node)</code> | 
-| context | <code>[boolean](#external_boolean)</code> | 
-
-<a name="interpret.Identifier"></a>
-
-### interpret.Identifier(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
-**Kind**: static method of <code>[interpret](#interpret)</code>  
-**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
-
-| Param | Type |
-| --- | --- |
-| interpeter | <code>[Interpreter](#Interpreter)</code> | 
-| node | <code>[Node](#Node)</code> | 
-| context | <code>[boolean](#external_boolean)</code> | 
-
-<a name="interpret.Literal"></a>
-
-### interpret.Literal(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
-**Kind**: static method of <code>[interpret](#interpret)</code>  
-**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
-
-| Param | Type |
-| --- | --- |
-| interpeter | <code>[Interpreter](#Interpreter)</code> | 
-| node | <code>[Node](#Node)</code> | 
-| context | <code>[boolean](#external_boolean)</code> | 
-
-<a name="interpret.MemberExpression"></a>
-
-### interpret.MemberExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
-**Kind**: static method of <code>[interpret](#interpret)</code>  
-**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
-
-| Param | Type |
-| --- | --- |
-| interpeter | <code>[Interpreter](#Interpreter)</code> | 
-| node | <code>[Node](#Node)</code> | 
-| context | <code>[boolean](#external_boolean)</code> | 
-
-<a name="interpret.SequenceExpression"></a>
-
-### interpret.SequenceExpression(interpeter, node, context) ⇒ <code>[Function](#external_Function)</code>
-**Kind**: static method of <code>[interpret](#interpret)</code>  
-**Returns**: <code>[Function](#external_Function)</code> - The interpreted expression.  
-
-| Param | Type |
-| --- | --- |
-| interpeter | <code>[Interpreter](#Interpreter)</code> | 
-| node | <code>[Node](#Node)</code> | 
-| context | <code>[boolean](#external_boolean)</code> | 
-
+**Kind**: global variable  
 <a name="kp"></a>
 
 ## kp(literals, ...values) ⇒ <code>[kpCallback](#kpCallback)</code>

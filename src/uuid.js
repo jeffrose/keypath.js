@@ -1,7 +1,9 @@
 'use strict';
 
-let id = 0;
+var id = 0;
 
-export default function nextId(){
+function nextId(){
     return ++id;
 }
+
+export { nextId as default };
