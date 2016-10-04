@@ -99,7 +99,6 @@ Interpreter.prototype.recurse = function( node, context, create ){
             
             return function getArrayExpression( base, setValue ){
                 //console.log( 'Getting ARRAY EXPRESSION' );
-                
                 forEach( args, function( arg, index ){
                     name = arg( base, setValue );
                     value[ index ] = getValue( base, name, create );
@@ -185,16 +184,16 @@ Interpreter.prototype.recurse = function( node, context, create ){
                             value = [];
                             
                             if( Array.isArray( rhs ) ){
-                                forEach( rhs, function( object, index ){
-                                    value[ index ] = getValue( lhs, object, create );
+                                forEach( rhs, function( item, index ){
+                                    value[ index ] = getValue( lhs, item, create );
                                 } );
                                 //console.log( '-- LIST:LIST', value );
                             } else {
                                 if( typeof rhs === 'number' ){
                                     value[ 0 ] = lhs[ rhs ];
                                 } else {
-                                    forEach( lhs, function( object, index ){
-                                        value[ index ] = getValue( object, rhs, create );
+                                    forEach( lhs, function( item, index ){
+                                        value[ index ] = getValue( item, rhs, create );
                                     } );
                                 }
                                 //console.log( '-- LIST:VALUE', value );
@@ -206,18 +205,15 @@ Interpreter.prototype.recurse = function( node, context, create ){
                         } else if( Array.isArray( rhs ) ){
                             value = [];
                             
-                            forEach( rhs, function( object, index ){
-                                value[ index ] = getValue( lhs, object, create );
+                            forEach( rhs, function( item, index ){
+                                value[ index ] = getValue( lhs, item, create );
                             } );
-                            
                             //console.log( '-- VALUE:LIST', value );
-                            
                             if( value.length === 1 ){
                                 value = value[ 0 ];
                             }
                         } else {
                             value = getValue( lhs, rhs, create );
-                            
                             //console.log( '-- VALUE:VALUE', value );
                         }
                     }
@@ -239,8 +235,8 @@ Interpreter.prototype.recurse = function( node, context, create ){
                     if( typeof lhs !== 'undefined' ){
                         if( Array.isArray( lhs ) ){
                             value = [];
-                            forEach( lhs, function( object, index ){
-                                value[ index ] = getValue( object, right, create );
+                            forEach( lhs, function( item, index ){
+                                value[ index ] = getValue( item, right, create );
                             } );
                             //console.log( '-- LIST:VALUE', value );
                         } else {

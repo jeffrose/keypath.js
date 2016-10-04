@@ -52,7 +52,7 @@ describe( 'Interpreter', function(){
             fn = interpreter.compile( 'foo[0].bar.qux' );
             expect( fn( array ) ).to.equal( 123 );
             
-            fn = interpreter.compile( 'foo[1].bar.qux' );
+            fn = interpreter.compile( 'foo[1]bar.qux' );
             expect( fn( array ) ).to.equal( 456 );
         } );
         

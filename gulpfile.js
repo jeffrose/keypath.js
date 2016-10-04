@@ -102,11 +102,11 @@ gulp.task( 'docs', () => {
 } );
 
 gulp.task( 'test', [ 'dist' ], ( done ) => {
-    gulp.src( [ 'dist/keypath-umd.js' ] )
+    gulp.src( [ 'dist/*.js' ] )
         .pipe( istanbul() )
         .pipe( istanbul.hookRequire() )
         .on( 'finish', () => {
-            gulp.src( [ 'test/keypath.js' ], { read: false } )
+            gulp.src( [ 'test/*.js' ], { read: false } )
                 .pipe( debug() )
                 .pipe( mocha( {
                     grep: yargs.argv.grep
