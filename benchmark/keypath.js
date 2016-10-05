@@ -1,11 +1,9 @@
 'use strict';
 
 var KeyPathExp = require( '../dist/keypath-umd' ),
-    tk = require( '../dist/tk-umd' ),
-    _get = require( 'lodash.get' ),
-    keypather = require( 'keypather' )(),
     
-    path = 'foo.bar.qux.baz',
+    dPath = 'foo.bar.qux.baz',
+    bPath = '["foo"]["bar"]["qux"]["baz"]',
     data = {
         foo: {
             bar: {
@@ -16,44 +14,18 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
         }
     },
 
-    path2 = 'foo[0]',
-    data2 = {
-        foo: [ 'val' ]
-    },
-
-    kpex = new KeyPathExp( path ),
-    kpex2 = new KeyPathExp( path2 );
-
-    var tkTokens = tk.getTokens( path2 );
+    dKpex = new KeyPathExp( dPath ),
+    bKpex = new KeyPathExp( bPath );
 
 module.exports = {
-    name: 'KeyPathExp vs. tk vs. keypather vs. _.get',
+    name: 'KeyPathExp',
     maxTime: 5,
     tests: {
-        'KeyPathExp#get': function(){
-            kpex.get( data );
+        'KeyPathExp#get-dot': function(){
+            dKpex.get( data );
         },
-        'tk#get': function(){
-            tk.get( data, path );
+        'KeyPathExp#get-bracket': function(){
+            bKpex.get( data );
         },
-        'keypather#get': function(){
-            keypather.get( data, path );
-        },
-        'lodash#get': function(){
-            _get( data, path );
-        },
-
-        'bracket KeyPathExp#get': function(){
-            kpex2.get( data2 );
-        },
-        'bracket tk#get': function(){
-            tk.get( data2, tkTokens );
-        },
-        'bracket keypather#get': function(){
-            keypather.get( data2, path2 );
-        },
-        'bracket lodash#get': function(){
-            _get( data2, path2 );
-        }
     }
 };

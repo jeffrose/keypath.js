@@ -135,7 +135,7 @@ gulp.task( 'test', [ 'dist' ], ( done ) => {
 } );
 
 gulp.task( 'benchmark', [ 'dist' ], () => {
-    return gulp.src( [ 'benchmark/keypath.js' ] )
+    return gulp.src( [ 'benchmark/*.js' ] )
         .pipe( benchmark() )
         .pipe( gulp.dest( './benchmark' ) );
 } );
