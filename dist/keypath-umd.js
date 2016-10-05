@@ -1304,9 +1304,9 @@ Interpreter.prototype.throwError = function( message ){
     throw new Error( message );
 };
 
-const lexer = new Lexer();
-const builder = new Builder( lexer );
-const intrepreter = new Interpreter( builder );
+var lexer = new Lexer();
+var builder = new Builder( lexer );
+var intrepreter = new Interpreter( builder );
 
 /**
  * @class KeyPathExp
@@ -1315,11 +1315,34 @@ const intrepreter = new Interpreter( builder );
  * @param {external:string} flags
  */
 function KeyPathExp( pattern, flags ){
-    Object.defineProperty( this, 'value', {
-        value: intrepreter.compile( pattern ),
-        configurable: false,
-        enumerable: false,
-        writable: false
+    typeof pattern !== 'string' && ( pattern = '' );
+    typeof flags !== 'string' && ( flags = '' );
+    
+    Object.defineProperties( this, {
+        'flags': {
+            value: flags,
+            configurable: false,
+            enumerable: true,
+            writable: false
+        },
+        'source': {
+            value: pattern,
+            configurable: false,
+            enumerable: true,
+            writable: false
+        },
+        'getter': {
+            value: intrepreter.compile( pattern, false ),
+            configurable: false,
+            enumerable: false,
+            writable: false
+        },
+        'setter': {
+            value: intrepreter.compile( pattern, true ),
+            configurable: false,
+            enumerable: false,
+            writable: false
+        }
     } );
 }
 
@@ -1328,11 +1351,24 @@ KeyPathExp.prototype = new Null();
 KeyPathExp.prototype.constructor = KeyPathExp;
 
 KeyPathExp.prototype.get = function( target ){
-    return this.value( target, false );
+    return this.getter( target );
 };
 
 KeyPathExp.prototype.set = function( target, value ){
-    return this.value( target, true, value );
+    return this.setter( target, value );
+};
+
+KeyPathExp.prototype.toJSON = function(){
+    var json = new Null();
+    
+    json.flags = this.flags;
+    json.source = this.source;
+    
+    return json;
+};
+
+KeyPathExp.prototype.toString = function(){
+    return this.source;
 };
 
 return KeyPathExp;
