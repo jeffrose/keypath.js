@@ -1428,8 +1428,10 @@ function kp( literals/*, ...values*/ ){
         var result;
         
         // Clear cache for the given keypath
-        if( target === false && keypath in cache ){
-            delete cache[ keypath ];
+        if( target === false ){
+            if( keypath in cache ){
+                delete cache[ keypath ];
+            }
         
         // Execute keypath on target
         } else {

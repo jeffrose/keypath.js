@@ -1,9 +1,9 @@
 'use strict';
 
-var chai       = require( 'chai' ),
+var chai = require( 'chai' ),
     kp = require( '../dist/kp-umd' ),
 
-    expect     = chai.expect;
+    expect = chai.expect;
 
 describe( 'kp', function(){
     
