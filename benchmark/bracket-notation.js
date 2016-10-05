@@ -9,9 +9,12 @@ var Benchmark = require( 'benchmark' ),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
     
-    path = 'foo[0][1]',
+    path = 'foo[0][1][0]',
     data = {
-        foo: [ [ 123, 456 ] ]
+        foo: [
+            [ [ 123 ], [ 456 ], [ 789 ] ],
+            [ [ 123 ], [ 456 ], [ 789 ] ]
+        ]
     },
 
     kpex = new KeyPathExp( path ),
@@ -32,7 +35,7 @@ var Benchmark = require( 'benchmark' ),
     } );
 
 suite.add( 'kp', function(){
-    kp`foo[0][1]`( data );
+    kp`foo[0][1][0]`( data );
 } );
 
 suite.add( 'KeyPathExp#get', function(){
