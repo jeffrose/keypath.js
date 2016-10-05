@@ -50,7 +50,7 @@ function isWhitespace( char ){
 
 /**
  * @class Lexer~LexerError
- * @extends SyntaxError
+ * @extends external:SyntaxError
  * @param {external:string} message The error message
  */
 function LexerError( message ){

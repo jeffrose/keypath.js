@@ -21,20 +21,20 @@ function Token( type, value ){
     }
     
     /**
-     * @member {external:number}
+     * @member {external:number} Lexer~Token#id
      */
     this.id = nextId();
     /**
-     * @member {external:string}
+     * @member {external:string} Lexer~Token#type
      */
     this.type = type;
     /**
-     * @member {external:string}
+     * @member {external:string} Lexer~Token#value
      */
     this.value = value;
     /**
      * The length of the token value
-     * @member {external:number}
+     * @member {external:number} Lexer~Token#length
      */
     this.length = value.length;
 }

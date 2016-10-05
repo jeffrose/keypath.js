@@ -51,14 +51,23 @@ KeyPathExp.prototype = new Null();
 
 KeyPathExp.prototype.constructor = KeyPathExp;
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.get = function( target ){
     return this.getter( target );
 };
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.set = function( target, value ){
     return this.setter( target, value );
 };
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.toJSON = function(){
     var json = new Null();
     
@@ -68,6 +77,9 @@ KeyPathExp.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.toString = function(){
     return this.source;
 };

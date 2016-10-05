@@ -6,17 +6,18 @@ import Null from './null';
 var cache = new Null();
 
 /**
- * @callback kpCallback
- * @param {*} target
- * @param {*} [value]
+ * @typedef {external:Function} KeyPathCallback
+ * @param {*} target The object on which the keypath will be executed
+ * @param {*} [value] The optional value that will be set at the keypath
+ * @returns {*} The value at the end of the keypath or undefined if the value was being set
  */
 
 /**
  * A template literal tag for keypath processing.
  * @function
- * @param {external:Array<string>} literals
+ * @param {Array<external:string>} literals
  * @param {external:Array} values
- * @returns {kpCallback}
+ * @returns {KeyPathCallback}
  * @example
  * const object = { foo: { bar: { qux: { baz: 'fuz' } } } },
  *  getBaz = ( target ) => kp`foo.bar.qux.baz`( target );

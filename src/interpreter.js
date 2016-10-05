@@ -31,7 +31,7 @@ function Interpreter( builder ){
     }
     
     /**
-     * @member {Builder}
+     * @member {Builder} Interpreter#builder
      */
     this.builder = builder;
 }

@@ -37,20 +37,20 @@ function Token( type, value ){
     }
     
     /**
-     * @member {external:number}
+     * @member {external:number} Lexer~Token#id
      */
     this.id = nextId();
     /**
-     * @member {external:string}
+     * @member {external:string} Lexer~Token#type
      */
     this.type = type;
     /**
-     * @member {external:string}
+     * @member {external:string} Lexer~Token#value
      */
     this.value = value;
     /**
      * The length of the token value
-     * @member {external:number}
+     * @member {external:number} Lexer~Token#length
      */
     this.length = value.length;
 }
@@ -166,7 +166,7 @@ function isWhitespace( char ){
 
 /**
  * @class Lexer~LexerError
- * @extends SyntaxError
+ * @extends external:SyntaxError
  * @param {external:string} message The error message
  */
 function LexerError( message ){
@@ -317,13 +317,13 @@ Lexer.prototype.toString = function(){
 };
 
 /**
- * @typedef {external:string} NodeType
+ * @typedef {external:string} Builder~NodeType
  */
 
 /**
- * @class Node
+ * @class Builder~Node
  * @extends Null
- * @param {NodeType} type A node type
+ * @param {Builder~NodeType} type A node type
  */
 function Node( type ){
     
@@ -332,11 +332,11 @@ function Node( type ){
     }
     
     /**
-     * @member {external:number} 
+     * @member {external:number} Builder~Node#id
      */
     this.id = nextId();
     /**
-     * @member {NodeType}
+     * @member {Builder~NodeType} Builder~Node#type
      */
     this.type = type;
 }
@@ -347,7 +347,7 @@ Node.prototype.constructor = Node;
 
 /**
  * @function
- * @param {NodeType} type A node type
+ * @param {Builder~NodeType} type A node type
  * @returns {external:boolean} Whether or not the node is of the type provided.
  */
 Node.prototype.is = function( type ){
@@ -379,9 +379,9 @@ Node.prototype.valueOf = function(){
 };
 
 /**
- * @class Statement
- * @extends Node
- * @param {NodeType} statementType A node type
+ * @class Builder~Statement
+ * @extends Builder~Node
+ * @param {Builder~NodeType} statementType A node type
  */
 function Statement( statementType ){
     Node.call( this, statementType );
@@ -392,9 +392,9 @@ Statement.prototype = Object.create( Node.prototype );
 Statement.prototype.constructor = Statement;
 
 /**
- * @class Expression
- * @extends Node
- * @param {NodeType} expressionType A node type
+ * @class Builder~Expression
+ * @extends Builder~Node
+ * @param {Builder~NodeType} expressionType A node type
  */
 function Expression( expressionType ){
     Node.call( this, expressionType );
@@ -405,9 +405,9 @@ Expression.prototype = Object.create( Node.prototype );
 Expression.prototype.constructor = Expression;
 
 /**
- * @class Program
- * @extends Node
- * @param {external:Array<Statement>} body
+ * @class Builder~Program
+ * @extends Builder~Node
+ * @param {external:Array<Builder~Statement>} body
  */
 function Program( body ){
     Node.call( this, 'Program' );
@@ -417,7 +417,7 @@ function Program( body ){
     }
     
     /**
-     * @member {external:Array<Statement>}
+     * @member {external:Array<Builder~Statement>}
      */
     this.body = body || [];
 }
@@ -439,9 +439,9 @@ Program.prototype.toJSON = function(){
 };
 
 /**
- * @class ArrayExpression
- * @extends Expression
- * @param {external:Array<Expression>} elements A list of expressions
+ * @class Builder~ArrayExpression
+ * @extends Builder~Expression
+ * @param {external:Array<Builder~Expression>} elements A list of expressions
  */
 function ArrayExpression( elements ){
     Expression.call( this, 'ArrayExpression' );
@@ -451,7 +451,7 @@ function ArrayExpression( elements ){
     }
     
     /**
-     * @member {external:Array<Expression>}
+     * @member {Array<Builder~Expression>}
      */
     this.elements = elements;
 }
@@ -475,8 +475,8 @@ ArrayExpression.prototype.toJSON = function(){
 };
 
 /**
- * @class ExpressionStatement
- * @extends Statement
+ * @class Builder~ExpressionStatement
+ * @extends Builder~Statement
  */
 function ExpressionStatement( expression ){
     Statement.call( this, 'ExpressionStatement' );
@@ -486,7 +486,7 @@ function ExpressionStatement( expression ){
     }
     
     /**
-     * @member {Expression}
+     * @member {Builder~Expression}
      */
     this.expression = expression;
 }
@@ -508,10 +508,10 @@ ExpressionStatement.prototype.toJSON = function(){
 };
 
 /**
- * @class CallExpression
- * @extends Expression
- * @param {Expression} callee
- * @param {external:Array<Expression>} args
+ * @class Builder~CallExpression
+ * @extends Builder~Expression
+ * @param {Builder~Expression} callee
+ * @param {Array<Builder~Expression>} args
  */
 function CallExpression( callee, args ){
     Expression.call( this, 'CallExpression' );
@@ -521,11 +521,11 @@ function CallExpression( callee, args ){
     }
     
     /**
-     * @member {Expression}
+     * @member {Builder~Expression}
      */
     this.callee = callee;
     /**
-     * @member {external:Array<Expression>}
+     * @member {Array<Builder~Expression>}
      */
     this.arguments = args;
 }
@@ -548,10 +548,10 @@ CallExpression.prototype.toJSON = function(){
 };
 
 /**
- * @class MemberExpression
- * @extends Expression
- * @param {Expression} object
- * @param {Expression|Identifier} property
+ * @class Builder~MemberExpression
+ * @extends Builder~Expression
+ * @param {Builder~Expression} object
+ * @param {Builder~Expression|Builder~Identifier} property
  * @param {external:boolean} computed=false
  */
 function MemberExpression( object, property, computed ){
@@ -568,11 +568,11 @@ function MemberExpression( object, property, computed ){
     }
     
     /**
-     * @member {Expression}
+     * @member {Builder~Expression}
      */
     this.object = object;
     /**
-     * @member {Expression|Identifier}
+     * @member {Builder~Expression|Builder~Identifier}
      */
     this.property = property;
     /**
@@ -600,8 +600,8 @@ MemberExpression.prototype.toJSON = function(){
 };
 
 /**
- * @class Identifier
- * @extends Expression
+ * @class Builder~Identifier
+ * @extends Builder~Expression
  * @param {external:string} name The name of the identifier
  */
 function Identifier$1( name ){
@@ -634,8 +634,8 @@ Identifier$1.prototype.toJSON = function(){
 };
 
 /**
- * @class Literal
- * @extends Expression
+ * @class Builder~Literal
+ * @extends Builder~Expression
  * @param {external:string|external:number} value The value of the literal
  */
 function Literal$1( value ){
@@ -670,9 +670,9 @@ Literal$1.prototype.toJSON = function(){
 };
 
 /**
- * @class SequenceExpression
- * @extends Expression
- * @param {external:Array<Expression>} expressions The expressions in the sequence
+ * @class Builder~SequenceExpression
+ * @extends Builder~Expression
+ * @param {Array<Builder~Expression>} expressions The expressions in the sequence
  */
 function SequenceExpression( expressions ){
     Expression.call( this, 'SequenceExpression' );
@@ -682,7 +682,7 @@ function SequenceExpression( expressions ){
     }
     
     /**
-     * @member {external:Array<Expression>}
+     * @member {Array<Builder~Expression>}
      */
     this.expressions = expressions;
 }
@@ -706,8 +706,8 @@ SequenceExpression.prototype.toJSON = function(){
 };
 
 /**
- * @class Punctuator
- * @extends Node
+ * @class Builder~Punctuator
+ * @extends Builder~Node
  * @param {external:string} value
  */
 
@@ -1058,7 +1058,7 @@ function Interpreter( builder ){
     }
     
     /**
-     * @member {Builder}
+     * @member {Builder} Interpreter#builder
      */
     this.builder = builder;
 }
@@ -1350,14 +1350,23 @@ KeyPathExp.prototype = new Null();
 
 KeyPathExp.prototype.constructor = KeyPathExp;
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.get = function( target ){
     return this.getter( target );
 };
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.set = function( target, value ){
     return this.setter( target, value );
 };
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.toJSON = function(){
     var json = new Null();
     
@@ -1367,6 +1376,9 @@ KeyPathExp.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @function
+ */
 KeyPathExp.prototype.toString = function(){
     return this.source;
 };
