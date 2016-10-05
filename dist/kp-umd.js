@@ -1403,15 +1403,22 @@ function kp( literals/*, ...values*/ ){
         for( ; index < length; index++ ){
             values[ index ] = arguments[ index + 1 ];
         }
+        
+        keypath = literals.reduce( function( accumulator, part, index ){
+            return accumulator + values[ index - 1 ] + part;
+        } );
     } else {
         values = [];
+        keypath = literals[ 0 ];
     }
     
+    /*
     keypath = literals.length > 1 && !values.length ?
         literals.reduce( function( accumulator, part, index ){
             return accumulator + values[ index - 1 ] + part;
         } ) :
         literals[ 0 ],
+    */
     
     kpex = keypath in cache ?
         cache[ keypath ] :
