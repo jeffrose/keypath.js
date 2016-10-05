@@ -425,6 +425,12 @@ describe( 'tk', function(){
             expect(tk.find(data, val)).to.be.undefined;
         });
 
+        it( 'should return undefined for empty data object', function(){
+            var val = 12345;
+            expect(tk.find(null, val)).to.be.undefined;
+            expect(tk.find(undefined, val)).to.be.undefined;
+        });
+
         it( 'should return one valid path if "one" option is set or if not specified', function(){
             var val = data.accounts[1].test2;
             expect(tk.find(data, val)).to.be.a.string;

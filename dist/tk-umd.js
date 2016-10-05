@@ -73,7 +73,7 @@ var escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
 var escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
 
 var isObject = function(val) {
-    if (val === null) { return false;}
+    if (typeof val === 'undefined' || val === null) { return false;}
     return ( (typeof val === 'function') || (typeof val === 'object') );
 };
 
