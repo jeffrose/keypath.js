@@ -22,6 +22,7 @@
   ],
   "main": "index.js",
   "scripts": {
+    "trace:builder": "node --allow-natives-syntax --trace_opt --trace_deopt trace/builder.js",
     "trace:interpreter": "node --allow-natives-syntax --trace_opt --trace_deopt trace/interpreter.js",
     "trace:tk": "node --allow-natives-syntax --trace_opt --trace_deopt trace/tk.js"
   },
