@@ -4,6 +4,7 @@ var Benchmark = require( 'benchmark' ),
     chalk = require( 'chalk' ),
 
     KeyPathExp = require( '../dist/keypath-umd' ),
+    kp = require( '../dist/kp-umd' ),
     tk = require( '../dist/tk-umd' ),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
@@ -24,7 +25,7 @@ var Benchmark = require( 'benchmark' ),
     
     suite = new Benchmark.Suite( 'Dot Notation', {
         onComplete: function( event ){
-            var first = this.filter( this, 'fastest' ),
+            var first = this.filter( 'fastest' ),
                 second = this.filter( first.slice( 1 ), 'fastest' );
             
             console.info( chalk.green( 'Fastest test is ' + first.map( 'name' ) ) );
@@ -36,6 +37,10 @@ var Benchmark = require( 'benchmark' ),
             console.info( 'Running suite ' + this.name + ' [' + __filename + ']...' );
         }
     } );
+
+suite.add( 'kp', function(){
+    kp`foo.bar.qux.baz`( data );
+} );
 
 suite.add( 'KeyPathExp#get', function(){
     kpex.get( data );

@@ -4,6 +4,7 @@ var Benchmark = require( 'benchmark' ),
     chalk = require( 'chalk' ),
 
     KeyPathExp = require( '../dist/keypath-umd' ),
+    kp = require( '../dist/kp-umd' ),
     tk = require( '../dist/tk-umd' ),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
@@ -29,6 +30,10 @@ var Benchmark = require( 'benchmark' ),
             console.info( 'Running suite ' + this.name + ' [' + __filename + ']...' );
         }
     } );
+
+suite.add( 'kp', function(){
+    kp`foo[0][1]`( data );
+} );
 
 suite.add( 'KeyPathExp#get', function(){
     kpex.get( data );

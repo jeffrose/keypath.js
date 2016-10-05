@@ -37,6 +37,19 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( gulp.dest( 'dist' ) ),
         
         rollup( {
+            entry: 'src/kp.js',
+            format: 'umd',
+            moduleName: 'kp',
+            sourceMap: true
+        } )
+        .pipe( source( 'kp.js', 'src' ) )
+        .pipe( buffer() )
+        .pipe( sourcemaps.init( { loadMaps: true } ) )
+        .pipe( rename( 'kp-umd.js' ) )
+        .pipe( sourcemaps.write( '.' ) )
+        .pipe( gulp.dest( 'dist' ) ),
+        
+        rollup( {
             entry: 'src/interpreter.js',
             format: 'umd',
             moduleName: 'Interpreter',

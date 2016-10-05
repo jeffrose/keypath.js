@@ -3,7 +3,7 @@
 import KeyPathExp from './keypath';
 import Null from './null';
 
-const cache = new Null();
+var cache = new Null();
 
 /**
  * @callback kpCallback
@@ -23,19 +23,34 @@ const cache = new Null();
  * 
  * console.log( getBaz( object ) ); // "fuz"
  */
-function kp( literals, ...values ){
-    const keypath = literals.length > 1 && !values.length ?
+function kp( literals/*, ...values*/ ){
+    var keypath, kpex, values;
+    
+    if( arguments.length > 1 ){
+        var index = 0,
+            length = arguments.length - 1;
+        
+        values = new Array( length );
+        
+        for( ; index < length; index++ ){
+            values[ index ] = arguments[ index + 1 ];
+        }
+    } else {
+        values = [];
+    }
+    
+    keypath = literals.length > 1 && !values.length ?
         literals.reduce( function( accumulator, part, index ){
             return accumulator + values[ index - 1 ] + part;
         } ) :
         literals[ 0 ],
-        
-        kpex = keypath in cache ?
-            cache[ keypath ] :
-            cache[ keypath ] = new KeyPathExp( keypath );
+    
+    kpex = keypath in cache ?
+        cache[ keypath ] :
+        cache[ keypath ] = new KeyPathExp( keypath );
     
     return function( target, value ){
-        let result;
+        var result;
         
         // Clear cache for the given keypath
         if( target === false && keypath in cache ){
