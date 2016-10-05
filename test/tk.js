@@ -53,7 +53,7 @@ describe( 'tk', function(){
     });
 
 
-    describe( 'disable', function(){
+    // xdescribe( 'disable', function(){
     describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -223,6 +223,12 @@ describe( 'tk', function(){
             expect(tk.get(data, str, key, key)).to.equal(data.accounts[1].checking.fnArg(key, key));
         });
 
+        it('should not cache placeholder values, only placeholders', function () {
+            var str1 = 'accounts[0]ary.%1';
+            expect(tk.get(data, str1, 0)).to.equal(data.accounts[0].ary[0]);
+            expect(tk.get(data, str1, 1)).to.equal(data.accounts[0].ary[1]);
+        });
+
         it('should get undefined as result', function () {
             var empty;
             var str = ''; // empty string
@@ -258,6 +264,16 @@ describe( 'tk', function(){
             var str = '()()()'
             expect(tk.get(fn, str)).to.equal('abc');
         });
+
+        it('should handle plain property container, treats contents as property name', function () {
+            var str1 = 'accounts[0]ary[0]';
+            expect(tk.get(data, str1)).to.equal(data.accounts[0].ary[0]);
+            var str2 = '[foo.bar]';
+            expect(tk.get(data, str2)).to.equal(data['foo.bar']);
+            var str3 = 'accounts.[0].ary[0]';
+            expect(tk.get(data, str3)).to.equal(data.accounts[0].ary[0]);
+        });
+
     });
 
     describe( 'set', function(){
@@ -420,7 +436,6 @@ describe( 'tk', function(){
             expect(tk.find(data, val, 'many')).to.be.an.array;
             expect(tk.find(data, val, 'many').sort().join(',')).to.equal('accounts.1.checking.repeat,accounts.1.test1');
         });
-
 
     });
 
@@ -760,30 +775,9 @@ describe( 'tk', function(){
         });
 
     });
-    });
+    // });
 
-    describe( 'debug', function(){
-        it('should return undefined if path ends in an escape character', function () {
-            var str = 'foo.bar\\';
-            expect(tk.getTokens(str)).to.be.undefined;
-        });
-        it('should handle plain property container, treats contents as property name', function () {
-            var str1 = 'accounts[0]ary[0]';
-            expect(tk.get(data, str1)).to.equal(data.accounts[0].ary[0]);
-            var str2 = '[foo.bar]';
-            expect(tk.get(data, str2)).to.equal(data['foo.bar']);
-            var str22 = 'foo\\.bar';
-            expect(tk.get(data, str22)).to.equal(data['foo.bar']);
-            var str3 = '%1';
-            expect(tk.get(data, str3, 'foo.bar')).to.equal(data['foo.bar']);
-        });
-        // it( 'should be able to evaluate container and execute function', function(){
-        //     var str = 'accounts{2()}checking.id';
-        //     var tmp = data.accounts[2]();
-        //     console.log('tmp:', data.accounts[2]());
-        //     console.log('tk.getTokens:', tk.getTokens(str));
-        //     expect(tk.get(data, str)).to.equal(data.accounts[tmp].checking.id);
-        // } );
-    });
+    // describe( 'debug', function(){
+    // });
 
 } );

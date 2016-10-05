@@ -20,6 +20,20 @@ var data = {
 tk.get(data, 'foo.bar.2'); // 'c'
 ```
 
+Object properties and array indices may be indicated with `[]`. Any text inside the brackets will be treated as a literal and no further syntax evaluation will be done on that text. This is one of three ways to safely include a property with reserved characters inside. Use of the separator character (`.` by default) is optional adjacent to the `[]` container.
+```javascript
+var data = {
+    foo: {
+        bar: ['a','b','c'],
+        'abc.xyz': 12
+    }
+};
+tk.get(data, 'foo.[bar].2'); // 'c'
+tk.get(data, 'foo[bar]2'); // 'c'
+tk.get(data, 'foo[bar][2]'); // 'c'
+tk.get(data, 'foo[abc.xyz]'); // 12
+```
+
 Collections are implemented with `,`.
 ```javascript
 var data = {
@@ -72,7 +86,7 @@ tk.get(data, 'foo.bar.<a'); // 'one'
 tk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
 ```
 
-Numbered placeholders, indicated with `%n`, are supported as extra arguments to `get`. By numbering the placeholders according to their place in the args list, these values may be used in multiple places within the keypath. **The numbering sequence begins at 1.**
+Numbered placeholders, indicated with `%n`, are supported as extra arguments to `get`. By numbering the placeholders according to their place in the args list, these values may be used in multiple places within the keypath. Using placeholders is another way to include string values which may contain reserved keypath characters since the placeholder values are not interpreted further; they are used as-is. **The numbering sequence begins at 1.**
 ```javascript
 var data = {
     foo: {
@@ -157,13 +171,17 @@ Sets new operator characters for path interpretation. Can also be used to govern
         }
     },
     containers: {
+        '[': {
+            'closer': ']',
+            'exec': 'property'
+            },
         '(': {
             'closer': ')',
             'exec': 'call'
             },
         '{': {
             'closer': '}',
-            'exec': 'property'
+            'exec': 'evalProperty'
             }
     }
 }
@@ -173,10 +191,12 @@ When dealing with data where these operators appear frequently, it may be conven
 
 ### escape
 ```javascript
+var str = 'John Q. Doe';
 var escapedPathSegment = tk.escape(str);
+tk.get(data, ['people', escapedPathSegment, 'address'].join('.'));
 ```
 
-The path interpreter supports escaped characters using backslash (`\`). This is an alternative way to deal with data where operators may be present in the data object as property names. For example, an object that uses full names as keys may include `.` or an object using phone numbers as keys may include `()`. By pre-processing the path segment with `escape`, these operators will all be prepended with `\`, making the path safe for execution.
+The path interpreter supports escaped characters using backslash (`\`). This is another way to deal with data where operators may be present in the data object as property names. For example, an object that uses full names as keys may include `.` or an object using phone numbers as keys may include `()`. By pre-processing the path segment with `escape`, these operators will all be prepended with `\`, making the path safe for execution.
 
 **Important:** Do **not** execute `escape` on your full keypath, since it will escape all the separators (`.`), turning your keypath into a single property name. This function is meant to be executed on only a single keypath segment, and is most useful when building a keypath dynamically using unknown values.
 
