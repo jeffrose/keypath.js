@@ -191,7 +191,15 @@ Sets new operator characters for path interpretation. Can also be used to govern
             'closer': ']',
             'exec': 'property'
             },
-        '(': {
+        '\'': {
+            'closer': '\'',
+            'exec': 'quote'
+            },
+        '"': {
+            'closer': '"',
+            'exec': 'quote'
+            },
+            '(': {
             'closer': ')',
             'exec': 'call'
             },
