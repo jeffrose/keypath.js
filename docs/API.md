@@ -16,6 +16,8 @@
 ## Functions
 
 <dl>
+<dt><a href="#forEach">forEach(list, callback)</a></dt>
+<dd></dd>
 <dt><a href="#kp">kp(literals, values)</a> ⇒ <code><a href="#KeyPathCallback">KeyPathCallback</a></code></dt>
 <dd><p>A template literal tag for keypath processing.</p>
 </dd>
@@ -24,6 +26,11 @@
 ## Typedefs
 
 <dl>
+<dt><a href="#Array-Like">Array-Like</a> : <code><a href="#external_Array">Array</a></code> | <code><a href="#external_Arguments">Arguments</a></code> | <code><a href="#external_string">string</a></code></dt>
+<dd><p>JavaScript Array-Like</p>
+</dd>
+<dt><a href="#ForEachCallback">ForEachCallback</a> : <code><a href="#external_Function">Function</a></code></dt>
+<dd></dd>
 <dt><a href="#KeyPathCallback">KeyPathCallback</a> ⇒ <code>*</code></dt>
 <dd></dd>
 </dl>
@@ -31,6 +38,9 @@
 ## External
 
 <dl>
+<dt><a href="#external_Arguments">Arguments</a></dt>
+<dd><p>JavaScript Arguments</p>
+</dd>
 <dt><a href="#external_Array">Array</a></dt>
 <dd><p>JavaScript Array</p>
 </dd>
@@ -635,8 +645,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [Interpreter](#Interpreter) ⇐ <code>[Null](#Null)</code>
     * [new Interpreter(builder)](#new_Interpreter_new)
-    * [.builder](#Interpreter+builder) : <code>[Builder](#Builder)</code>
-    * [.compile(expression)](#Interpreter+compile)
+    * _instance_
+        * [.builder](#Interpreter+builder) : <code>[Builder](#Builder)</code>
+        * [.compile(expression)](#Interpreter+compile)
+    * _inner_
+        * [~getValue(target, key, create)](#Interpreter..getValue) ⇒ <code>\*</code>
+        * [~intepretList(interpreter, list, context, create)](#Interpreter..intepretList) ⇒ <code>[Array.&lt;Function&gt;](#external_Function)</code>
 
 <a name="new_Interpreter_new"></a>
 
@@ -658,6 +672,31 @@ Provides the token at the requested position _without removing it_ from the toke
 | Param | Type |
 | --- | --- |
 | expression | <code>[string](#external_string)</code> | 
+
+<a name="Interpreter..getValue"></a>
+
+### Interpreter~getValue(target, key, create) ⇒ <code>\*</code>
+**Kind**: inner method of <code>[Interpreter](#Interpreter)</code>  
+**Returns**: <code>\*</code> - The value for the given `key`  
+
+| Param | Type |
+| --- | --- |
+| target | <code>\*</code> | 
+| key | <code>[string](#external_string)</code> | 
+| create | <code>[boolean](#external_boolean)</code> | 
+
+<a name="Interpreter..intepretList"></a>
+
+### Interpreter~intepretList(interpreter, list, context, create) ⇒ <code>[Array.&lt;Function&gt;](#external_Function)</code>
+**Kind**: inner method of <code>[Interpreter](#Interpreter)</code>  
+**Returns**: <code>[Array.&lt;Function&gt;](#external_Function)</code> - The interpreted list  
+
+| Param | Type |
+| --- | --- |
+| interpreter | <code>[Interpreter](#Interpreter)</code> | 
+| list | <code>[Array-Like](#Array-Like)</code> | 
+| context | <code>[boolean](#external_boolean)</code> | 
+| create | <code>[boolean](#external_boolean)</code> | 
 
 <a name="KeyPathExp"></a>
 
@@ -1037,6 +1076,16 @@ The length of the token value
 ### new Null()
 A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
 
+<a name="forEach"></a>
+
+## forEach(list, callback)
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| list | <code>[Array-Like](#Array-Like)</code> | 
+| callback | <code>[ForEachCallback](#ForEachCallback)</code> | 
+
 <a name="kp"></a>
 
 ## kp(literals, values) ⇒ <code>[KeyPathCallback](#KeyPathCallback)</code>
@@ -1056,6 +1105,23 @@ const object = { foo: { bar: { qux: { baz: 'fuz' } } } },
 
 console.log( getBaz( object ) ); // "fuz"
 ```
+<a name="Array-Like"></a>
+
+## Array-Like : <code>[Array](#external_Array)</code> &#124; <code>[Arguments](#external_Arguments)</code> &#124; <code>[string](#external_string)</code>
+JavaScript Array-Like
+
+**Kind**: global typedef  
+**See**: [http://www.2ality.com/2013/05/quirk-array-like-objects.html](http://www.2ality.com/2013/05/quirk-array-like-objects.html)  
+<a name="ForEachCallback"></a>
+
+## ForEachCallback : <code>[Function](#external_Function)</code>
+**Kind**: global typedef  
+
+| Param | Type |
+| --- | --- |
+| item | <code>\*</code> | 
+| index | <code>[number](#external_number)</code> | 
+
 <a name="KeyPathCallback"></a>
 
 ## KeyPathCallback ⇒ <code>\*</code>
@@ -1067,6 +1133,13 @@ console.log( getBaz( object ) ); // "fuz"
 | target | <code>\*</code> | The object on which the keypath will be executed |
 | [value] | <code>\*</code> | The optional value that will be set at the keypath |
 
+<a name="external_Arguments"></a>
+
+## Arguments
+JavaScript Arguments
+
+**Kind**: global external  
+**See**: [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments)  
 <a name="external_Array"></a>
 
 ## Array

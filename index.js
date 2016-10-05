@@ -1,6 +1,12 @@
 'use strict';
 
 /**
+ * JavaScript Arguments
+ * @external Arguments
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments}
+ */
+
+/**
  * JavaScript Array
  * @external Array
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array}
@@ -73,3 +79,9 @@
  * @extends external:Error
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError}
  */ 
+ 
+ /**
+  * JavaScript Array-Like
+  * @typedef {external:Array|external:Arguments|external:string} Array-Like
+  * @see {@link http://www.2ality.com/2013/05/quirk-array-like-objects.html}
+  */

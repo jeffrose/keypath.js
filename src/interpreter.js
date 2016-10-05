@@ -5,6 +5,13 @@ import Null from './null';
 
 var noop = function(){};
 
+/**
+ * @function Interpreter~getValue
+ * @param {*} target
+ * @param {external:string} key
+ * @param {external:boolean} create
+ * @returns {*} The value for the given `key`
+ */
 function getValue( target, key, create ){
     if( create && !( key in target ) ){
         target[ key ] = {};
@@ -12,6 +19,14 @@ function getValue( target, key, create ){
     return target[ key ];
 }
 
+/**
+ * @function Interpreter~intepretList
+ * @param {Interpreter} interpreter
+ * @param {Array-Like} list
+ * @param {external:boolean} context
+ * @param {external:boolean} create
+ * @returns {Array<external:Function>} The interpreted list
+ */
 function intepretList( interpreter, list, context, create ){
     var result = [];
     forEach( list, function( expression ){
@@ -141,6 +156,12 @@ Interpreter.prototype.recurse = function( node, context, create ){
                     value;
             };
         }
+        
+        case 'ExpressionStatement': {
+            
+            break;
+        }
+        
         case 'Identifier': {
             name = node.name;
             return function getIdentifier( base, setValue ){
