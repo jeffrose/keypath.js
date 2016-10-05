@@ -19,7 +19,11 @@ const gulp = require( 'gulp' ),
     yargs = require( 'yargs' ),
     
     colors = gutil.colors,
-    log = gutil.log;
+    log = gutil.log,
+    
+    fileFilter = filter( yargs.argv.fgrep ?
+        `**/*${ yargs.argv.fgrep }*.js` :
+        '**' );
 
 gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
     
@@ -116,9 +120,6 @@ gulp.task( 'docs', () => {
 } );
 
 gulp.task( 'test', [ 'dist' ], ( done ) => {
-    const fileFilter = filter( yargs.argv.fgrep ?
-        `**/*${ yargs.argv.fgrep }*.js` :
-        '**' );
     gulp.src( [ 'dist/*.js' ] )
         .pipe( fileFilter )
         .pipe( debug( { title: 'Testing' } ) )
@@ -136,6 +137,8 @@ gulp.task( 'test', [ 'dist' ], ( done ) => {
 
 gulp.task( 'benchmark', [ 'dist' ], () => {
     return gulp.src( [ 'benchmark/*.js' ] )
+        .pipe( fileFilter )
+        .pipe( debug( { title: 'Benchmarking' } ) )
         .pipe( benchmark() )
         .pipe( gulp.dest( './benchmark' ) );
 } );
