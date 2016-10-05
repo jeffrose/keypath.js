@@ -21,6 +21,8 @@ describe( 'tk', function(){
             'propB': 'two',
             'propC': 'three',
             'foo.bar': 'FooBar',
+            '"blah"': 'quoted',
+            'John "Johnny" Doe': 'a name',
             'accounts': [
                 /* 0 */ { 'ary': [9,8,7,6] },
                 /* 1 */ {
@@ -272,6 +274,22 @@ describe( 'tk', function(){
             expect(tk.get(data, str2)).to.equal(data['foo.bar']);
             var str3 = 'accounts.[0].ary[0]';
             expect(tk.get(data, str3)).to.equal(data.accounts[0].ary[0]);
+        });
+
+        it('should handle quotes inside plain property container, treats contents as property name', function () {
+            var str1 = 'accounts[\'0\']ary["0"]';
+            expect(tk.get(data, str1)).to.equal(data.accounts[0].ary[0]);
+            var str2 = '["foo.bar"]';
+            expect(tk.get(data, str2)).to.equal(data['foo.bar']);
+            var str3 = '[\'foo.bar\']';
+            expect(tk.get(data, str3)).to.equal(data['foo.bar']);
+        });
+
+        it('should treat quotes as normal characters when not inside property container', function () {
+            var str1 = '"blah"';
+            expect(tk.get(data, str1)).to.equal(data['"blah"']);
+            var str2 = '[John "Johnny" Doe]';
+            expect(tk.get(data, str2)).to.equal(data['John "Johnny" Doe']);
         });
 
     });

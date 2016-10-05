@@ -34,6 +34,22 @@ tk.get(data, 'foo[bar][2]'); // 'c'
 tk.get(data, 'foo[abc.xyz]'); // 12
 ```
 
+Quotes, either single or double (`'` and `"`) are treated as special characters only when immediately inside the property container (`[]` by default). Elsewhere, they are plain characters. This allows compatible support with other keypath libraries that expect quoted strings inside brackets.
+```javascript
+var data = {
+    foo: {
+        bar: ['a','b','c'],
+        '"abc"': 'xyz'
+    }
+};
+tk.get(data, "foo['bar']2"); // 'c'
+tk.get(data, 'foo["bar"]2'); // 'c'
+tk.get(data, '"abc"'); // 'xyz'
+tk.get(data, '["abc"]'); // undefined
+tk.get(data, '[""abc""]'); // 'xyz'
+```
+
+
 Collections are implemented with `,`.
 ```javascript
 var data = {

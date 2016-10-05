@@ -36,6 +36,14 @@ var containers = {
         'closer': ']',
         'exec': 'property'
         },
+    '\'': {
+        'closer': '\'',
+        'exec': 'quote'
+        },
+    '"': {
+        'closer': '"',
+        'exec': 'quote'
+        },
     '(': {
         'closer': ')',
         'exec': 'call'
@@ -86,6 +94,7 @@ var cache = {};
  *  a token or else begin watching input for end of token (finding a closing character for
  *  a container or the end of a collection). If a con
  tainer is found, call tokenize
+
  *  recursively on string within container.
  */
 var tokenize = function (str){
@@ -133,7 +142,19 @@ var tokenize = function (str){
                 else if (closer.exec === 'property'){
                     // Simple property container means to take contents as literal property,
                     // without processing special characters inside
-                    tokens.push(substr);
+                    if (substr.length && containers[substr[0]] && containers[substr[0]].exec === 'quote' ){
+                        if (substr[substr.length-1] === containers[substr[0]].closer){
+                            // Strip leading and trailing quote
+                            tokens.push(substr.substr(1, substr.length - 2));
+                        }
+                        else {
+                            // Mismatched quote inside [ ]
+                            return undefined;
+                        }
+                    }
+                    else {
+                        tokens.push(substr);
+                    }
                 }
                 else {
                     tokens.push({'t':tokenize(substr), 'exec': closer.exec});
@@ -175,7 +196,7 @@ var tokenize = function (str){
             }
             word = '';
         }
-        else if (!escaped && str[i] in containers && containers[str[i]].exec){
+        else if (!escaped && str[i] in containers && containers[str[i]].exec && containers[str[i]].exec !== 'quote'){
             // found opener, initiate scan for closer
             closer = containers[str[i]];
             if (word && mods.has){
