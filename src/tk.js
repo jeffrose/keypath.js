@@ -40,7 +40,6 @@ var containers = {
         'closer': '}',
         'exec': 'evalProperty'
         }
-    }
 },
 containerList = Object.keys(containers),
 containerCloseList = containerList.map(function(key){ return containers[key].closer; });
