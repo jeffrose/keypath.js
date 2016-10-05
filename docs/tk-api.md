@@ -20,7 +20,7 @@ var data = {
 tk.get(data, 'foo.bar.2'); // 'c'
 ```
 
-Object properties and array indices may be indicated with `[]`. Any text inside the brackets will be treated as a literal and no further syntax evaluation will be done on that text. This is one of three ways to safely include a property with reserved characters inside. Use of the separator character (`.` by default) is optional adjacent to the `[]` container.
+Object properties and array indices may be indicated with `[]`. Any text inside the brackets will be treated as a literal and no further syntax evaluation will be done on that text. This is one of several ways to safely include a property with reserved keypath characters inside. Use of the separator character (`.` by default) is optional adjacent to the `[]` container.
 ```javascript
 var data = {
     foo: {
@@ -188,6 +188,18 @@ Sets new operator characters for path interpretation. Can also be used to govern
 ```
 
 When dealing with data where these operators appear frequently, it may be convenient to switch to new operators that don't conflict with the data.
+
+**Note:** Setting a new option for a different separator, for example, only adds the new separator. It does **not** disable the existing one. To disable a special character, set it with an empty value.
+
+```javascript
+tk.setOptions({
+    separators: {
+        '.': {},
+        '|': {
+            'exec': 'property'
+        }
+    });
+```
 
 ### escape
 ```javascript

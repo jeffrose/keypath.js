@@ -40,6 +40,7 @@ var containers = {
         'closer': '}',
         'exec': 'evalProperty'
         }
+    }
 },
 containerList = Object.keys(containers),
 containerCloseList = containerList.map(function(key){ return containers[key].closer; });
@@ -144,12 +145,12 @@ var tokenize = function (str){
                 substr = '';
             }
         }
-        else if (!escaped && str[i] in prefixes){
+        else if (!escaped && str[i] in prefixes && prefixes[str[i]].exec){
             mods.has = true;
             if (mods[prefixes[str[i]].exec]) { mods[prefixes[str[i]].exec]++; }
             else { mods[prefixes[str[i]].exec] = 1; }
         }
-        else if (!escaped && str[i] in separators){
+        else if (!escaped && str[i] in separators && separators[str[i]].exec){
             separator = separators[str[i]];
             if (!word && mods.has){
                 // found a separator, after seeing prefixes, but no token word -> invalid
@@ -178,7 +179,7 @@ var tokenize = function (str){
             }
             word = '';
         }
-        else if (!escaped && str[i] in containers){
+        else if (!escaped && str[i] in containers && containers[str[i]].exec){
             // found opener, initiate scan for closer
             closer = containers[str[i]];
             if (word && mods.has){
