@@ -1412,35 +1412,14 @@ function kp( literals/*, ...values*/ ){
         keypath = literals[ 0 ];
     }
     
-    /*
-    keypath = literals.length > 1 && !values.length ?
-        literals.reduce( function( accumulator, part, index ){
-            return accumulator + values[ index - 1 ] + part;
-        } ) :
-        literals[ 0 ],
-    */
-    
     kpex = keypath in cache ?
         cache[ keypath ] :
         cache[ keypath ] = new KeyPathExp( keypath );
     
     return function( target, value ){
-        var result;
-        
-        // Clear cache for the given keypath
-        if( target === false ){
-            if( keypath in cache ){
-                delete cache[ keypath ];
-            }
-        
-        // Execute keypath on target
-        } else {
-            result = arguments.length > 1 ?
-                kpex.set( target, value ) :
-                kpex.get( target );
-        }
-        
-        return result;
+        return arguments.length > 1 ?
+            kpex.set( target, value ) :
+            kpex.get( target );
     };
 }
 
