@@ -14,13 +14,7 @@ function printStatus( fn ){
 
 const
     chalk = require( 'chalk' ),
-    Builder     = require( '../dist/builder-umd' ),
-    Interpreter = require( '../dist/interpreter-umd' ),
-    Lexer       = require( '../dist/lexer-umd' ),
-    
-    lexer = new Lexer(),
-    builder = new Builder( lexer ),
-    interpreter = new Interpreter( builder ),
+    tk    = require( '../dist/tk-umd' ),
     
     path = 'foo.bar.qux.baz',
     data = {
@@ -33,16 +27,13 @@ const
         }
     };
 
-interpreter.compile( path );
-interpreter.compile( path );
+tk.get( data, path );
+tk.get( data, path );
 
-%OptimizeFunctionOnNextCall( interpreter.recurse );
-%OptimizeFunctionOnNextCall( interpreter.compile );
+%OptimizeFunctionOnNextCall( tk.get );
 
-interpreter.compile( path );
+tk.get( data, path );
 
-console.log( chalk.bold( 'Interpreter#recurse' ) );
-printStatus( interpreter.recurse );
+console.log( chalk.bold( 'tk#get' ) );
+printStatus( tk.get );
 
-console.log( chalk.bold( 'Interpreter#compile' ) );
-printStatus( interpreter.compile );
