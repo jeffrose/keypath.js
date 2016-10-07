@@ -21,9 +21,10 @@ const gulp = require( 'gulp' ),
     colors = gutil.colors,
     log = gutil.log,
     
-    fileFilter = filter( yargs.argv.fgrep ?
+    fgrep = yargs.argv.fgrep ?
         `**/*${ yargs.argv.fgrep }*.js` :
-        '**' );
+        '**',
+    tgrep = yargs.argv.tgrep;
 
 gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
     
@@ -121,14 +122,15 @@ gulp.task( 'docs', () => {
 
 gulp.task( 'test', [ 'dist' ], ( done ) => {
     gulp.src( [ 'dist/*.js' ] )
-        .pipe( fileFilter )
+        .pipe( filter( fgrep ) )
         .pipe( debug( { title: 'Testing' } ) )
         .pipe( istanbul() )
         .pipe( istanbul.hookRequire() )
         .on( 'finish', () => {
-            gulp.src( [ 'test/*.js' ], { read: false } )
+            gulp.src( [ 'test/*.js' ] )
+                .pipe( filter( fgrep ) )
                 .pipe( mocha( {
-                    grep: yargs.argv.tgrep
+                    grep: tgrep
                 } ) )
                 .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
                 .on( 'end', done );
@@ -137,7 +139,7 @@ gulp.task( 'test', [ 'dist' ], ( done ) => {
 
 gulp.task( 'benchmark', [ 'dist' ], () => {
     return gulp.src( [ 'benchmark/*.js' ] )
-        .pipe( fileFilter )
+        .pipe( filter( fgrep ) )
         .pipe( debug( { title: 'Benchmarking' } ) )
         .pipe( benchmark() )
         .pipe( gulp.dest( './benchmark' ) );
