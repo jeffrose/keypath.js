@@ -2,6 +2,8 @@
 
 import Null from './null';
 import { ArrayExpression, CallExpression, ExpressionStatement, Identifier, Literal, MemberExpression, Program, SequenceExpression /*, Punctuator*/ } from './builder/node';
+import Position from './builder/position';
+import SourceLocation from './builder/sourceLocation';
 
 /**
  * @class Builder
@@ -20,6 +22,19 @@ Builder.prototype = new Null();
 
 Builder.prototype.constructor = Builder;
 
+Builder.prototype.arrayExpression = function( list ){
+    var // "+ 1" to take the ']' into account
+        end = new Position( this.line, list[ list.length - 1 ].loc.end.column + 1 ),
+        location, start;
+    
+    this.consume( '[' );
+    
+    start = new Position( this.line, this.column );
+    location = new SourceLocation( start, end );
+    
+    return new ArrayExpression( list, location );
+};
+
 /**
  * @function
  * @param {external:string} text
@@ -35,6 +50,12 @@ Builder.prototype.build = function( text ){
      */
     this.tokens = this.lexer.lex( text );
     
+    //console.log( 'BUILD' );
+    //console.log( '- ', this.text.length, 'CHARS', this.text );
+    //console.log( '- ', this.tokens.length, 'TOKENS', this.tokens );
+    
+    this.column = this.tokens.length;
+    
     var program = this.program();
     
     if( this.tokens.length ){
@@ -49,15 +70,26 @@ Builder.prototype.build = function( text ){
  * @returns {CallExpression} The call expression node
  */
 Builder.prototype.callExpression = function(){
-    var args = this.list( '(' );
+    var // "+ 1" to take the ')' into account
+        end = new Position( this.line, this.column + 1 ),
+        args = this.list( '(' ),
+        callee, location, start;
+        
     this.consume( '(' );
-    var callee = this.expression();
+    
+    callee = this.expression();
+    
+    start = callee === null ?
+        new Position( this.line, this.column ) :
+        callee.loc.start;
     
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
     //console.log( '- ARGUMENTS', args, args.length );
     
-    return new CallExpression( callee, args );
+    location = new SourceLocation( start, end );
+    
+    return new CallExpression( callee, args, location );
 };
 
 /**
@@ -95,6 +127,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     
     if( token ){
         this.tokens.pop();
+        this.column--;
         return token;
     }
     
@@ -113,10 +146,9 @@ Builder.prototype.expression = function(){
         if( this.expect( ']' ) ){
             list = this.list( '[' );
             if( this.tokens.length === 1 ){
-                expression = new ArrayExpression( list );
-                this.consume( '[' );
+                expression = this.arrayExpression( list );
             } else if( list.length > 1 ){
-                expression = new SequenceExpression( list );
+                expression = this.sequenceExpression( list );
             } else {
                 expression = list[ 0 ];
             }
@@ -164,13 +196,18 @@ Builder.prototype.expressionStatement = function(){
  * @throws {SyntaxError} If the token is not an identifier
  */
 Builder.prototype.identifier = function(){
-    var token = this.consume();
+    var end = new Position( this.line, this.column ),
+        token = this.consume(),
+        location, start;
     
     if( !( token.type === 'identifier' ) ){
         this.throwError( 'Identifier expected' );
     }
     
-    return new Identifier( token.value );
+    start = new Position( this.line, this.column );
+    location = new SourceLocation( start, end );
+    
+    return new Identifier( token.value, location );
 };
 
 /**
@@ -178,21 +215,26 @@ Builder.prototype.identifier = function(){
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
-    var token = this.consume();
+    var end = new Position( this.line, this.column ),
+        token = this.consume(),
+        literal, location, start, value;
     
     if( !( token.type === 'literal' ) ){
         this.throwError( 'Literal expected' );
     }
     
-    var value = token.value,
+    value = token.value;
+
+    literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
+        // String Literal
+        value.substring( 1, value.length - 1 ) :
+        // Numeric Literal
+        parseFloat( value );
     
-        literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
-            // String Literal
-            value.substring( 1, value.length - 1 ) :
-            // Numeric Literal
-            parseFloat( value );
+    start = new Position( this.line, this.column );
+    location = new SourceLocation( start, end );
     
-    return new Literal( literal );
+    return new Literal( literal, location );
 };
 
 /**
@@ -219,14 +261,18 @@ Builder.prototype.list = function( terminator ){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
-    var object = this.expression();
+    var // "+ 1" to take the ']' into account, but only for computed member expressions
+        end = new Position( this.line, property.loc.end.column + ( computed ? 1 : 0 ) ),
+        object = this.expression(),
+        start = object.loc.start,
+        location = new SourceLocation( start, end );
     
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
     //console.log( '- PROPERTY', property );
     //console.log( '- COMPUTED', computed );
     
-    return new MemberExpression( object, property, computed );
+    return new MemberExpression( object, property, computed, location );
 };
 
 /**
@@ -281,26 +327,27 @@ Builder.prototype.peekAt = function( position, first, second, third, fourth ){
 Builder.prototype.program = function(){
     var body = [];
     
+    this.line = 1;
+    
     while( true ){
         if( this.tokens.length ){
             body.push( this.expressionStatement() );
+            this.line++;
         } else {
             return new Program( body );
         }
     }
 };
 
-/*
-Builder.prototype.punctuator = function(){
-    var token = this.consume();
+Builder.prototype.sequenceExpression = function( list ){
+    var // "- 1" to take the '[' into account
+        start = new Position( this.line, this.column - 1 ),
+        // "+ 1" to take the ']' into account
+        end = new Position( this.line, list[ list.length - 1 ].loc.end.column + 1 ),
+        location = new SourceLocation( start, end );
     
-    if( !( token.type === 'punctuator' ) ){
-        this.throwError( 'Punctuator expected' );
-    }
-    
-    return new Punctuator( token.value );
+    return new SequenceExpression( list, location );
 };
-*/
 
 /**
  * @function

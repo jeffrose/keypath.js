@@ -1,7 +1,10 @@
 'use strict';
 
 import Null from '../null';
-import nextId from '../uuid';
+import Position from './position';
+import SourceLocation from './sourceLocation';
+
+var nodeId = 0;
 
 /**
  * @typedef {external:string} Builder~NodeType
@@ -12,20 +15,26 @@ import nextId from '../uuid';
  * @extends Null
  * @param {Builder~NodeType} type A node type
  */
-function Node( type ){
+function Node( type, location ){
     
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
     }
     
+    if( arguments.length > 1 && !( location instanceof SourceLocation ) ){
+        throw new TypeError( 'location must be an instance of SourceLocation' );
+    }
+    
     /**
      * @member {external:number} Builder~Node#id
      */
-    this.id = nextId();
+    this.id = ++nodeId;
     /**
      * @member {Builder~NodeType} Builder~Node#type
      */
     this.type = type;
+    
+    this.loc = location || null;
 }
 
 Node.prototype = new Null();
@@ -34,20 +43,12 @@ Node.prototype.constructor = Node;
 
 /**
  * @function
- * @param {Builder~NodeType} type A node type
- * @returns {external:boolean} Whether or not the node is of the type provided.
- */
-Node.prototype.is = function( type ){
-    return this.type === type;
-};
-
-/**
- * @function
  * @returns {external:Object} A JSON representation of the node
  */
 Node.prototype.toJSON = function(){
     const json = new Null();
     
+    json.loc = this.loc.toJSON();
     json.type = this.type;
     
     return json;
@@ -72,8 +73,8 @@ export { Node as default };
  * @extends Builder~Node
  * @param {Builder~NodeType} statementType A node type
  */
-function Statement( statementType ){
-    Node.call( this, statementType );
+function Statement( statementType, location ){
+    Node.call( this, statementType, location );
 }
 
 Statement.prototype = Object.create( Node.prototype );
@@ -85,8 +86,8 @@ Statement.prototype.constructor = Statement;
  * @extends Builder~Node
  * @param {Builder~NodeType} expressionType A node type
  */
-function Expression( expressionType ){
-    Node.call( this, expressionType );
+function Expression( expressionType, location ){
+    Node.call( this, expressionType, location );
 }
 
 Expression.prototype = Object.create( Node.prototype );
@@ -99,7 +100,15 @@ Expression.prototype.constructor = Expression;
  * @param {external:Array<Builder~Statement>} body
  */
 export function Program( body ){
-    Node.call( this, 'Program' );
+    var start = body.length ?
+            body[ 0 ].loc.start :
+            new Position( 1, 1 ),
+        end = body.length ?
+            body[ body.length - 1 ].loc.end :
+            new Position( 1, 1 ),
+        location = new SourceLocation( start, end );
+        
+    Node.call( this, 'Program', location );
     
     if( !Array.isArray( body ) ){
         throw new TypeError( 'body must be an array' );
@@ -132,8 +141,8 @@ Program.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {external:Array<Builder~Expression>} elements A list of expressions
  */
-export function ArrayExpression( elements ){
-    Expression.call( this, 'ArrayExpression' );
+export function ArrayExpression( elements, location ){
+    Expression.call( this, 'ArrayExpression', location );
     
     if( !( Array.isArray( elements ) ) ){
         throw new TypeError( 'elements must be a list of expressions' );
@@ -168,7 +177,11 @@ ArrayExpression.prototype.toJSON = function(){
  * @extends Builder~Statement
  */
 export function ExpressionStatement( expression ){
-    Statement.call( this, 'ExpressionStatement' );
+    var start = expression.loc.start,
+        end = expression.loc.end,
+        location = new SourceLocation( start, end );
+        
+    Statement.call( this, 'ExpressionStatement', location );
     
     if( !( expression instanceof Expression ) ){
         throw new TypeError( 'argument must be an expression' );
@@ -202,8 +215,8 @@ ExpressionStatement.prototype.toJSON = function(){
  * @param {Builder~Expression} callee
  * @param {Array<Builder~Expression>} args
  */
-export function CallExpression( callee, args ){
-    Expression.call( this, 'CallExpression' );
+export function CallExpression( callee, args, location ){
+    Expression.call( this, 'CallExpression', location );
     
     if( !Array.isArray( args ) ){
         throw new TypeError( 'arguments must be an array' );
@@ -243,8 +256,8 @@ CallExpression.prototype.toJSON = function(){
  * @param {Builder~Expression|Builder~Identifier} property
  * @param {external:boolean} computed=false
  */
-export function MemberExpression( object, property, computed ){
-    Expression.call( this, 'MemberExpression' );
+export function MemberExpression( object, property, computed, location ){
+    Expression.call( this, 'MemberExpression', location );
     
     if( computed ){
         if( !( property instanceof Expression ) ){
@@ -293,8 +306,8 @@ MemberExpression.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {external:string} name The name of the identifier
  */
-export function Identifier( name ){
-    Expression.call( this, 'Identifier' );
+export function Identifier( name, location ){
+    Expression.call( this, 'Identifier', location );
     
     if( typeof name !== 'string' ){
         throw new TypeError( 'name must be a string' );
@@ -327,8 +340,8 @@ Identifier.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {external:string|external:number} value The value of the literal
  */
-export function Literal( value ){
-    Expression.call( this, 'Literal' );
+export function Literal( value, location ){
+    Expression.call( this, 'Literal', location );
     
     const type = typeof value;
     
@@ -363,8 +376,8 @@ Literal.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {Array<Builder~Expression>} expressions The expressions in the sequence
  */
-export function SequenceExpression( expressions ){
-    Expression.call( this, 'SequenceExpression' );
+export function SequenceExpression( expressions, location ){
+    Expression.call( this, 'SequenceExpression', location );
     
     if( !( Array.isArray( expressions ) ) ){
         throw new TypeError( 'expressions must be a list of expressions' );
@@ -399,8 +412,8 @@ SequenceExpression.prototype.toJSON = function(){
  * @extends Builder~Node
  * @param {external:string} value
  */
-export function Punctuator( value ){
-    Node.call( this, 'Punctuator' );
+export function Punctuator( value, location ){
+    Node.call( this, 'Punctuator', location );
     
     if( typeof value !== 'string' ){
         throw new TypeError( 'value must be a string' );

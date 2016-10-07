@@ -1,7 +1,8 @@
 'use strict';
 
 import Null from '../null';
-import nextId from '../uuid';
+
+var tokenId = 0;
 
 /**
  * @class Lexer~Token
@@ -23,7 +24,7 @@ function Token( type, value ){
     /**
      * @member {external:number} Lexer~Token#id
      */
-    this.id = nextId();
+    this.id = ++tokenId;
     /**
      * @member {external:string} Lexer~Token#type
      */
