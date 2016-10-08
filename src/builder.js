@@ -332,7 +332,6 @@ Builder.prototype.program = function(){
     while( true ){
         if( this.tokens.length ){
             body.push( this.expressionStatement() );
-            this.line++;
         } else {
             return new Program( body );
         }

@@ -4,13 +4,24 @@
     (global.Interpreter = factory());
 }(this, (function () { 'use strict';
 
-function forEach( arrayLike, callback ){
+/**
+ * @typedef {external:Function} ForEachCallback
+ * @param {*} item
+ * @param {external:number} index
+ */
+
+/**
+ * @function
+ * @param {Array-Like} list
+ * @param {ForEachCallback} callback
+ */
+function forEach( list, callback ){
     let index = 0,
-        length = arrayLike.length,
+        length = list.length,
         item;
     
     for( ; index < length; index++ ){
-        item = arrayLike[ index ];
+        item = list[ index ];
         callback( item, index );
     }
 }
@@ -26,17 +37,18 @@ Null.prototype.constructor =  Null;
 
 var noop = function(){};
 
-function getValue( target, key, create ){
-    if( create && !( key in target ) ){
-        target[ key ] = {};
-    }
-    return target[ key ];
-}
-
+/**
+ * @function Interpreter~intepretList
+ * @param {Interpreter} interpreter
+ * @param {Array-Like} list
+ * @param {external:boolean} context
+ * @param {external:boolean} create
+ * @returns {Array<external:Function>} The interpreted list
+ */
 function intepretList( interpreter, list, context, create ){
     var result = [];
-    forEach( list, function( expression ){
-        result.push( interpreter.recurse( expression, context, create ) );
+    forEach( list, function( expression, index ){
+        result[ index ] = interpreter.recurse( expression, context, create );
     } );
     return result;
 }
@@ -66,10 +78,10 @@ Interpreter.prototype.constructor = Interpreter;
  * @param {external:string} expression
  */
 Interpreter.prototype.compile = function( expression, create ){
-    var ast = this.builder.build( expression ),
-        body = ast.body,
+    var program = this.builder.build( expression ),
+        body = program.body,
         interpreter = this,
-        fn;
+        expressions, fn;
     
     if( typeof create !== 'boolean' ){
         create = false;
@@ -84,6 +96,9 @@ Interpreter.prototype.compile = function( expression, create ){
     //console.log( 'Interpreting ', expression );
     //console.log( '-------------------------------------------------' );
     
+    //console.log( 'Program', program.loc );
+    interpreter.eol = program.loc.end.column;
+    
     switch( body.length ){
         case 0:
             fn = noop;
@@ -92,7 +107,10 @@ Interpreter.prototype.compile = function( expression, create ){
             fn = interpreter.recurse( body[ 0 ].expression, false, create );
             break;
         default:
-            var expressions = intepretList( interpreter, body, false, create );
+            expressions = [];
+            forEach( body, function( expressionStatement, index ){
+                expressions[ index ] = interpreter.recurse( expressionStatement.expression, false, create );
+            } );
             fn = function( base, value ){
                 var lastValue;
                 
@@ -110,39 +128,49 @@ Interpreter.prototype.compile = function( expression, create ){
 
 Interpreter.prototype.recurse = function( node, context, create ){
     var interpreter = this,
+        isRightMost = false,
         
-        args, fn, left, lhs, name, rhs, right, value;
+        args, fn, left, right;
     
+    //console.log( 'NODE', node.type, node.loc.end.column );
+        
     switch( node.type ){
         case 'ArrayExpression': {
             args = intepretList( interpreter, node.elements, false );
-            value = [];
             
-            return function getArrayExpression( base, setValue ){
+            return function getArrayExpression( base, value ){
                 //console.log( 'Getting ARRAY EXPRESSION' );
+                var result = [], name;
                 forEach( args, function( arg, index ){
-                    name = arg( base, setValue );
-                    value[ index ] = getValue( base, name, create );
+                    name = arg( base, value );
+                    if( create && !( name in base ) ){
+                        base[ name ] = node.order === 1 ?
+                            value :
+                            {};
+                    }
+                    result[ index ] = base[ name ];
                 } );
                 
-                if( value.length === 1 ){
-                    value = value[ 0 ];
+                if( result.length === 1 ){
+                    result = result[ 0 ];
                 }
-                //console.log( '- ARRAY EXPRESSION RESULT', value );
+                //console.log( '- ARRAY EXPRESSION RESULT', result );
                 return context ?
-                    { value: value } :
-                    value;
+                    { value: result } :
+                    result;
             };
         }
         case 'CallExpression': {
             args = intepretList( interpreter, node.arguments, false );
             right = interpreter.recurse( node.callee, true, create );
             
-            return function getCallExpression( base, setValue ){
+            return function getCallExpression( base, value ){
                 //console.log( 'Getting CALL EXPRESSION' );
-                var values = [], value;
-                rhs = right( base );
-                
+                //console.log( '- RIGHT', right.name );
+                var values = [],
+                    rhs = right( base, value ),
+                    result;
+                //console.log( '- RHS', rhs );
                 if( typeof rhs.value === 'function' ){
                     values = [];
                     
@@ -150,125 +178,181 @@ Interpreter.prototype.recurse = function( node, context, create ){
                         values[ index ] = arg( base );
                     } );
                     
-                    value = rhs.value.apply( rhs.context, values );
+                    result = rhs.value.apply( rhs.context, values );
                 } else if( create && typeof rhs.value === 'undefined' ){
                     throw new Error( 'cannot create call expressions' );
                 } else {
                     throw new TypeError( 'call expression must be a function' );
                 }
-                //console.log( '- CALL RESULT', value );
+                //console.log( '- CALL RESULT', result );
                 return context ?
-                    { value: value }:
-                    value;
+                    { value: result }:
+                    result;
             };
         }
+        
+        case 'ExpressionStatement': {
+            left = interpreter.recurse( node.expression, context, create );
+            return function getExpressionStatement( base, value ){
+                //console.log( 'Getting EXPRESSION STATEMENT' );
+                //console.log( '- EXPRESSION STATEMENT LEFT', left.name );
+                var result = left( base, value );
+                //console.log( '- EXPRESSION STATEMENT RESULT', result );
+                return result;
+            };
+        }
+        
         case 'Identifier': {
-            name = node.name;
-            return function getIdentifier( base, setValue ){
+            return function getIdentifier( base, value ){
                 //console.log( 'Getting IDENTIFIER' );
+                var name = node.name,
+                    result;
                 if( typeof base !== 'undefined' ){
-                    value = getValue( base, name, create );
+                    if( create && !( name in base ) ){
+                        base[ name ] = node.order === 1 ?
+                            value :
+                            {};
+                    }
+                    result = base[ name ];
                 }
                 //console.log( '- NAME', name );
-                //console.log( '- IDENTIFIER RESULT', value );
+                //console.log( '- IDENTIFIER RESULT', result );
                 return context ?
-                    { context: base, name: name, value: value } :
-                    value;
+                    { context: base, name: name, value: result } :
+                    result;
             };
         }
         case 'Literal': {
-            value = node.value;
-            return function getLiteral( base, setValue ){
+            return function getLiteral( base ){
+                var result = node.value;
                 //console.log( 'Getting LITERAL' );
-                //console.log( '- LITERAL RESULT', value );
+                //console.log( '- LITERAL RESULT', result );
                 return context ?
-                    { context: undefined, name: undefined, value: value } :
-                    value;
+                    { context: undefined, name: undefined, value: result } :
+                    result;
             };
         }
         case 'MemberExpression': {
             left = interpreter.recurse( node.object, false, create );
-            
+            isRightMost = node.loc.end.column === interpreter.eol;
             // Computed
             if( node.computed ){
                 right = interpreter.recurse( node.property, false, create );
-                fn = function getComputedMember( base, setValue ){
+                fn = function getComputedMember( base, value ){
                     //console.log( 'Getting COMPUTED MEMBER' );
                     //console.log( '- COMPUTED LEFT', left.name );
                     //console.log( '- COMPUTED RIGHT', right.name );
-                    lhs = left( base, setValue );
+                    var lhs = left( base, value ),
+                        result, rhs;
                     //console.log( '- COMPUTED LHS', lhs );
                     if( typeof lhs !== 'undefined' ){
-                        rhs = right( base, setValue );
+                        rhs = right( base, value );
                         //console.log( '- COMPUTED RHS', rhs );
                         if( Array.isArray( lhs ) ){
-                            value = [];
+                            result = [];
                             
                             if( Array.isArray( rhs ) ){
                                 forEach( rhs, function( item, index ){
-                                    value[ index ] = getValue( lhs, item, create );
+                                    if( create && !( item in lhs ) ){
+                                        lhs[ item ] = isRightMost ?
+                                            value :
+                                            {};
+                                    }
+                                    result[ index ] = lhs[ item ];
                                 } );
-                                //console.log( '-- LIST:LIST', value );
+                                //console.log( '-- LIST:LIST', result );
                             } else {
                                 if( typeof rhs === 'number' ){
-                                    value[ 0 ] = lhs[ rhs ];
+                                    if( create && !( rhs in lhs ) ){
+                                        lhs[ rhs ] = isRightMost ?
+                                            value :
+                                            {};
+                                    }
+                                    result[ 0 ] = lhs[ rhs ];
                                 } else {
                                     forEach( lhs, function( item, index ){
-                                        value[ index ] = getValue( item, rhs, create );
+                                        if( create && !( rhs in item ) ){
+                                            item[ rhs ] = isRightMost ?
+                                                value :
+                                                {};
+                                        }
+                                        result[ index ] = item[ rhs ];
                                     } );
                                 }
-                                //console.log( '-- LIST:VALUE', value );
+                                //console.log( '-- LIST:VALUE', result );
                             }
                             
-                            if( value.length === 1 ){
-                                value = value[ 0 ];
+                            if( result.length === 1 ){
+                                result = result[ 0 ];
                             }
                         } else if( Array.isArray( rhs ) ){
-                            value = [];
+                            result = [];
                             
                             forEach( rhs, function( item, index ){
-                                value[ index ] = getValue( lhs, item, create );
+                                if( create && !( item in lhs ) ){
+                                    lhs[ item ] = isRightMost ?
+                                        value :
+                                        {};
+                                }
+                                result[ index ] = lhs[ item ];
                             } );
-                            //console.log( '-- VALUE:LIST', value );
-                            if( value.length === 1 ){
-                                value = value[ 0 ];
+                            //console.log( '-- VALUE:LIST', result );
+                            if( result.length === 1 ){
+                                result = result[ 0 ];
                             }
                         } else {
-                            value = getValue( lhs, rhs, create );
-                            //console.log( '-- VALUE:VALUE', value );
+                            if( create && !( rhs in lhs ) ){
+                                lhs[ rhs ] = isRightMost ?
+                                    value :
+                                    {};
+                            }
+                            result = lhs[ rhs ];
+                            //console.log( '-- VALUE:VALUE', result );
                         }
                     }
-                    //console.log( '- COMPUTED RESULT', value );
+                    //console.log( '- COMPUTED RESULT', result );
                     return context ?
-                        { context: lhs, name: rhs, value: value } :
-                        value;
+                        { context: lhs, name: rhs, value: result } :
+                        result;
                 };
             
             // Non-computed
             } else {
                 right = node.property.name;
-                fn = function getNonComputedMember( base, setValue ){
+                isRightMost = node.property.loc.end.column === interpreter.eol;
+                fn = function getNonComputedMember( base, value ){
                     //console.log( 'Getting NON-COMPUTED MEMBER' );
                     //console.log( '- NON-COMPUTED LEFT', left.name );
                     //console.log( '- NON-COMPUTED RIGHT', right );
-                    lhs = left( base, setValue );
+                    var lhs = left( base, value ),
+                        result;
                     //console.log( '- NON-COMPUTED LHS', lhs );
                     if( typeof lhs !== 'undefined' ){
                         if( Array.isArray( lhs ) ){
-                            value = [];
+                            result = [];
                             forEach( lhs, function( item, index ){
-                                value[ index ] = getValue( item, right, create );
+                                if( create && !( right in item ) ){
+                                    item[ right ] = isRightMost ?
+                                        value :
+                                        {};
+                                }
+                                result[ index ] = item[ right ];
                             } );
-                            //console.log( '-- LIST:VALUE', value );
+                            //console.log( '-- LIST:VALUE', result );
                         } else {
-                            value = getValue( lhs, right, create );
-                            //console.log( '-- VALUE:VALUE', value );
+                            if( create && !( right in lhs ) ){
+                                lhs[ right ] = isRightMost ?
+                                    value :
+                                    {};
+                            }
+                            result = lhs[ right ];
+                            //console.log( '-- VALUE:VALUE', result );
                         }
                     }
-                    //console.log( '- NON-COMPUTED RESULT', value );
+                    //console.log( '- NON-COMPUTED RESULT', result );
                     return context ?
-                        { context: lhs, name: right, value: value } :
-                        value;
+                        { context: lhs, name: right, value: result } :
+                        result;
                 };
             }
             
@@ -277,16 +361,16 @@ Interpreter.prototype.recurse = function( node, context, create ){
         case 'SequenceExpression': {
             args = intepretList( interpreter, node.expressions, false );
             
-            return function getSequenceExpression( base, setValue ){
+            return function getSequenceExpression( base, value ){
                 //console.log( 'Getting SEQUENCE EXPRESSION' );
-                value = [];
+                var result = [];
                 forEach( args, function( arg, index ){
-                    value[ index ] = arg( base );
+                    result[ index ] = arg( base );
                 } );
-                //console.log( '- SEQUENCE RESULT', value );
+                //console.log( '- SEQUENCE RESULT', result );
                 return context ?
-                    { value: value } :
-                    value;
+                    { value: result } :
+                    result;
             };
         }
         default:

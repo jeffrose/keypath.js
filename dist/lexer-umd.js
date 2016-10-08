@@ -13,11 +13,7 @@ function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
 
-var id = 0;
-
-function nextId(){
-    return ++id;
-}
+var tokenId = 0;
 
 /**
  * @class Lexer~Token
@@ -39,7 +35,7 @@ function Token( type, value ){
     /**
      * @member {external:number} Lexer~Token#id
      */
-    this.id = nextId();
+    this.id = ++tokenId;
     /**
      * @member {external:string} Lexer~Token#type
      */

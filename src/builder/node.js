@@ -102,7 +102,7 @@ Expression.prototype.constructor = Expression;
 export function Program( body ){
     var start = body.length ?
             body[ 0 ].loc.start :
-            new Position( 1, 1 ),
+            new Position( 1, 0 ),
         end = body.length ?
             body[ body.length - 1 ].loc.end :
             new Position( 1, 1 ),

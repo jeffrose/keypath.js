@@ -31,29 +31,40 @@ describe( 'Interpreter', function(){
         } );
         
         it( 'should interpret member expressions', function(){
-            var object = { foo: { bar: { qux: { baz: true } } } },
+            var object = {},
                 array = {
-                    foo: [
-                        { bar: { qux: 123 } },
-                        { bar: { qux: 456 } }
-                    ],
+                    foo: [],
                 },
-                fn;
+                get, set;
             
-            fn = interpreter.compile( 'foo.bar.qux.baz' );
-            expect( fn( object ) ).to.equal( true );
+            get = interpreter.compile( 'foo.bar.qux.baz', false );
+            set = interpreter.compile( 'foo.bar.qux.baz', true );
+            set( object, 123 );
+            expect( get( object ) ).to.equal( 123 );
+            object = {};
             
-            fn = interpreter.compile( 'foo["bar"]["qux"]["baz"]' );
-            expect( fn( object ) ).to.equal( true );
+            get = interpreter.compile( 'foo["bar"]["qux"]["baz"]', false );
+            set = interpreter.compile( 'foo["bar"]["qux"]["baz"]', true );
+            set( object, 123 );
+            expect( get( object ) ).to.equal( 123 );
+            object = {};
             
-            fn = interpreter.compile( '["foo"]["bar"]["qux"]["baz"]' );
-            expect( fn( object ) ).to.equal( true );
+            get = interpreter.compile( '["foo"]["bar"]["qux"]["baz"]', false );
+            set = interpreter.compile( '["foo"]["bar"]["qux"]["baz"]', true );
+            set( object, 123 );
+            expect( get( object ) ).to.equal( 123 );
+            object = {};
             
-            fn = interpreter.compile( 'foo[0].bar.qux' );
-            expect( fn( array ) ).to.equal( 123 );
+            get = interpreter.compile( 'foo[0].bar.qux', false );
+            set = interpreter.compile( 'foo[0].bar.qux', true );
+            set( array, 123 );
+            expect( get( array ) ).to.equal( 123 );
+            //object = {};
             
-            fn = interpreter.compile( 'foo[1]bar.qux' );
-            expect( fn( array ) ).to.equal( 456 );
+            get = interpreter.compile( 'foo[1]bar.qux', false );
+            set = interpreter.compile( 'foo[1]bar.qux', true );
+            set( array, 456 );
+            expect( get( array ) ).to.equal( 456 );
         } );
         
         it( 'should interpret array expressions', function(){
