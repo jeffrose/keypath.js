@@ -96,8 +96,8 @@ Interpreter.prototype.compile = function( expression, create ){
     //console.log( 'Interpreting ', expression );
     //console.log( '-------------------------------------------------' );
     
-    //console.log( 'Program', program.loc );
-    interpreter.eol = program.loc.end.column;
+    //console.log( 'Program', program.range );
+    interpreter.eol = program.range[ 1 ];
     
     switch( body.length ){
         case 0:
@@ -132,19 +132,17 @@ Interpreter.prototype.recurse = function( node, context, create ){
         
         args, fn, left, right;
     
-    //console.log( 'NODE', node.type, node.loc.end.column );
-        
     switch( node.type ){
         case 'ArrayExpression': {
             args = intepretList( interpreter, node.elements, false );
-            
+            isRightMost = node.range[ 1 ] === interpreter.eol;
             return function getArrayExpression( base, value ){
                 //console.log( 'Getting ARRAY EXPRESSION' );
                 var result = [], name;
                 forEach( args, function( arg, index ){
                     name = arg( base, value );
                     if( create && !( name in base ) ){
-                        base[ name ] = node.order === 1 ?
+                        base[ name ] = isRightMost ?
                             value :
                             {};
                     }
@@ -234,7 +232,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
         }
         case 'MemberExpression': {
             left = interpreter.recurse( node.object, false, create );
-            isRightMost = node.loc.end.column === interpreter.eol;
+            isRightMost = node.property.range[ 1 ] + 1 === interpreter.eol;
             // Computed
             if( node.computed ){
                 right = interpreter.recurse( node.property, false, create );
@@ -287,7 +285,6 @@ Interpreter.prototype.recurse = function( node, context, create ){
                             }
                         } else if( Array.isArray( rhs ) ){
                             result = [];
-                            
                             forEach( rhs, function( item, index ){
                                 if( create && !( item in lhs ) ){
                                     lhs[ item ] = isRightMost ?
@@ -319,7 +316,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
             // Non-computed
             } else {
                 right = node.property.name;
-                isRightMost = node.property.loc.end.column === interpreter.eol;
+                isRightMost = node.property.range[ 1 ] === interpreter.eol;
                 fn = function getNonComputedMember( base, value ){
                     //console.log( 'Getting NON-COMPUTED MEMBER' );
                     //console.log( '- NON-COMPUTED LEFT', left.name );

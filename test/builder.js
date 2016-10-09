@@ -29,16 +29,21 @@ describe( 'Builder', function(){
             lexer = builder = expression = program = undefined;
         } );
         
+        it( 'should build programs', function(){
+            program = builder.build( 'foo' );
+            expect( program.range ).to.deep.equal( [ 0, 3 ] );
+            
+            program = builder.build( 'foo.bar[100]' );
+            expect( program.range ).to.deep.equal( [ 0, 12 ] );
+        } );
+        
         it( 'should build identifiers', function(){
             program = builder.build( 'foo' );
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'Identifier' );
             expect( expression.name ).to.equal( 'foo' );
-            expect( expression.loc.start.line ).to.equal( 1 );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.line ).to.equal( 1 );
-            expect( expression.loc.end.column ).to.equal( 1 );
+            expect( expression.range ).to.deep.equal( [ 0, 3 ] );
         } );
         
         it( 'should build literals', function(){
@@ -47,21 +52,25 @@ describe( 'Builder', function(){
             
             expect( expression.type ).to.equal( 'Literal' );
             expect( expression.value ).to.equal( 'foo' );
-            expect( expression.loc.start.line ).to.equal( 1 );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.line ).to.equal( 1 );
-            expect( expression.loc.end.column ).to.equal( 1 );
+            expect( expression.range ).to.deep.equal( [ 0, 5 ] );
             
             program = builder.build( '123' );
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'Literal' );
             expect( expression.value ).to.equal( 123 );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 1 );
+            expect( expression.range ).to.deep.equal( [ 0, 3 ] );
         } );
         
         it( 'should build array expressions', function(){
+            program = builder.build( '[]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'ArrayExpression' );
+            expect( expression ).to.have.property( 'elements' );
+            expect( expression.elements.length ).to.equal( 0 );
+            expect( expression.range ).to.deep.equal( [ 0, 2 ] );
+            
             program = builder.build( '["foo"]' );
             expression = program.body[ 0 ].expression;
             
@@ -69,8 +78,7 @@ describe( 'Builder', function(){
             expect( expression ).to.have.property( 'elements' );
             expect( expression.elements[ 0 ].type ).to.equal( 'Literal' );
             expect( expression.elements[ 0 ].value ).to.equal( 'foo' );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 3 );
+            expect( expression.range ).to.deep.equal( [ 0, 7 ] );
             
             program = builder.build( '["foo","bar"]' );
             expression = program.body[ 0 ].expression;
@@ -81,8 +89,7 @@ describe( 'Builder', function(){
             expect( expression.elements[ 0 ].value ).to.equal( 'foo' );
             expect( expression.elements[ 1 ].type ).to.equal( 'Literal' );
             expect( expression.elements[ 1 ].value ).to.equal( 'bar' );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 5 );
+            expect( expression.range ).to.deep.equal( [ 0, 13 ] );
         } );
     
         it( 'should parse call expressions', function(){
@@ -93,8 +100,7 @@ describe( 'Builder', function(){
             expect( expression.callee.type ).to.equal( 'Identifier' );
             expect( expression.callee.name ).to.equal( 'foo' );
             expect( expression.arguments.length ).to.equal( 0 );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 3 );
+            expect( expression.range ).to.deep.equal( [ 0, 5 ] );
             
             program = builder.build( 'foo(123,456,789)' );
             expression = program.body[ 0 ].expression;
@@ -109,24 +115,18 @@ describe( 'Builder', function(){
             expect( expression.arguments[ 1 ].value ).to.equal( 456 );
             expect( expression.arguments[ 2 ].type ).to.equal( 'Literal' );
             expect( expression.arguments[ 2 ].value ).to.equal( 789 );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 8 );
+            expect( expression.range ).to.deep.equal( [ 0, 16 ] );
             
             program = builder.build( 'foo()()' );
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'CallExpression' );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 5 );
             expect( expression.arguments.length ).to.equal( 0 );
             expect( expression.callee.type ).to.equal( 'CallExpression' );
-            expect( expression.callee.loc.start.column ).to.equal( 0 );
-            expect( expression.callee.loc.end.column ).to.equal( 3 );
             expect( expression.callee.arguments.length ).to.equal( 0 );
             expect( expression.callee.callee.type ).to.equal( 'Identifier' );
             expect( expression.callee.callee.name ).to.equal( 'foo' );
-            expect( expression.callee.callee.loc.start.column ).to.equal( 0 );
-            expect( expression.callee.callee.loc.end.column ).to.equal( 1 );
+            expect( expression.range ).to.deep.equal( [ 0, 7 ] );
             
             program = builder.build( '()' );
             expression = program.body[ 0 ].expression;
@@ -134,8 +134,7 @@ describe( 'Builder', function(){
             expect( expression.type ).to.equal( 'CallExpression' );
             expect( expression.callee ).to.equal( null );
             expect( expression.arguments.length ).to.equal( 0 );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 2 );
+            expect( expression.range ).to.deep.equal( [ 0, 2 ] );
             
             program = builder.build( '()()' );
             expression = program.body[ 0 ].expression;
@@ -143,12 +142,9 @@ describe( 'Builder', function(){
             expect( expression.type ).to.equal( 'CallExpression' );
             expect( expression.arguments.length ).to.equal( 0 );
             expect( expression.callee.type ).to.equal( 'CallExpression' );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 4 );
             expect( expression.callee.callee ).to.equal( null );
             expect( expression.callee.arguments.length ).to.equal( 0 );
-            expect( expression.callee.loc.start.column ).to.equal( 0 );
-            expect( expression.callee.loc.end.column ).to.equal( 2 );
+            expect( expression.range ).to.deep.equal( [ 0, 4 ] );
         } );
     
         it( 'should parse computed member expressions', function(){
@@ -156,24 +152,17 @@ describe( 'Builder', function(){
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'MemberExpression' );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 4 );
             expect( expression.computed ).to.equal( true );
             expect( expression.object.type ).to.equal( 'Identifier' );
             expect( expression.object.name ).to.equal( 'foo' );
-            expect( expression.object.loc.start.column ).to.equal( 0 );
-            expect( expression.object.loc.end.column ).to.equal( 1 );
             expect( expression.property.type ).to.equal( 'Literal' );
             expect( expression.property.value ).to.equal( 123 );
-            expect( expression.property.loc.start.column ).to.equal( 2 );
-            expect( expression.property.loc.end.column ).to.equal( 3 );
+            expect( expression.range ).to.deep.equal( [ 0, 8 ] );
             
             program = builder.build( 'foo[123][456]' ),
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'MemberExpression' );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 7 );
             expect( expression.computed ).to.equal( true );
             expect( expression.object.type ).to.equal( 'MemberExpression' );
             expect( expression.object.computed ).to.equal( true );
@@ -183,6 +172,7 @@ describe( 'Builder', function(){
             expect( expression.object.property.value ).to.equal( 123 );
             expect( expression.property.type ).to.equal( 'Literal' );
             expect( expression.property.value ).to.equal( 456 );
+            expect( expression.range ).to.deep.equal( [ 0, 13 ] );
         } );
         
         it( 'should build sequence expressions', function(){
@@ -190,19 +180,16 @@ describe( 'Builder', function(){
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'MemberExpression' );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 7 );
             expect( expression.computed ).to.equal( true );
             expect( expression.object.type ).to.equal( 'Identifier' );
             expect( expression.object.name ).to.equal( 'foo' );
             expect( expression.property.type ).to.equal( 'SequenceExpression' );
             expect( expression.property ).to.have.property( 'expressions' );
-            expect( expression.property.loc.start.column ).to.equal( 1 );
-            expect( expression.property.loc.end.column ).to.equal( 6 );
             expect( expression.property.expressions[ 0 ].type ).to.equal( 'Literal' );
             expect( expression.property.expressions[ 0 ].value ).to.equal( 123 );
             expect( expression.property.expressions[ 1 ].type ).to.equal( 'Literal' );
             expect( expression.property.expressions[ 1 ].value ).to.equal( 456 );
+            expect( expression.property.range ).to.deep.equal( [ 4, 11 ] );
         } );
         
         it( 'should parse non-computed member expressions', function(){
@@ -211,31 +198,25 @@ describe( 'Builder', function(){
             
             expect( expression.type ).to.equal( 'MemberExpression' );
             expect( expression.computed ).to.equal( false );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 3 );
             expect( expression ).to.have.property( 'object' );
             expect( expression ).to.have.property( 'property' );
             expect( expression.object.type ).to.equal( 'Identifier' );
             expect( expression.object.name ).to.equal( 'foo' );
-            expect( expression.object.loc.start.column ).to.equal( 0 );
-            expect( expression.object.loc.end.column ).to.equal( 1 );
             expect( expression.property.type ).to.equal( 'Identifier' );
             expect( expression.property.name ).to.equal( 'bar' );
-            expect( expression.property.loc.start.column ).to.equal( 2 );
-            expect( expression.property.loc.end.column ).to.equal( 3 );
+            expect( expression.range ).to.deep.equal( [ 0, 7 ] );
             
             program = builder.build( '["foo","bar"].qux' );
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'MemberExpression' );
             expect( expression.computed ).to.equal( false );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 7 );
             expect( expression ).to.have.property( 'object' );
             expect( expression ).to.have.property( 'property' );
             expect( expression.object.type ).to.equal( 'ArrayExpression' );
             expect( expression.property.type ).to.equal( 'Identifier' );
             expect( expression.property.name ).to.equal( 'qux' );
+            expect( expression.range ).to.deep.equal( [ 0, 17 ] );
         } );
         
         it( 'should parse implied member expressions', function(){
@@ -244,29 +225,26 @@ describe( 'Builder', function(){
             
             expect( expression.type ).to.equal( 'MemberExpression' );
             expect( expression.computed ).to.equal( false );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 4 );
+            expect( expression.range ).to.deep.equal( [ 0, 8 ] );
             
             program = builder.build( '["foo"]bar' ),
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'MemberExpression' );
             expect( expression.computed ).to.equal( false );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 4 );
+            expect( expression.range ).to.deep.equal( [ 0, 10 ] );
             
             program = builder.build( '["foo","bar"]qux' );
             expression = program.body[ 0 ].expression;
             
             expect( expression.type ).to.equal( 'MemberExpression' );
             expect( expression.computed ).to.equal( false );
-            expect( expression.loc.start.column ).to.equal( 0 );
-            expect( expression.loc.end.column ).to.equal( 6 );
             expect( expression ).to.have.property( 'object' );
             expect( expression ).to.have.property( 'property' );
             expect( expression.object.type ).to.equal( 'ArrayExpression' );
             expect( expression.property.type ).to.equal( 'Identifier' );
             expect( expression.property.name ).to.equal( 'qux' );
+            expect( expression.range ).to.deep.equal( [ 0, 16 ] );
         } );
         
         it( 'should not consume non-existent tokens', function(){

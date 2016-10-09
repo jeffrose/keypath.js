@@ -312,68 +312,19 @@ Lexer.prototype.toString = function(){
     return this.buffer;
 };
 
-function Position( line, column ){
-    if( typeof line !== 'number' || line < 1 ){
-        throw new TypeError( 'line must be a positive number' );
-    }
-    
-    if( typeof column !== 'number' || column < 0 ){
-        throw new TypeError( 'column must be a positive number or 0' );
-    }
-    
-    this.line = line;
-    this.column = column;
-}
+var Syntax = new Null();
 
-Position.prototype = new Null();
-
-Position.prototype.constructor = Position;
-
-Position.prototype.toJSON = function(){
-    var json = new Null();
-    
-    json.line = this.line;
-    json.column = this.column;
-    
-    return json;
-};
-
-Position.prototype.toString = function(){
-    return this.line + ',' + this.column;
-};
-
-function SourceLocation( start, end ){
-    if( !( start instanceof Position ) ){
-        throw new TypeError( 'start must be a position' );
-    }
-    
-    if( !( end instanceof Position ) ){
-        throw new TypeError( 'end must be a position' );
-    }
-    
-    this.source = null;
-    this.start = start;
-    this.end = end;
-}
-
-SourceLocation.prototype = new Null();
-
-SourceLocation.prototype.constructor = SourceLocation;
-
-SourceLocation.prototype.toJSON = function(){
-    var json = new Null();
-    
-    json.start = this.start.toJSON();
-    json.end = this.end.toJSON();
-    
-    return json;
-};
-
-SourceLocation.prototype.toString = function(){
-    return this.start.toString() + ':' + this.end.toString();
-};
+Syntax.ArrayExpression      = 'ArrayExpression';
+Syntax.CallExpression       = 'CallExpression';
+Syntax.ExpressionStatement  = 'ExpressionStatement';
+Syntax.Identifier           = 'Identifier';
+Syntax.Literal              = 'Literal';
+Syntax.MemberExpression     = 'MemberExpression';
+Syntax.Program              = 'Program';
+Syntax.SequenceExpression   = 'SequenceExpression';
 
 var nodeId = 0;
+var literalTypes = 'boolean number string'.split( ' ' );
 
 /**
  * @typedef {external:string} Builder~NodeType
@@ -384,14 +335,10 @@ var nodeId = 0;
  * @extends Null
  * @param {Builder~NodeType} type A node type
  */
-function Node( type, location ){
+function Node( type ){
     
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
-    }
-    
-    if( arguments.length > 1 && !( location instanceof SourceLocation ) ){
-        throw new TypeError( 'location must be an instance of SourceLocation' );
     }
     
     /**
@@ -402,8 +349,6 @@ function Node( type, location ){
      * @member {Builder~NodeType} Builder~Node#type
      */
     this.type = type;
-    
-    this.loc = location || null;
 }
 
 Node.prototype = new Null();
@@ -417,7 +362,6 @@ Node.prototype.constructor = Node;
 Node.prototype.toJSON = function(){
     const json = new Null();
     
-    json.loc = this.loc.toJSON();
     json.type = this.type;
     
     return json;
@@ -436,185 +380,17 @@ Node.prototype.valueOf = function(){
 };
 
 /**
- * @class Builder~Statement
- * @extends Builder~Node
- * @param {Builder~NodeType} statementType A node type
- */
-function Statement( statementType, location ){
-    Node.call( this, statementType, location );
-}
-
-Statement.prototype = Object.create( Node.prototype );
-
-Statement.prototype.constructor = Statement;
-
-/**
  * @class Builder~Expression
  * @extends Builder~Node
  * @param {Builder~NodeType} expressionType A node type
  */
-function Expression( expressionType, location ){
-    Node.call( this, expressionType, location );
+function Expression( expressionType ){
+    Node.call( this, expressionType );
 }
 
 Expression.prototype = Object.create( Node.prototype );
 
 Expression.prototype.constructor = Expression;
-
-/**
- * @class Builder~Program
- * @extends Builder~Node
- * @param {external:Array<Builder~Statement>} body
- */
-function Program( body ){
-    var start = body.length ?
-            body[ 0 ].loc.start :
-            new Position( 1, 0 ),
-        end = body.length ?
-            body[ body.length - 1 ].loc.end :
-            new Position( 1, 1 ),
-        location = new SourceLocation( start, end );
-        
-    Node.call( this, 'Program', location );
-    
-    if( !Array.isArray( body ) ){
-        throw new TypeError( 'body must be an array' );
-    }
-    
-    /**
-     * @member {external:Array<Builder~Statement>}
-     */
-    this.body = body || [];
-}
-
-Program.prototype = Object.create( Node.prototype );
-
-Program.prototype.constructor = Program;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the program
- */
-Program.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.body = this.body.map( ( node ) => node.toJSON() );
-    
-    return json;
-};
-
-/**
- * @class Builder~ArrayExpression
- * @extends Builder~Expression
- * @param {external:Array<Builder~Expression>} elements A list of expressions
- */
-function ArrayExpression( elements, location ){
-    Expression.call( this, 'ArrayExpression', location );
-    
-    if( !( Array.isArray( elements ) ) ){
-        throw new TypeError( 'elements must be a list of expressions' );
-    }
-    
-    /**
-     * @member {Array<Builder~Expression>}
-     */
-    this.elements = elements;
-}
-
-ArrayExpression.prototype = Object.create( Expression.prototype );
-
-ArrayExpression.prototype.constructor = ArrayExpression;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the array expression
- */
-ArrayExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.elements = this.elements.map( function( element ){
-        return element.toJSON();
-    } );
-    
-    return json;
-};
-
-/**
- * @class Builder~ExpressionStatement
- * @extends Builder~Statement
- */
-function ExpressionStatement( expression ){
-    var start = expression.loc.start,
-        end = expression.loc.end,
-        location = new SourceLocation( start, end );
-        
-    Statement.call( this, 'ExpressionStatement', location );
-    
-    if( !( expression instanceof Expression ) ){
-        throw new TypeError( 'argument must be an expression' );
-    }
-    
-    /**
-     * @member {Builder~Expression}
-     */
-    this.expression = expression;
-}
-
-ExpressionStatement.prototype = Object.create( Statement.prototype );
-
-ExpressionStatement.prototype.constructor = ExpressionStatement;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the expression statement
- */
-ExpressionStatement.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.expression = this.expression.toJSON();
-    
-    return json;
-};
-
-/**
- * @class Builder~CallExpression
- * @extends Builder~Expression
- * @param {Builder~Expression} callee
- * @param {Array<Builder~Expression>} args
- */
-function CallExpression( callee, args, location ){
-    Expression.call( this, 'CallExpression', location );
-    
-    if( !Array.isArray( args ) ){
-        throw new TypeError( 'arguments must be an array' );
-    }
-    
-    /**
-     * @member {Builder~Expression}
-     */
-    this.callee = callee;
-    /**
-     * @member {Array<Builder~Expression>}
-     */
-    this.arguments = args;
-}
-
-CallExpression.prototype = Object.create( Expression.prototype );
-
-CallExpression.prototype.constructor = CallExpression;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the call expression
- */
-CallExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.callee    = this.callee.toJSON();
-    json.arguments = this.arguments.map( ( node ) => node.toJSON() );
-    
-    return json;
-};
 
 /**
  * @class Builder~MemberExpression
@@ -623,18 +399,8 @@ CallExpression.prototype.toJSON = function(){
  * @param {Builder~Expression|Builder~Identifier} property
  * @param {external:boolean} computed=false
  */
-function MemberExpression( object, property, computed, location ){
-    Expression.call( this, 'MemberExpression', location );
-    
-    if( computed ){
-        if( !( property instanceof Expression ) ){
-            throw new TypeError( 'property must be an expression when computed is true' );
-        }
-    } else {
-        if( !( property instanceof Identifier$1 ) ){
-            throw new TypeError( 'property must be an identifier when computed is false' );
-        }
-    }
+function MemberExpression( object, property, computed ){
+    Expression.call( this, Syntax.MemberExpression );
     
     /**
      * @member {Builder~Expression}
@@ -669,12 +435,180 @@ MemberExpression.prototype.toJSON = function(){
 };
 
 /**
+ * @class Builder~Program
+ * @extends Builder~Node
+ * @param {external:Array<Builder~Statement>} body
+ */
+function Program( body ){
+    Node.call( this, Syntax.Program );
+    
+    if( !Array.isArray( body ) ){
+        throw new TypeError( 'body must be an array' );
+    }
+    
+    /**
+     * @member {external:Array<Builder~Statement>}
+     */
+    this.body = body || [];
+}
+
+Program.prototype = Object.create( Node.prototype );
+
+Program.prototype.constructor = Program;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the program
+ */
+Program.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.body = this.body.map( ( node ) => node.toJSON() );
+    
+    return json;
+};
+
+/**
+ * @class Builder~Statement
+ * @extends Builder~Node
+ * @param {Builder~NodeType} statementType A node type
+ */
+function Statement( statementType ){
+    Node.call( this, statementType );
+}
+
+Statement.prototype = Object.create( Node.prototype );
+
+Statement.prototype.constructor = Statement;
+
+/**
+ * @class Builder~ArrayExpression
+ * @extends Builder~Expression
+ * @param {external:Array<Builder~Expression>} elements A list of expressions
+ */
+function ArrayExpression( elements ){
+    Expression.call( this, Syntax.ArrayExpression );
+    
+    if( !( Array.isArray( elements ) ) ){
+        throw new TypeError( 'elements must be a list of expressions' );
+    }
+    
+    /**
+     * @member {Array<Builder~Expression>}
+     */
+    this.elements = elements;
+}
+
+ArrayExpression.prototype = Object.create( Expression.prototype );
+
+ArrayExpression.prototype.constructor = ArrayExpression;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the array expression
+ */
+ArrayExpression.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.elements = this.elements.map( function( element ){
+        return element.toJSON();
+    } );
+    
+    return json;
+};
+
+/**
+ * @class Builder~CallExpression
+ * @extends Builder~Expression
+ * @param {Builder~Expression} callee
+ * @param {Array<Builder~Expression>} args
+ */
+function CallExpression( callee, args ){
+    Expression.call( this, Syntax.CallExpression );
+    
+    if( !Array.isArray( args ) ){
+        throw new TypeError( 'arguments must be an array' );
+    }
+    
+    /**
+     * @member {Builder~Expression}
+     */
+    this.callee = callee;
+    /**
+     * @member {Array<Builder~Expression>}
+     */
+    this.arguments = args;
+}
+
+CallExpression.prototype = Object.create( Expression.prototype );
+
+CallExpression.prototype.constructor = CallExpression;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the call expression
+ */
+CallExpression.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.callee    = this.callee.toJSON();
+    json.arguments = this.arguments.map( ( node ) => node.toJSON() );
+    
+    return json;
+};
+
+function ComputedMemberExpression( object, property ){
+    if( !( property instanceof Expression ) ){
+        throw new TypeError( 'property must be an expression when computed is true' );
+    }
+        
+    MemberExpression.call( this, object, property, true );
+}
+
+ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype );
+
+ComputedMemberExpression.prototype.constructor = ComputedMemberExpression;
+
+/**
+ * @class Builder~ExpressionStatement
+ * @extends Builder~Statement
+ */
+function ExpressionStatement( expression ){
+    Statement.call( this, Syntax.ExpressionStatement );
+    
+    if( !( expression instanceof Expression ) ){
+        throw new TypeError( 'argument must be an expression' );
+    }
+    
+    /**
+     * @member {Builder~Expression}
+     */
+    this.expression = expression;
+}
+
+ExpressionStatement.prototype = Object.create( Statement.prototype );
+
+ExpressionStatement.prototype.constructor = ExpressionStatement;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the expression statement
+ */
+ExpressionStatement.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.expression = this.expression.toJSON();
+    
+    return json;
+};
+
+/**
  * @class Builder~Identifier
  * @extends Builder~Expression
  * @param {external:string} name The name of the identifier
  */
-function Identifier$1( name, location ){
-    Expression.call( this, 'Identifier', location );
+function Identifier$1( name ){
+    Expression.call( this, Syntax.Identifier );
     
     if( typeof name !== 'string' ){
         throw new TypeError( 'name must be a string' );
@@ -707,14 +641,17 @@ Identifier$1.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {external:string|external:number} value The value of the literal
  */
-function Literal$1( value, location ){
-    Expression.call( this, 'Literal', location );
+function Literal$1( value, raw ){
+    Expression.call( this, Syntax.Literal );
     
-    const type = typeof value;
-    
-    if( 'boolean number string'.split( ' ' ).indexOf( type ) === -1 && value !== null && !( value instanceof RegExp ) ){
-        throw new TypeError( 'value must be a boolean, number, string, null, or instance of RegExp' );
+    if( literalTypes.indexOf( typeof value ) === -1 ){
+        throw new TypeError( 'value must be a boolean, number, or string' );
     }
+    
+    /**
+     * @member {external:string}
+     */
+    this.raw = raw;
     
     /**
      * @member {external:string|external:number}
@@ -743,8 +680,8 @@ Literal$1.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {Array<Builder~Expression>} expressions The expressions in the sequence
  */
-function SequenceExpression( expressions, location ){
-    Expression.call( this, 'SequenceExpression', location );
+function SequenceExpression( expressions ){
+    Expression.call( this, Syntax.SequenceExpression );
     
     if( !( Array.isArray( expressions ) ) ){
         throw new TypeError( 'expressions must be a list of expressions' );
@@ -774,11 +711,17 @@ SequenceExpression.prototype.toJSON = function(){
     return json;
 };
 
-/**
- * @class Builder~Punctuator
- * @extends Builder~Node
- * @param {external:string} value
- */
+function StaticMemberExpression( object, property ){
+    if( !( property instanceof Identifier$1 ) ){
+        throw new TypeError( 'property must be an identifier when computed is false' );
+    }
+        
+    MemberExpression.call( this, object, property, false );
+}
+
+StaticMemberExpression.prototype = Object.create( MemberExpression.prototype );
+
+StaticMemberExpression.prototype.constructor = StaticMemberExpression;
 
 /**
  * @class Builder
@@ -798,16 +741,15 @@ Builder.prototype = new Null();
 Builder.prototype.constructor = Builder;
 
 Builder.prototype.arrayExpression = function( list ){
-    var // "+ 1" to take the ']' into account
-        end = new Position( this.line, list[ list.length - 1 ].loc.end.column + 1 ),
-        location, start;
-    
+    var end = ( list.length ? list[ list.length - 1 ].range[ 1 ] : 1 ) + 1,
+        node;
+        
     this.consume( '[' );
     
-    start = new Position( this.line, this.column );
-    location = new SourceLocation( start, end );
+    node = new ArrayExpression( list );
+    node.range = [ this.column, end ];
     
-    return new ArrayExpression( list, location );
+    return node;
 };
 
 /**
@@ -829,7 +771,7 @@ Builder.prototype.build = function( text ){
     //console.log( '- ', this.text.length, 'CHARS', this.text );
     //console.log( '- ', this.tokens.length, 'TOKENS', this.tokens );
     
-    this.column = this.tokens.length;
+    this.column = this.text.length;
     
     var program = this.program();
     
@@ -845,26 +787,24 @@ Builder.prototype.build = function( text ){
  * @returns {CallExpression} The call expression node
  */
 Builder.prototype.callExpression = function(){
-    var // "+ 1" to take the ')' into account
-        end = new Position( this.line, this.column + 1 ),
+    var end = this.column + 1,
         args = this.list( '(' ),
-        callee, location, start;
+        callee, node, start;
         
     this.consume( '(' );
     
     callee = this.expression();
     
-    start = callee === null ?
-        new Position( this.line, this.column ) :
-        callee.loc.start;
+    start = this.column;
     
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
     //console.log( '- ARGUMENTS', args, args.length );
     
-    location = new SourceLocation( start, end );
+    node = new CallExpression( callee, args );
+    node.range = [ start, end ];
     
-    return new CallExpression( callee, args, location );
+    return node;
 };
 
 /**
@@ -902,7 +842,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     
     if( token ){
         this.tokens.pop();
-        this.column--;
+        this.column -= token.length;
         return token;
     }
     
@@ -962,7 +902,14 @@ Builder.prototype.expression = function(){
  * @returns {ExpressionStatement} An expression statement
  */
 Builder.prototype.expressionStatement = function(){
-    return new ExpressionStatement( this.expression() );
+    var end = this.column,
+        node = this.expression(),
+        start = this.column,
+        expressionStatement = new ExpressionStatement( node );
+    
+    expressionStatement.range = [ start, end ];
+    
+    return expressionStatement;
 };
 
 /**
@@ -971,18 +918,19 @@ Builder.prototype.expressionStatement = function(){
  * @throws {SyntaxError} If the token is not an identifier
  */
 Builder.prototype.identifier = function(){
-    var end = new Position( this.line, this.column ),
+    var end = this.column,
         token = this.consume(),
-        location, start;
+        start = this.column,
+        node;
     
     if( !( token.type === 'identifier' ) ){
         this.throwError( 'Identifier expected' );
     }
     
-    start = new Position( this.line, this.column );
-    location = new SourceLocation( start, end );
+    node = new Identifier$1( token.value );
+    node.range = [ start, end ];
     
-    return new Identifier$1( token.value, location );
+    return node;
 };
 
 /**
@@ -990,26 +938,27 @@ Builder.prototype.identifier = function(){
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
-    var end = new Position( this.line, this.column ),
+    var end = this.column,
         token = this.consume(),
-        literal, location, start, value;
+        start = this.column,
+        node, raw, value;
     
     if( !( token.type === 'literal' ) ){
         this.throwError( 'Literal expected' );
     }
     
-    value = token.value;
+    raw = token.value;
 
-    literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
+    value = raw[ 0 ] === '"' || raw[ 0 ] === "'" ?
         // String Literal
-        value.substring( 1, value.length - 1 ) :
+        raw.substring( 1, raw.length - 1 ) :
         // Numeric Literal
-        parseFloat( value );
+        parseFloat( raw );
     
-    start = new Position( this.line, this.column );
-    location = new SourceLocation( start, end );
+    node = new Literal$1( value, raw );
+    node.range = [ start, end ];
     
-    return new Literal$1( literal, location );
+    return node;
 };
 
 /**
@@ -1036,18 +985,23 @@ Builder.prototype.list = function( terminator ){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
-    var // "+ 1" to take the ']' into account, but only for computed member expressions
-        end = new Position( this.line, property.loc.end.column + ( computed ? 1 : 0 ) ),
+    var end = property.range[ 1 ] + ( computed ? 1 : 0 ),
         object = this.expression(),
-        start = object.loc.start,
-        location = new SourceLocation( start, end );
+        start = this.column,
+        node;
     
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
     //console.log( '- PROPERTY', property );
     //console.log( '- COMPUTED', computed );
     
-    return new MemberExpression( object, property, computed, location );
+    node = computed ?
+        new ComputedMemberExpression( object, property ) :
+        new StaticMemberExpression( object, property );
+    
+    node.range = [ start, end ];
+    
+    return node;
 };
 
 /**
@@ -1100,27 +1054,28 @@ Builder.prototype.peekAt = function( position, first, second, third, fourth ){
  * @returns {Program} A program node
  */
 Builder.prototype.program = function(){
-    var body = [];
-    
-    this.line = 1;
+    var end = this.column,
+        body = [],
+        node;
     
     while( true ){
         if( this.tokens.length ){
             body.push( this.expressionStatement() );
         } else {
-            return new Program( body );
+            node = new Program( body );
+            node.range = [ this.column, end ];
+            return node;
         }
     }
 };
 
 Builder.prototype.sequenceExpression = function( list ){
-    var // "- 1" to take the '[' into account
-        start = new Position( this.line, this.column - 1 ),
-        // "+ 1" to take the ']' into account
-        end = new Position( this.line, list[ list.length - 1 ].loc.end.column + 1 ),
-        location = new SourceLocation( start, end );
+    var end = list[ list.length - 1 ].range[ 1 ],
+        node = new SequenceExpression( list );
     
-    return new SequenceExpression( list, location );
+    node.range = [ this.column, end ];
+    
+    return node;
 };
 
 /**
@@ -1215,8 +1170,8 @@ Interpreter.prototype.compile = function( expression, create ){
     //console.log( 'Interpreting ', expression );
     //console.log( '-------------------------------------------------' );
     
-    //console.log( 'Program', program.loc );
-    interpreter.eol = program.loc.end.column;
+    //console.log( 'Program', program.range );
+    interpreter.eol = program.range[ 1 ];
     
     switch( body.length ){
         case 0:
@@ -1251,19 +1206,17 @@ Interpreter.prototype.recurse = function( node, context, create ){
         
         args, fn, left, right;
     
-    //console.log( 'NODE', node.type, node.loc.end.column );
-        
     switch( node.type ){
         case 'ArrayExpression': {
             args = intepretList( interpreter, node.elements, false );
-            
+            isRightMost = node.range[ 1 ] === interpreter.eol;
             return function getArrayExpression( base, value ){
                 //console.log( 'Getting ARRAY EXPRESSION' );
                 var result = [], name;
                 forEach( args, function( arg, index ){
                     name = arg( base, value );
                     if( create && !( name in base ) ){
-                        base[ name ] = node.order === 1 ?
+                        base[ name ] = isRightMost ?
                             value :
                             {};
                     }
@@ -1353,7 +1306,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
         }
         case 'MemberExpression': {
             left = interpreter.recurse( node.object, false, create );
-            isRightMost = node.loc.end.column === interpreter.eol;
+            isRightMost = node.property.range[ 1 ] + 1 === interpreter.eol;
             // Computed
             if( node.computed ){
                 right = interpreter.recurse( node.property, false, create );
@@ -1406,7 +1359,6 @@ Interpreter.prototype.recurse = function( node, context, create ){
                             }
                         } else if( Array.isArray( rhs ) ){
                             result = [];
-                            
                             forEach( rhs, function( item, index ){
                                 if( create && !( item in lhs ) ){
                                     lhs[ item ] = isRightMost ?
@@ -1438,7 +1390,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
             // Non-computed
             } else {
                 right = node.property.name;
-                isRightMost = node.property.loc.end.column === interpreter.eol;
+                isRightMost = node.property.range[ 1 ] === interpreter.eol;
                 fn = function getNonComputedMember( base, value ){
                     //console.log( 'Getting NON-COMPUTED MEMBER' );
                     //console.log( '- NON-COMPUTED LEFT', left.name );

@@ -1,9 +1,7 @@
 'use strict';
 
 import Null from './null';
-import { ArrayExpression, CallExpression, ExpressionStatement, Identifier, Literal, MemberExpression, Program, SequenceExpression /*, Punctuator*/ } from './builder/node';
-import Position from './builder/position';
-import SourceLocation from './builder/sourceLocation';
+import { ArrayExpression, CallExpression, ComputedMemberExpression, ExpressionStatement, Identifier, Literal, Program, SequenceExpression, StaticMemberExpression } from './builder/node';
 
 /**
  * @class Builder
@@ -23,16 +21,15 @@ Builder.prototype = new Null();
 Builder.prototype.constructor = Builder;
 
 Builder.prototype.arrayExpression = function( list ){
-    var // "+ 1" to take the ']' into account
-        end = new Position( this.line, list[ list.length - 1 ].loc.end.column + 1 ),
-        location, start;
-    
+    var end = ( list.length ? list[ list.length - 1 ].range[ 1 ] : 1 ) + 1,
+        node;
+        
     this.consume( '[' );
     
-    start = new Position( this.line, this.column );
-    location = new SourceLocation( start, end );
+    node = new ArrayExpression( list );
+    node.range = [ this.column, end ];
     
-    return new ArrayExpression( list, location );
+    return node;
 };
 
 /**
@@ -54,7 +51,7 @@ Builder.prototype.build = function( text ){
     //console.log( '- ', this.text.length, 'CHARS', this.text );
     //console.log( '- ', this.tokens.length, 'TOKENS', this.tokens );
     
-    this.column = this.tokens.length;
+    this.column = this.text.length;
     
     var program = this.program();
     
@@ -70,26 +67,24 @@ Builder.prototype.build = function( text ){
  * @returns {CallExpression} The call expression node
  */
 Builder.prototype.callExpression = function(){
-    var // "+ 1" to take the ')' into account
-        end = new Position( this.line, this.column + 1 ),
+    var end = this.column + 1,
         args = this.list( '(' ),
-        callee, location, start;
+        callee, node, start;
         
     this.consume( '(' );
     
     callee = this.expression();
     
-    start = callee === null ?
-        new Position( this.line, this.column ) :
-        callee.loc.start;
+    start = this.column;
     
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
     //console.log( '- ARGUMENTS', args, args.length );
     
-    location = new SourceLocation( start, end );
+    node = new CallExpression( callee, args );
+    node.range = [ start, end ];
     
-    return new CallExpression( callee, args, location );
+    return node;
 };
 
 /**
@@ -127,7 +122,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     
     if( token ){
         this.tokens.pop();
-        this.column--;
+        this.column -= token.length;
         return token;
     }
     
@@ -187,7 +182,14 @@ Builder.prototype.expression = function(){
  * @returns {ExpressionStatement} An expression statement
  */
 Builder.prototype.expressionStatement = function(){
-    return new ExpressionStatement( this.expression() );
+    var end = this.column,
+        node = this.expression(),
+        start = this.column,
+        expressionStatement = new ExpressionStatement( node );
+    
+    expressionStatement.range = [ start, end ];
+    
+    return expressionStatement;
 };
 
 /**
@@ -196,18 +198,19 @@ Builder.prototype.expressionStatement = function(){
  * @throws {SyntaxError} If the token is not an identifier
  */
 Builder.prototype.identifier = function(){
-    var end = new Position( this.line, this.column ),
+    var end = this.column,
         token = this.consume(),
-        location, start;
+        start = this.column,
+        node;
     
     if( !( token.type === 'identifier' ) ){
         this.throwError( 'Identifier expected' );
     }
     
-    start = new Position( this.line, this.column );
-    location = new SourceLocation( start, end );
+    node = new Identifier( token.value );
+    node.range = [ start, end ];
     
-    return new Identifier( token.value, location );
+    return node;
 };
 
 /**
@@ -215,26 +218,27 @@ Builder.prototype.identifier = function(){
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
-    var end = new Position( this.line, this.column ),
+    var end = this.column,
         token = this.consume(),
-        literal, location, start, value;
+        start = this.column,
+        node, raw, value;
     
     if( !( token.type === 'literal' ) ){
         this.throwError( 'Literal expected' );
     }
     
-    value = token.value;
+    raw = token.value;
 
-    literal = value[ 0 ] === '"' || value[ 0 ] === "'" ?
+    value = raw[ 0 ] === '"' || raw[ 0 ] === "'" ?
         // String Literal
-        value.substring( 1, value.length - 1 ) :
+        raw.substring( 1, raw.length - 1 ) :
         // Numeric Literal
-        parseFloat( value );
+        parseFloat( raw );
     
-    start = new Position( this.line, this.column );
-    location = new SourceLocation( start, end );
+    node = new Literal( value, raw );
+    node.range = [ start, end ];
     
-    return new Literal( literal, location );
+    return node;
 };
 
 /**
@@ -261,18 +265,23 @@ Builder.prototype.list = function( terminator ){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
-    var // "+ 1" to take the ']' into account, but only for computed member expressions
-        end = new Position( this.line, property.loc.end.column + ( computed ? 1 : 0 ) ),
+    var end = property.range[ 1 ] + ( computed ? 1 : 0 ),
         object = this.expression(),
-        start = object.loc.start,
-        location = new SourceLocation( start, end );
+        start = this.column,
+        node;
     
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
     //console.log( '- PROPERTY', property );
     //console.log( '- COMPUTED', computed );
     
-    return new MemberExpression( object, property, computed, location );
+    node = computed ?
+        new ComputedMemberExpression( object, property ) :
+        new StaticMemberExpression( object, property );
+    
+    node.range = [ start, end ];
+    
+    return node;
 };
 
 /**
@@ -325,27 +334,28 @@ Builder.prototype.peekAt = function( position, first, second, third, fourth ){
  * @returns {Program} A program node
  */
 Builder.prototype.program = function(){
-    var body = [];
-    
-    this.line = 1;
+    var end = this.column,
+        body = [],
+        node;
     
     while( true ){
         if( this.tokens.length ){
             body.push( this.expressionStatement() );
         } else {
-            return new Program( body );
+            node = new Program( body );
+            node.range = [ this.column, end ];
+            return node;
         }
     }
 };
 
 Builder.prototype.sequenceExpression = function( list ){
-    var // "- 1" to take the '[' into account
-        start = new Position( this.line, this.column - 1 ),
-        // "+ 1" to take the ']' into account
-        end = new Position( this.line, list[ list.length - 1 ].loc.end.column + 1 ),
-        location = new SourceLocation( start, end );
+    var end = list[ list.length - 1 ].range[ 1 ],
+        node = new SequenceExpression( list );
     
-    return new SequenceExpression( list, location );
+    node.range = [ this.column, end ];
+    
+    return node;
 };
 
 /**

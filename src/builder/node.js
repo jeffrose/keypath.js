@@ -1,10 +1,10 @@
 'use strict';
 
 import Null from '../null';
-import Position from './position';
-import SourceLocation from './sourceLocation';
+import Syntax from './syntax';
 
-var nodeId = 0;
+var nodeId = 0,
+    literalTypes = 'boolean number string'.split( ' ' );
 
 /**
  * @typedef {external:string} Builder~NodeType
@@ -15,14 +15,10 @@ var nodeId = 0;
  * @extends Null
  * @param {Builder~NodeType} type A node type
  */
-function Node( type, location ){
+function Node( type ){
     
     if( typeof type !== 'string' ){
         throw new TypeError( 'type must be a string' );
-    }
-    
-    if( arguments.length > 1 && !( location instanceof SourceLocation ) ){
-        throw new TypeError( 'location must be an instance of SourceLocation' );
     }
     
     /**
@@ -33,8 +29,6 @@ function Node( type, location ){
      * @member {Builder~NodeType} Builder~Node#type
      */
     this.type = type;
-    
-    this.loc = location || null;
 }
 
 Node.prototype = new Null();
@@ -48,7 +42,6 @@ Node.prototype.constructor = Node;
 Node.prototype.toJSON = function(){
     const json = new Null();
     
-    json.loc = this.loc.toJSON();
     json.type = this.type;
     
     return json;
@@ -69,185 +62,17 @@ Node.prototype.valueOf = function(){
 export { Node as default };
 
 /**
- * @class Builder~Statement
- * @extends Builder~Node
- * @param {Builder~NodeType} statementType A node type
- */
-function Statement( statementType, location ){
-    Node.call( this, statementType, location );
-}
-
-Statement.prototype = Object.create( Node.prototype );
-
-Statement.prototype.constructor = Statement;
-
-/**
  * @class Builder~Expression
  * @extends Builder~Node
  * @param {Builder~NodeType} expressionType A node type
  */
-function Expression( expressionType, location ){
-    Node.call( this, expressionType, location );
+function Expression( expressionType ){
+    Node.call( this, expressionType );
 }
 
 Expression.prototype = Object.create( Node.prototype );
 
 Expression.prototype.constructor = Expression;
-
-/**
- * @class Builder~Program
- * @extends Builder~Node
- * @param {external:Array<Builder~Statement>} body
- */
-export function Program( body ){
-    var start = body.length ?
-            body[ 0 ].loc.start :
-            new Position( 1, 0 ),
-        end = body.length ?
-            body[ body.length - 1 ].loc.end :
-            new Position( 1, 1 ),
-        location = new SourceLocation( start, end );
-        
-    Node.call( this, 'Program', location );
-    
-    if( !Array.isArray( body ) ){
-        throw new TypeError( 'body must be an array' );
-    }
-    
-    /**
-     * @member {external:Array<Builder~Statement>}
-     */
-    this.body = body || [];
-}
-
-Program.prototype = Object.create( Node.prototype );
-
-Program.prototype.constructor = Program;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the program
- */
-Program.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.body = this.body.map( ( node ) => node.toJSON() );
-    
-    return json;
-};
-
-/**
- * @class Builder~ArrayExpression
- * @extends Builder~Expression
- * @param {external:Array<Builder~Expression>} elements A list of expressions
- */
-export function ArrayExpression( elements, location ){
-    Expression.call( this, 'ArrayExpression', location );
-    
-    if( !( Array.isArray( elements ) ) ){
-        throw new TypeError( 'elements must be a list of expressions' );
-    }
-    
-    /**
-     * @member {Array<Builder~Expression>}
-     */
-    this.elements = elements;
-}
-
-ArrayExpression.prototype = Object.create( Expression.prototype );
-
-ArrayExpression.prototype.constructor = ArrayExpression;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the array expression
- */
-ArrayExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.elements = this.elements.map( function( element ){
-        return element.toJSON();
-    } );
-    
-    return json;
-};
-
-/**
- * @class Builder~ExpressionStatement
- * @extends Builder~Statement
- */
-export function ExpressionStatement( expression ){
-    var start = expression.loc.start,
-        end = expression.loc.end,
-        location = new SourceLocation( start, end );
-        
-    Statement.call( this, 'ExpressionStatement', location );
-    
-    if( !( expression instanceof Expression ) ){
-        throw new TypeError( 'argument must be an expression' );
-    }
-    
-    /**
-     * @member {Builder~Expression}
-     */
-    this.expression = expression;
-}
-
-ExpressionStatement.prototype = Object.create( Statement.prototype );
-
-ExpressionStatement.prototype.constructor = ExpressionStatement;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the expression statement
- */
-ExpressionStatement.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.expression = this.expression.toJSON();
-    
-    return json;
-};
-
-/**
- * @class Builder~CallExpression
- * @extends Builder~Expression
- * @param {Builder~Expression} callee
- * @param {Array<Builder~Expression>} args
- */
-export function CallExpression( callee, args, location ){
-    Expression.call( this, 'CallExpression', location );
-    
-    if( !Array.isArray( args ) ){
-        throw new TypeError( 'arguments must be an array' );
-    }
-    
-    /**
-     * @member {Builder~Expression}
-     */
-    this.callee = callee;
-    /**
-     * @member {Array<Builder~Expression>}
-     */
-    this.arguments = args;
-}
-
-CallExpression.prototype = Object.create( Expression.prototype );
-
-CallExpression.prototype.constructor = CallExpression;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the call expression
- */
-CallExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.callee    = this.callee.toJSON();
-    json.arguments = this.arguments.map( ( node ) => node.toJSON() );
-    
-    return json;
-};
 
 /**
  * @class Builder~MemberExpression
@@ -256,18 +81,8 @@ CallExpression.prototype.toJSON = function(){
  * @param {Builder~Expression|Builder~Identifier} property
  * @param {external:boolean} computed=false
  */
-export function MemberExpression( object, property, computed, location ){
-    Expression.call( this, 'MemberExpression', location );
-    
-    if( computed ){
-        if( !( property instanceof Expression ) ){
-            throw new TypeError( 'property must be an expression when computed is true' );
-        }
-    } else {
-        if( !( property instanceof Identifier ) ){
-            throw new TypeError( 'property must be an identifier when computed is false' );
-        }
-    }
+function MemberExpression( object, property, computed ){
+    Expression.call( this, Syntax.MemberExpression );
     
     /**
      * @member {Builder~Expression}
@@ -302,12 +117,180 @@ MemberExpression.prototype.toJSON = function(){
 };
 
 /**
+ * @class Builder~Program
+ * @extends Builder~Node
+ * @param {external:Array<Builder~Statement>} body
+ */
+export function Program( body ){
+    Node.call( this, Syntax.Program );
+    
+    if( !Array.isArray( body ) ){
+        throw new TypeError( 'body must be an array' );
+    }
+    
+    /**
+     * @member {external:Array<Builder~Statement>}
+     */
+    this.body = body || [];
+}
+
+Program.prototype = Object.create( Node.prototype );
+
+Program.prototype.constructor = Program;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the program
+ */
+Program.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.body = this.body.map( ( node ) => node.toJSON() );
+    
+    return json;
+};
+
+/**
+ * @class Builder~Statement
+ * @extends Builder~Node
+ * @param {Builder~NodeType} statementType A node type
+ */
+function Statement( statementType ){
+    Node.call( this, statementType );
+}
+
+Statement.prototype = Object.create( Node.prototype );
+
+Statement.prototype.constructor = Statement;
+
+/**
+ * @class Builder~ArrayExpression
+ * @extends Builder~Expression
+ * @param {external:Array<Builder~Expression>} elements A list of expressions
+ */
+export function ArrayExpression( elements ){
+    Expression.call( this, Syntax.ArrayExpression );
+    
+    if( !( Array.isArray( elements ) ) ){
+        throw new TypeError( 'elements must be a list of expressions' );
+    }
+    
+    /**
+     * @member {Array<Builder~Expression>}
+     */
+    this.elements = elements;
+}
+
+ArrayExpression.prototype = Object.create( Expression.prototype );
+
+ArrayExpression.prototype.constructor = ArrayExpression;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the array expression
+ */
+ArrayExpression.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.elements = this.elements.map( function( element ){
+        return element.toJSON();
+    } );
+    
+    return json;
+};
+
+/**
+ * @class Builder~CallExpression
+ * @extends Builder~Expression
+ * @param {Builder~Expression} callee
+ * @param {Array<Builder~Expression>} args
+ */
+export function CallExpression( callee, args ){
+    Expression.call( this, Syntax.CallExpression );
+    
+    if( !Array.isArray( args ) ){
+        throw new TypeError( 'arguments must be an array' );
+    }
+    
+    /**
+     * @member {Builder~Expression}
+     */
+    this.callee = callee;
+    /**
+     * @member {Array<Builder~Expression>}
+     */
+    this.arguments = args;
+}
+
+CallExpression.prototype = Object.create( Expression.prototype );
+
+CallExpression.prototype.constructor = CallExpression;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the call expression
+ */
+CallExpression.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.callee    = this.callee.toJSON();
+    json.arguments = this.arguments.map( ( node ) => node.toJSON() );
+    
+    return json;
+};
+
+export function ComputedMemberExpression( object, property ){
+    if( !( property instanceof Expression ) ){
+        throw new TypeError( 'property must be an expression when computed is true' );
+    }
+        
+    MemberExpression.call( this, object, property, true );
+}
+
+ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype );
+
+ComputedMemberExpression.prototype.constructor = ComputedMemberExpression;
+
+/**
+ * @class Builder~ExpressionStatement
+ * @extends Builder~Statement
+ */
+export function ExpressionStatement( expression ){
+    Statement.call( this, Syntax.ExpressionStatement );
+    
+    if( !( expression instanceof Expression ) ){
+        throw new TypeError( 'argument must be an expression' );
+    }
+    
+    /**
+     * @member {Builder~Expression}
+     */
+    this.expression = expression;
+}
+
+ExpressionStatement.prototype = Object.create( Statement.prototype );
+
+ExpressionStatement.prototype.constructor = ExpressionStatement;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the expression statement
+ */
+ExpressionStatement.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.expression = this.expression.toJSON();
+    
+    return json;
+};
+
+/**
  * @class Builder~Identifier
  * @extends Builder~Expression
  * @param {external:string} name The name of the identifier
  */
-export function Identifier( name, location ){
-    Expression.call( this, 'Identifier', location );
+export function Identifier( name ){
+    Expression.call( this, Syntax.Identifier );
     
     if( typeof name !== 'string' ){
         throw new TypeError( 'name must be a string' );
@@ -340,14 +323,17 @@ Identifier.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {external:string|external:number} value The value of the literal
  */
-export function Literal( value, location ){
-    Expression.call( this, 'Literal', location );
+export function Literal( value, raw ){
+    Expression.call( this, Syntax.Literal );
     
-    const type = typeof value;
-    
-    if( 'boolean number string'.split( ' ' ).indexOf( type ) === -1 && value !== null && !( value instanceof RegExp ) ){
-        throw new TypeError( 'value must be a boolean, number, string, null, or instance of RegExp' );
+    if( literalTypes.indexOf( typeof value ) === -1 ){
+        throw new TypeError( 'value must be a boolean, number, or string' );
     }
+    
+    /**
+     * @member {external:string}
+     */
+    this.raw = raw;
     
     /**
      * @member {external:string|external:number}
@@ -376,8 +362,8 @@ Literal.prototype.toJSON = function(){
  * @extends Builder~Expression
  * @param {Array<Builder~Expression>} expressions The expressions in the sequence
  */
-export function SequenceExpression( expressions, location ){
-    Expression.call( this, 'SequenceExpression', location );
+export function SequenceExpression( expressions ){
+    Expression.call( this, Syntax.SequenceExpression );
     
     if( !( Array.isArray( expressions ) ) ){
         throw new TypeError( 'expressions must be a list of expressions' );
@@ -407,36 +393,14 @@ SequenceExpression.prototype.toJSON = function(){
     return json;
 };
 
-/**
- * @class Builder~Punctuator
- * @extends Builder~Node
- * @param {external:string} value
- */
-export function Punctuator( value, location ){
-    Node.call( this, 'Punctuator', location );
-    
-    if( typeof value !== 'string' ){
-        throw new TypeError( 'value must be a string' );
+export function StaticMemberExpression( object, property ){
+    if( !( property instanceof Identifier ) ){
+        throw new TypeError( 'property must be an identifier when computed is false' );
     }
-    
-    /**
-     * @member {external:string}
-     */
-    this.value = value;
+        
+    MemberExpression.call( this, object, property, false );
 }
 
-Punctuator.prototype = Object.create( Node.prototype );
+StaticMemberExpression.prototype = Object.create( MemberExpression.prototype );
 
-Punctuator.prototype.constructor = Punctuator;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the punctuator
- */
-Punctuator.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.value = this.value;
-    
-    return json;
-};
+StaticMemberExpression.prototype.constructor = StaticMemberExpression;
