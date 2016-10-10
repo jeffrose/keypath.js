@@ -13,6 +13,12 @@ function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
 
+var Grammar = new Null();
+
+Grammar.Identifier  = 'Identifier';
+Grammar.Literal     = 'Literal';
+Grammar.Punctuator  = 'Punctuator';
+
 var tokenId = 0;
 
 /**
@@ -82,7 +88,7 @@ Token.prototype.toString = function(){
  * @param {external:string} value
  */
 function Identifier( value ){
-    Token.call( this, 'identifier', value );
+    Token.call( this, Grammar.Identifier, value );
 }
 
 Identifier.prototype = Object.create( Token.prototype );
@@ -95,7 +101,7 @@ Identifier.prototype.constructor = Identifier;
  * @param {external:string} value
  */
 function Literal( value ){
-    Token.call( this, 'literal', value );
+    Token.call( this, Grammar.Literal, value );
 }
 
 Literal.prototype = Object.create( Token.prototype );
@@ -108,7 +114,7 @@ Literal.prototype.constructor = Literal;
  * @param {external:string} value
  */
 function Punctuator( value ){
-    Token.call( this, 'punctuator', value );
+    Token.call( this, Grammar.Punctuator, value );
 }
 
 Punctuator.prototype = Object.create( Token.prototype );
@@ -729,10 +735,6 @@ StaticMemberExpression.prototype.constructor = StaticMemberExpression;
  * @param {Lexer} lexer
  */
 function Builder( lexer ){
-    if( !arguments.length ){
-        throw new TypeError( 'lexer must be provided' );
-    }
-    
     this.lexer = lexer;
 }
 
@@ -754,18 +756,30 @@ Builder.prototype.arrayExpression = function( list ){
 
 /**
  * @function
- * @param {external:string} text
+ * @param {external:string|Array<Builder~Token>} input
  * @returns {Program} The built abstract syntax tree
  */
-Builder.prototype.build = function( text ){
-    /**
-     * @member {external:string}
-     */
-    this.text = text;
-    /**
-     * @member {external:Array<Token>}
-     */
-    this.tokens = this.lexer.lex( text );
+Builder.prototype.build = function( input ){
+    if( typeof input === 'string' ){
+        /**
+         * @member {external:string}
+         */
+        this.text = input;
+        
+        if( typeof this.lexer === 'undefined' ){
+            this.throwError( 'lexer is not defined' );
+        }
+        
+        /**
+         * @member {external:Array<Token>}
+         */
+        this.tokens = this.lexer.lex( input );
+    } else if( Array.isArray( input ) ){
+        this.tokens = input;
+        this.text = input.join( '' );
+    } else {
+        this.throwError( 'invalid input' );
+    }
     
     //console.log( 'BUILD' );
     //console.log( '- ', this.text.length, 'CHARS', this.text );
@@ -867,17 +881,17 @@ Builder.prototype.expression = function(){
             } else {
                 expression = list[ 0 ];
             }
-        } else if( next.type === 'identifier' ){
+        } else if( next.type === Grammar.Identifier ){
             expression = this.identifier();
             next = this.peek();
             
             // Implied member expression
-            if( next && next.type === 'punctuator' ){
+            if( next && next.type === Grammar.Punctuator ){
                 if( next.value === ')' || next.value === ']' ){
                     expression = this.memberExpression( expression, false );
                 }
             }
-        } else if( next.type === 'literal' ){
+        } else if( next.type === Grammar.Literal ){
             expression = this.literal();
         }
         
@@ -923,7 +937,7 @@ Builder.prototype.identifier = function(){
         start = this.column,
         node;
     
-    if( !( token.type === 'identifier' ) ){
+    if( !( token.type === Grammar.Identifier ) ){
         this.throwError( 'Identifier expected' );
     }
     
@@ -943,7 +957,7 @@ Builder.prototype.literal = function(){
         start = this.column,
         node, raw, value;
     
-    if( !( token.type === 'literal' ) ){
+    if( !( token.type === Grammar.Literal ) ){
         this.throwError( 'Literal expected' );
     }
     
@@ -1164,7 +1178,7 @@ Interpreter.prototype.compile = function( expression, create ){
     /**
      * @member {external:string}
      */
-    interpreter.expression = expression;
+    interpreter.expression = this.builder.text;
     
     //console.log( '-------------------------------------------------' );
     //console.log( 'Interpreting ', expression );
@@ -1456,6 +1470,7 @@ Interpreter.prototype.throwError = function( message ){
 var lexer = new Lexer();
 var builder = new Builder( lexer );
 var intrepreter = new Interpreter( builder );
+var cache = {};
 
 /**
  * @class KeyPathExp
@@ -1466,6 +1481,10 @@ var intrepreter = new Interpreter( builder );
 function KeyPathExp( pattern, flags ){
     typeof pattern !== 'string' && ( pattern = '' );
     typeof flags !== 'string' && ( flags = '' );
+    
+    var tokens = pattern in cache ?
+        cache[ pattern ] :
+        cache[ pattern ] = lexer.lex( pattern );
     
     Object.defineProperties( this, {
         'flags': {
@@ -1481,13 +1500,13 @@ function KeyPathExp( pattern, flags ){
             writable: false
         },
         'getter': {
-            value: intrepreter.compile( pattern, false ),
+            value: intrepreter.compile( tokens, false ),
             configurable: false,
             enumerable: false,
             writable: false
         },
         'setter': {
-            value: intrepreter.compile( pattern, true ),
+            value: intrepreter.compile( tokens, true ),
             configurable: false,
             enumerable: false,
             writable: false
@@ -1504,6 +1523,14 @@ KeyPathExp.prototype.constructor = KeyPathExp;
  */
 KeyPathExp.prototype.get = function( target ){
     return this.getter( target );
+};
+
+/**
+ * @function
+ */
+KeyPathExp.prototype.has = function( target ){
+    var result =  this.getter( target );
+    return typeof result !== 'undefined';
 };
 
 /**

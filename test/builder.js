@@ -15,7 +15,7 @@ describe( 'Builder', function(){
         
         expect( builder ).to.have.property( 'lexer' );
         expect( builder.lexer ).to.be.instanceOf( Lexer );
-        expect( () => new Builder() ).to.throw( TypeError );
+        expect( function(){ var b = new Builder(); b.lex( '' ); } ).to.throw( Error );
     } );
     
     describe( 'builder', function(){

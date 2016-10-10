@@ -13,6 +13,12 @@ function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
 
+var Grammar = new Null();
+
+Grammar.Identifier  = 'Identifier';
+Grammar.Literal     = 'Literal';
+Grammar.Punctuator  = 'Punctuator';
+
 var tokenId = 0;
 
 /**
@@ -82,7 +88,7 @@ Token.prototype.toString = function(){
  * @param {external:string} value
  */
 function Identifier( value ){
-    Token.call( this, 'identifier', value );
+    Token.call( this, Grammar.Identifier, value );
 }
 
 Identifier.prototype = Object.create( Token.prototype );
@@ -95,7 +101,7 @@ Identifier.prototype.constructor = Identifier;
  * @param {external:string} value
  */
 function Literal( value ){
-    Token.call( this, 'literal', value );
+    Token.call( this, Grammar.Literal, value );
 }
 
 Literal.prototype = Object.create( Token.prototype );
@@ -108,7 +114,7 @@ Literal.prototype.constructor = Literal;
  * @param {external:string} value
  */
 function Punctuator( value ){
-    Token.call( this, 'punctuator', value );
+    Token.call( this, Grammar.Punctuator, value );
 }
 
 Punctuator.prototype = Object.create( Token.prototype );

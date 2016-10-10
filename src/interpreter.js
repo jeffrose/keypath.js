@@ -58,7 +58,7 @@ Interpreter.prototype.compile = function( expression, create ){
     /**
      * @member {external:string}
      */
-    interpreter.expression = expression;
+    interpreter.expression = this.builder.text;
     
     //console.log( '-------------------------------------------------' );
     //console.log( 'Interpreting ', expression );

@@ -18,14 +18,14 @@ describe( 'Lexer', function(){
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Identifier' );
         expect( tokens[ 0 ] ).to.have.property( 'value', 'abc' );
         
         tokens = lexer.lex( 'abc123' );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Identifier' );
         expect( tokens[ 0 ] ).to.have.property( 'value', 'abc123' );
     } );
     
@@ -34,39 +34,39 @@ describe( 'Lexer', function(){
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '123' );
         
         tokens = lexer.lex( '"abc"' );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
         
         tokens = lexer.lex( "'abc'" );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
         expect( tokens[ 0 ] ).to.have.property( 'value', "'abc'" );
         
         tokens = lexer.lex( '"abc""def"' );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 2 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
-        expect( tokens[ 1 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'Literal' );
         expect( tokens[ 1 ] ).to.have.property( 'value', '"def"' );
         
         tokens = lexer.lex( '"abc"123' );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 2 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
-        expect( tokens[ 1 ] ).to.have.property( 'type', 'literal' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'Literal' );
         expect( tokens[ 1 ] ).to.have.property( 'value', '123' );
     } );
     
@@ -75,19 +75,19 @@ describe( 'Lexer', function(){
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 7 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '.' );
-        expect( tokens[ 1 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 1 ] ).to.have.property( 'value', ',' );
-        expect( tokens[ 2 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 2 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 2 ] ).to.have.property( 'value', '[' );
-        expect( tokens[ 3 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 3 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 3 ] ).to.have.property( 'value', ']' );
-        expect( tokens[ 4 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 4 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 4 ] ).to.have.property( 'value', '(' );
-        expect( tokens[ 5 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 5 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 5 ] ).to.have.property( 'value', ')' );
-        expect( tokens[ 6 ] ).to.have.property( 'type', 'punctuator' );
+        expect( tokens[ 6 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 6 ] ).to.have.property( 'value', '%' );
     } );
     
@@ -113,9 +113,9 @@ describe( 'Lexer', function(){
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 2 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'Identifier' );
         expect( tokens[ 0 ] ).to.have.property( 'value', 'abc' );
-        expect( tokens[ 1 ] ).to.have.property( 'type', 'identifier' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'Identifier' );
         expect( tokens[ 1 ] ).to.have.property( 'value', 'def' );
     } );
     

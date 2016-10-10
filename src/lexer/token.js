@@ -1,5 +1,6 @@
 'use strict';
 
+import Grammar from './grammar';
 import Null from '../null';
 
 var tokenId = 0;
@@ -65,15 +66,13 @@ Token.prototype.toString = function(){
     return String( this.value );
 };
 
-export { Token as default };
-
 /**
  * @class Lexer~Identifier
  * @extends Lexer~Token
  * @param {external:string} value
  */
 export function Identifier( value ){
-    Token.call( this, 'identifier', value );
+    Token.call( this, Grammar.Identifier, value );
 }
 
 Identifier.prototype = Object.create( Token.prototype );
@@ -86,7 +85,7 @@ Identifier.prototype.constructor = Identifier;
  * @param {external:string} value
  */
 export function Literal( value ){
-    Token.call( this, 'literal', value );
+    Token.call( this, Grammar.Literal, value );
 }
 
 Literal.prototype = Object.create( Token.prototype );
@@ -99,9 +98,11 @@ Literal.prototype.constructor = Literal;
  * @param {external:string} value
  */
 export function Punctuator( value ){
-    Token.call( this, 'punctuator', value );
+    Token.call( this, Grammar.Punctuator, value );
 }
 
 Punctuator.prototype = Object.create( Token.prototype );
 
 Punctuator.prototype.constructor = Punctuator;
+
+export { Token as default };

@@ -13,6 +13,12 @@ function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
 
+var Grammar = new Null();
+
+Grammar.Identifier  = 'Identifier';
+Grammar.Literal     = 'Literal';
+Grammar.Punctuator  = 'Punctuator';
+
 var Syntax = new Null();
 
 Syntax.ArrayExpression      = 'ArrayExpression';
@@ -430,10 +436,6 @@ StaticMemberExpression.prototype.constructor = StaticMemberExpression;
  * @param {Lexer} lexer
  */
 function Builder( lexer ){
-    if( !arguments.length ){
-        throw new TypeError( 'lexer must be provided' );
-    }
-    
     this.lexer = lexer;
 }
 
@@ -455,18 +457,30 @@ Builder.prototype.arrayExpression = function( list ){
 
 /**
  * @function
- * @param {external:string} text
+ * @param {external:string|Array<Builder~Token>} input
  * @returns {Program} The built abstract syntax tree
  */
-Builder.prototype.build = function( text ){
-    /**
-     * @member {external:string}
-     */
-    this.text = text;
-    /**
-     * @member {external:Array<Token>}
-     */
-    this.tokens = this.lexer.lex( text );
+Builder.prototype.build = function( input ){
+    if( typeof input === 'string' ){
+        /**
+         * @member {external:string}
+         */
+        this.text = input;
+        
+        if( typeof this.lexer === 'undefined' ){
+            this.throwError( 'lexer is not defined' );
+        }
+        
+        /**
+         * @member {external:Array<Token>}
+         */
+        this.tokens = this.lexer.lex( input );
+    } else if( Array.isArray( input ) ){
+        this.tokens = input;
+        this.text = input.join( '' );
+    } else {
+        this.throwError( 'invalid input' );
+    }
     
     //console.log( 'BUILD' );
     //console.log( '- ', this.text.length, 'CHARS', this.text );
@@ -568,17 +582,17 @@ Builder.prototype.expression = function(){
             } else {
                 expression = list[ 0 ];
             }
-        } else if( next.type === 'identifier' ){
+        } else if( next.type === Grammar.Identifier ){
             expression = this.identifier();
             next = this.peek();
             
             // Implied member expression
-            if( next && next.type === 'punctuator' ){
+            if( next && next.type === Grammar.Punctuator ){
                 if( next.value === ')' || next.value === ']' ){
                     expression = this.memberExpression( expression, false );
                 }
             }
-        } else if( next.type === 'literal' ){
+        } else if( next.type === Grammar.Literal ){
             expression = this.literal();
         }
         
@@ -624,7 +638,7 @@ Builder.prototype.identifier = function(){
         start = this.column,
         node;
     
-    if( !( token.type === 'identifier' ) ){
+    if( !( token.type === Grammar.Identifier ) ){
         this.throwError( 'Identifier expected' );
     }
     
@@ -644,7 +658,7 @@ Builder.prototype.literal = function(){
         start = this.column,
         node, raw, value;
     
-    if( !( token.type === 'literal' ) ){
+    if( !( token.type === Grammar.Literal ) ){
         this.throwError( 'Literal expected' );
     }
     

@@ -7,24 +7,22 @@ var esprima = require( 'esprima' ),
     lexer = new Lexer(),
     builder = new Builder( lexer ),
     
-    dPath = 'foo.bar.qux.baz',
-    bPath = '["foo"]["bar"]["qux"]["baz"]';
+    path = 'foo.bar.qux.baz',
+    
+    tokens = lexer.lex( path );
 
 module.exports = {
     name: 'Builder vs. esprima',
     maxTime: 5,
     tests: {
-        'Builder#build-dot': function(){
-            builder.build( dPath );
+        'Builder#build': function(){
+            builder.build( path );
         },
-        'esprima#parse-dot': function(){
-            esprima.parse( dPath );
+        'Builder#build-tokenized': function(){
+            builder.build( tokens );
         },
-        'Builder#build-bracket': function(){
-            builder.build( bPath );
-        },
-        'esprima#parse-bracket': function(){
-            esprima.parse( bPath );
+        'esprima#parse': function(){
+            esprima.parse( path );
         }
     }
 };
