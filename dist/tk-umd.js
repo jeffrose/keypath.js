@@ -263,8 +263,6 @@ var tokenize = function (str, undef){
     return tokens;
 };
 
-// var testRegEx = /[\(\[\"\']/;
-// var testRegEx = /\(|\[|\"|\'/;
 var resolvePath = function (obj, path, newValue, args, valueStack, undef){
     var change = newValue !== undef,
         tk = [],
@@ -335,23 +333,11 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
         newValueHere = (change && (idx === tkLastIdx));
 
         if (typeof curr === 'string'){
-            // if (curr.indexOf('*') >-1){
-            //     ret = [];
-            //     for (prop in context){
-            //         if (context.hasOwnProperty(prop) && wildCardMatch(curr, prop)){
-            //             if (newValueHere){ context[prop] = newValue; }
-            //             ret.push(context[prop]);
-            //         }
-            //     }
-            // }
-            // else {
-                if (newValueHere){
-                    context[curr] = newValue;
-                    if (context[curr] !== newValue){ return undefined; } // new value failed to set
-                }
-                ret = context[curr];
-
-            // }
+            if (newValueHere){
+                context[curr] = newValue;
+                if (context[curr] !== newValue){ return undefined; } // new value failed to set
+            }
+            ret = context[curr];
         }
         else {
             if (Array.isArray(curr)){
