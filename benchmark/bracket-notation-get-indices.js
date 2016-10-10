@@ -6,29 +6,19 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
     
-    // path = 'foo[0][1][0]',
-    // data = {
-    //     foo: [
-    //         [ [ 123 ], [ 456 ], [ 789 ] ],
-    //         [ [ 123 ], [ 456 ], [ 789 ] ]
-    //     ]
-    // },
-    path = '["foo"]["bar"]["qux"]["baz"]',
+    path = 'foo[0][1][0]',
     data = {
-        foo: {
-            bar: {
-                qux: {
-                    'baz': true
-                }
-            }
-        }
+        foo: [
+            [ [ 123 ], [ 456 ], [ 789 ] ],
+            [ [ 123 ], [ 456 ], [ 789 ] ]
+        ]
     },
 
     kpex = new KeyPathExp( path ),
     tkTokens = tk.getTokens( path );
 
 module.exports = {
-    name: 'Bracket Notation: Get properties',
+    name: 'Bracket Notation: Get indices',
     maxTime: 5,
     tests: {
         'KeyPathExp#get': function(){

@@ -16,9 +16,19 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             }
         }
     },
+    aryPath = 'foo.0.1.0',
+    aryData = {
+        foo: [
+            [ [ 123 ], [ 456 ], [ 789 ] ],
+            [ [ 123 ], [ 456 ], [ 789 ] ]
+        ]
+    },
 
     kpex = new KeyPathExp( path ),
-    tkTokens = tk.getTokens( path );
+    tkTokens = tk.getTokens( path ),
+    // Enable once KeyPathExp accepts paths of this type
+    // aryKpex = new KeyPathExp( aryPath ),
+    aryTkTokens = tk.getTokens( aryPath );
 
 module.exports = {
     name: 'Dot Notation: Get',
@@ -42,5 +52,25 @@ module.exports = {
         'lodash#get': function(){
             loget( data, path );
         },
+        
+        // Enable once KeyPathExp and kp accept paths of this type
+        // 'KeyPathExp#get - array': function(){
+        //     aryKpex.get( aryData );
+        // },
+        // 'kp - array': function(){
+        //     kp`foo.0.1.0`( aryData );
+        // },
+        'tk#get - array': function(){
+            tk.get( aryData, aryPath );
+        },
+        'tk#get-tokenized - array': function(){
+            tk.get( aryData, aryTkTokens );
+        },
+        'keypather#get - array': function(){
+            keypather.get( aryData, aryPath );
+        },
+        'lodash#get - array': function(){
+            loget( aryData, aryPath );
+        }
     }
 };
