@@ -6,6 +6,8 @@
 
 // Parsing, tokeninzing, etc
 var EMPTY_STRING = '';
+var WILDCARD = '*';
+var UNDEF = (function(u){return u;})();
 
 var useCache = true;
 var advanced = false;
@@ -61,8 +63,8 @@ var containerList = Object.keys(containers);
 var containerCloseList = containerList.map(function(key){ return containers[key].closer; });
 
 var wildCardMatch = function(template, str){
-    var pos = template.indexOf('*'),
-        parts = template.split('*', 2),
+    var pos = template.indexOf(WILDCARD),
+        parts = template.split(WILDCARD, 2),
         match = true;
     if (parts[0]){
         match = match && str.substr(0, parts[0].length) === parts[0];
@@ -73,16 +75,19 @@ var wildCardMatch = function(template, str){
     return match;
 };
 // Find all special characters except .
-var specials = '[\\\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
+var specials = '[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
 var specialRegEx = new RegExp(specials);
 
 // Find all special characters, including backslash
-var allSpecials = '[\\\\\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
+var allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
 var allSpecialsRegEx = new RegExp(allSpecials, 'g');
 
 // Find all escaped special characters
 var escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
 var escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
+
+// Find wildcard character
+var wildcardRegEx = new RegExp('\\'+WILDCARD);
 
 var isObject = function(val) {
     if (typeof val === 'undefined' || val === null) { return false;}
@@ -100,9 +105,9 @@ var cache = {};
 
  *  recursively on string within container.
  */
-var tokenize = function (str, undef){
+var tokenize = function (str){
     var path = '';
-    if (useCache && cache[str] !== undef){ return cache[str]; }
+    if (useCache && cache[str] !== UNDEF){ return cache[str]; }
 
     // Strip out any unnecessary escaping to simplify processing below
     path = str.replace(escapedNonSpecialsRegEx, '$&'.substr(1));
@@ -127,7 +132,7 @@ var tokenize = function (str, undef){
             escaped = i+1;
             i++;
         }
-        if (path[i] === '*') {
+        if (path[i] === WILDCARD) {
             hasWildcard = true;
         }
         if (depth > 0){
@@ -188,7 +193,7 @@ var tokenize = function (str, undef){
             }
             if (separator.exec === 'property'){
                 // word is a plain property or end of collection
-                if (collection[0] !== undefined){
+                if (collection[0] !== UNDEF){
                     // we are gathering a collection, so add last word to collection and then store
                     word && collection.push(word);
                     tokens.push(collection);
@@ -213,7 +218,7 @@ var tokenize = function (str, undef){
                 word = {'w': word, 'mods': mods};
                 mods = {};
             }
-            if (collection[0] !== undefined){
+            if (collection[0] !== UNDEF){
                 // we are gathering a collection, so add last word to collection and then store
                 word && collection.push(word);
             }
@@ -245,7 +250,7 @@ var tokenize = function (str, undef){
         word = {'w': word, 'mods': mods};
         mods = {};
     }
-    if (collection[0] !== undefined){
+    if (collection[0] !== UNDEF){
         // we are gathering a collection, so add last word to collection and then store
         word && collection.push(word);
         tokens.push(collection);
@@ -263,8 +268,8 @@ var tokenize = function (str, undef){
     return tokens;
 };
 
-var resolvePath = function (obj, path, newValue, args, valueStack, undef){
-    var change = newValue !== undef,
+var resolvePath = function (obj, path, newValue, args, valueStack){
+    var change = newValue !== UNDEF,
         tk = [],
         tkLength = 0,
         tkLastIdx = 0,
@@ -286,7 +291,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
     if (typeof path === 'string' && !specialRegEx.test(path)){
         tk = path.split(propertySeparator);
         tkLength = tk.length;
-        while (prev !== undef && i < tkLength){
+        while (prev !== UNDEF && i < tkLength){
             if (tk[i] === EMPTY_STRING){ return undefined; }
             else if (change){
                 if (i === tkLength - 1){
@@ -307,7 +312,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
         if (useCache && cache[path]) { tk = cache[path]; }
         else {
             tk = tokenize(path);
-            if (tk === undef){ return undefined; }
+            if (tk === UNDEF){ return undefined; }
         }
     }
     else {
@@ -328,7 +333,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
 
     // Converted Array.reduce into while loop, still using "prev", "curr", "idx"
     // as loop values
-    while (prev !== undefined && idx < tkLength){
+    while (prev !== UNDEF && idx < tkLength){
         curr = tk[idx];
         newValueHere = (change && (idx === tkLastIdx));
 
@@ -347,7 +352,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
                 currLength = curr.length
                 for (i = 0; i < currLength; i++){
                     contextProp = resolvePath(context, curr[i], newValue, args, valueStack.concat());
-                    if (contextProp === undef) { return undefined; }
+                    if (contextProp === UNDEF) { return undefined; }
 
                     if (newValueHere){
                         if (curr[i].t && curr[i].exec === 'evalProperty'){
@@ -365,7 +370,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
                     }
                 }
             }
-            else if (curr === undef){
+            else if (curr === UNDEF){
                 ret = undefined;
             }
             else if (curr.w){
@@ -381,7 +386,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
                 // this word token has modifiers, modify current context
                 if (temp.mods.parent){
                     context = valueStack[valueStackLength - 1 - temp.mods.parent];
-                    if (context === undef) { return undefined; }
+                    if (context === UNDEF) { return undefined; }
                 }
                 if (temp.mods.root){
                     // Reset context and valueStack, start over at root in this context
@@ -391,7 +396,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
                 }
                 if (temp.mods.placeholder){
                     placeInt = Number.parseInt(temp.w) - 1;
-                    if (args[placeInt] === undef){ return undefined; }
+                    if (args[placeInt] === UNDEF){ return undefined; }
                     // Force args[placeInt] to String, won't attempt to process
                     // arg of type function, array, or plain object
                     temp.w = args[placeInt].toString();
@@ -400,14 +405,14 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
                 }
 
                 // Repeat basic string property processing with word and modified context
-                if (context[temp.w] !== undef) {
+                if (context[temp.w] !== UNDEF) {
                     if (newValueHere){ context[temp.w] = newValue; }
                     ret = context[temp.w];
                 }
                 else if (typeof context === 'function'){
                     ret = temp.w;
                 }
-                else if (temp.w.indexOf('*') >-1){
+                else if (wildcardRegEx.test(temp.w) >-1){
                     ret = [];
                     for (prop in context){
                         if (context.hasOwnProperty(prop) && wildCardMatch(temp.w, prop)){
@@ -427,7 +432,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack, undef){
             else if (curr.exec === 'call'){
                 // TODO: handle params for function
                 callArgs = resolvePath(context, curr, newValue, args, valueStack.concat());
-                if (callArgs === undefined){
+                if (callArgs === UNDEF){
                     ret = context.apply(valueStack[valueStackLength - 2]);
                 }
                 else if (Array.isArray(callArgs)){
@@ -512,7 +517,7 @@ var set = function(obj, path, val){
     if (Array.isArray(ref)){
         return ref.indexOf(undefined) === -1;
     }
-    return typeof ref !== 'undefined';
+    return ref !== UNDEF;
 };
 
 var find = function(obj, val, oneOrMany){
@@ -567,9 +572,9 @@ var setOptions = function(options){
         force = !!options.force;
     }
     // Reset all special character sets and regular expressions
-    specials = ('[\\\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
+    specials = ('[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
     specialRegEx = new RegExp(specials);
-    allSpecials = '[\\\\\\' + ['*'].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
+    allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
     allSpecialsRegEx = new RegExp(allSpecials, 'g');
     escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
 };
