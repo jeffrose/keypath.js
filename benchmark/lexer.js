@@ -10,7 +10,7 @@ var esprima = require( 'esprima' ),
     pPath = 'foo(123)(456)(789)';
 
 module.exports = {
-    name: 'Lexer vs. esprima',
+    name: 'Lexing',
     maxTime: 5,
     tests: {
         'Lexer#lex-dot': function(){

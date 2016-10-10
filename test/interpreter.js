@@ -30,7 +30,18 @@ describe( 'Interpreter', function(){
             expect( fn( {} ) ).to.be.undefined;
         } );
         
-        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', '["foo"]["bar"]["qux"]["baz"]', 'foo[1]bar.qux' ].forEach( ( pattern ) => {
+        it( 'should interpret identifiers', function(){
+                var pattern = 'foo',
+                    object = {},
+                get, set;
+            
+            get = interpreter.compile( pattern, false );
+            set = interpreter.compile( pattern, true );
+            set( object, 123 );
+            expect( get( object ) ).to.equal( 123 );
+        } );
+        
+        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', 'foo[1]bar.qux' ].forEach( ( pattern ) => {
             it( `should interpret member expressions (${ pattern })`, function(){
                 var object = {},
                     get, set;
@@ -54,6 +65,14 @@ describe( 'Interpreter', function(){
                     //{ qux: { baz: 4 } }
                 ],
                 get, set, result;
+            
+            get = interpreter.compile( '["foo"]["qux"]["baz"]', false );
+            set = interpreter.compile( '["foo"]["qux"]["baz"]', true );
+            set( data1, 123 );
+            result = get( data1 );
+            expect( result ).to.equal( 123 );
+            data1 = {};
+            result = undefined;
             
             get = interpreter.compile( '["foo","bar"]qux.baz', false );
             set = interpreter.compile( '["foo","bar"]qux.baz', true );

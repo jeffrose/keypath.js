@@ -35,7 +35,7 @@ module.exports = {
             kpex.get( data );
         },
         'kp': function(){
-            kp`foo[0][1][0]`( data );
+            kp`["foo"]["bar"]["qux"]["baz"]`( data );
         },
         'tk#get': function(){
             tk.get( data, path );

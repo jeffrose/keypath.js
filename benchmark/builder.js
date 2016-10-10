@@ -12,7 +12,7 @@ var esprima = require( 'esprima' ),
     tokens = lexer.lex( path );
 
 module.exports = {
-    name: 'Builder vs. esprima',
+    name: 'Building',
     maxTime: 5,
     tests: {
         'Builder#build': function(){

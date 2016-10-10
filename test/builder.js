@@ -90,6 +90,15 @@ describe( 'Builder', function(){
             expect( expression.elements[ 1 ].type ).to.equal( 'Literal' );
             expect( expression.elements[ 1 ].value ).to.equal( 'bar' );
             expect( expression.range ).to.deep.equal( [ 0, 13 ] );
+            
+            program = builder.build( '[123]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'ArrayExpression' );
+            expect( expression ).to.have.property( 'elements' );
+            expect( expression.elements[ 0 ].type ).to.equal( 'Literal' );
+            expect( expression.elements[ 0 ].value ).to.equal( 123 );
+            expect( expression.range ).to.deep.equal( [ 0, 5 ] );
         } );
     
         it( 'should parse call expressions', function(){

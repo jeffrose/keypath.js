@@ -6,8 +6,8 @@
 
 // Parsing, tokeninzing, etc
 var EMPTY_STRING = '';
-var WILDCARD = '*';
 var UNDEF = (function(u){return u;})();
+var WILDCARD = '*';
 
 var useCache = true;
 var advanced = false;

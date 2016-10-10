@@ -775,7 +775,7 @@ Builder.prototype.program = function(){
     
     while( true ){
         if( this.tokens.length ){
-            body.push( this.expressionStatement() );
+            body.unshift( this.expressionStatement() );
         } else {
             node = new Program( body );
             node.range = [ this.column, end ];
