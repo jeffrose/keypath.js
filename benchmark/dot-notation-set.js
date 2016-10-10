@@ -7,9 +7,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     keypather = require( 'keypather' )(),
     
     path = 'foo.bar.qux.baz',
-    data = {
-        
-    },
+    data = {},
 
     kpex = new KeyPathExp( path ),
     tkTokens = tk.getTokens( path );

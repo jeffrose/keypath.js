@@ -476,7 +476,7 @@ Builder.prototype.build = function( input ){
          */
         this.tokens = this.lexer.lex( input );
     } else if( Array.isArray( input ) ){
-        this.tokens = input;
+        this.tokens = input.slice();
         this.text = input.join( '' );
     } else {
         this.throwError( 'invalid input' );
