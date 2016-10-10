@@ -59,5 +59,14 @@ describe( 'KeyPathExp', function(){
             
             expect( kpex.get( data ) ).to.equal( 123 );
         } );
+        
+        it( 'should set values', function(){
+            kpex = new KeyPathExp( 'foo.bar' );
+            
+            var data = { foo: { qux: 456, baz: 789 } };
+            
+            kpex.set( data, 123 );
+            expect( kpex.get( data ) ).to.equal( 123 );
+        } );
     } );
 } );

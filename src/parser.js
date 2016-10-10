@@ -21,4 +21,12 @@ Parser.prototype.get = function( keypath, target ){
     return kpex.get( target );
 };
 
+Parser.prototype.parse = function( keypath ){
+    
+};
+
+Parser.prototype.tokenize = function( keypath ){
+    
+};
+
 export { Parser as default };

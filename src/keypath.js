@@ -7,7 +7,9 @@ import Interpreter from './interpreter';
 
 var lexer = new Lexer(),
     builder = new Builder( lexer ),
-    intrepreter = new Interpreter( builder );
+    intrepreter = new Interpreter( builder ),
+    
+    cache = {};
 
 /**
  * @class KeyPathExp
@@ -18,6 +20,10 @@ var lexer = new Lexer(),
 function KeyPathExp( pattern, flags ){
     typeof pattern !== 'string' && ( pattern = '' );
     typeof flags !== 'string' && ( flags = '' );
+    
+    var tokens = pattern in cache ?
+        cache[ pattern ] :
+        cache[ pattern ] = lexer.lex( pattern );
     
     Object.defineProperties( this, {
         'flags': {
@@ -33,13 +39,13 @@ function KeyPathExp( pattern, flags ){
             writable: false
         },
         'getter': {
-            value: intrepreter.compile( pattern, false ),
+            value: intrepreter.compile( tokens, false ),
             configurable: false,
             enumerable: false,
             writable: false
         },
         'setter': {
-            value: intrepreter.compile( pattern, true ),
+            value: intrepreter.compile( tokens, true ),
             configurable: false,
             enumerable: false,
             writable: false
@@ -56,6 +62,14 @@ KeyPathExp.prototype.constructor = KeyPathExp;
  */
 KeyPathExp.prototype.get = function( target ){
     return this.getter( target );
+};
+
+/**
+ * @function
+ */
+KeyPathExp.prototype.has = function( target ){
+    var result =  this.getter( target );
+    return typeof result !== 'undefined';
 };
 
 /**
