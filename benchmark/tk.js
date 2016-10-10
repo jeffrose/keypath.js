@@ -17,6 +17,8 @@ var tk = require( '../dist/tk-umd' ),
     dTokens = tk.getTokens( dPath ),
     bTokens = tk.getTokens( bPath );
 
+// tk.setOptions({cache:false});
+
 module.exports = {
     name: 'tk',
     maxTime: 5,
