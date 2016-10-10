@@ -11,7 +11,7 @@ var chai        = require( 'chai' ),
 // tk.setOptions({cache:false});
 
 describe( 'tk', function(){
-    var data;
+    var data, other;
 
             // var str2 = 'accounts.1.{~accounts.3.propAry.0}';
     beforeEach(function(){
@@ -50,6 +50,12 @@ describe( 'tk', function(){
                 /* 2 */ function(){ return 1;},
                 /* 3 */ { 'propAry': ['savBa', 'savBb'] }
             ]
+        };
+        
+        other = {
+            'x': 'propA',
+            'y': 'propB',
+            'z': 'checking'
         };
 
     });
@@ -292,6 +298,23 @@ describe( 'tk', function(){
             expect(tk.get(data, str2)).to.equal(data['John "Johnny" Doe']);
         });
 
+        it( 'should process context placeholders', function(){
+            var str = '{@1.x}';
+            expect(tk.get(data, str, other)).to.equal(data[other.x]);
+        });
+        
+        it( 'should switch processing from base data to new object if context placeholder is used as path segment', function(){
+            var str = 'accounts.1.@1.x';
+            expect(tk.get(data, str, other)).to.equal(other.x);
+        });
+        
+        it( 'should preserve use of context stack when handling context placeholders', function(){
+            var str = 'accounts.1{@1.z}id';
+            var fn = function(x){ return x; }
+            var str2 = 'accounts.1{@1(%2)}id';
+            expect(tk.get(data, str, other)).to.equal(data.accounts[1][other.z].id);
+            expect(tk.get(data, str2, fn, 'checking')).to.equal(data.accounts[1][fn('checking')].id);
+        });
     });
 
     describe( 'set', function(){
@@ -506,6 +529,7 @@ describe( 'tk', function(){
         afterEach(function () {
             tk.setOptions({
                 'cache': true,
+                'force': false,
                 'prefixes': {
                     '<': {
                         'exec': 'parent'
@@ -515,6 +539,9 @@ describe( 'tk', function(){
                     },
                     '%': {
                         'exec': 'placeholder'
+                    },
+                    '@': {
+                        'exec': 'context'
                     }
                 },
                 'separators': {
@@ -533,6 +560,14 @@ describe( 'tk', function(){
                     '[': {
                         'closer': ']',
                         'exec': 'property'
+                    },
+                    '\'': {
+                        'closer': '\'',
+                        'exec': 'quote'
+                    },
+                    '"': {
+                        'closer': '"',
+                        'exec': 'quote'
                     },
                     '{': {
                         'closer': '}',
@@ -594,6 +629,30 @@ describe( 'tk', function(){
             expect(tk.get(data, str4).length).to.equal(ary4.length);
             expect(tk.get(data, str4).join(',')).to.equal(ary4.join(','));
         });
+    });
+    
+    describe('setOptions:force', function(){
+       afterEach(function(){
+          tk.setOptions({force:false});
+       });
+       
+       it('should create intermediate properties if they don\'t exist', function(){
+            var str = 'accounts.1.newPropA.newPropB';
+            var newVal = 'new';
+            var result;
+            tk.setOptions({force:true});
+            result = tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.equal(newVal);
+            expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
+            expect(result).to.be.true;
+            
+            str = 'accounts.1[new.PropA]newPropB';
+            result = tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.equal(newVal);
+            expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
+            expect(result).to.be.true;
+       });
+       
     });
 
     describe('clock', function(){

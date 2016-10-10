@@ -6,8 +6,8 @@
 
 // Parsing, tokeninzing, etc
 var EMPTY_STRING = '';
-var WILDCARD = '*';
 var UNDEF = (function(u){return u;})();
+var WILDCARD = '*';
 
 var useCache = true;
 var advanced = false;
@@ -22,6 +22,9 @@ var prefixes = {
     },
     '%': {
         'exec': 'placeholder'
+    },
+    '@': {
+        'exec': 'context'
     }
 };
 var prefixList = Object.keys(prefixes);
@@ -297,6 +300,11 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                 if (i === tkLength - 1){
                     prev[tk[i]] = newValue;
                 }
+                // For arrays, test current context against undefined to avoid parsing this segment as a number.
+                // For anything else, use hasOwnProperty.
+                else if (force && (prev.constructor === Array ? prev[tk[i]] !== UNDEF : !prev.hasOwnProperty(tk[i]))) {
+                    prev[tk[i]] = {};
+                }
             }
             prev = prev[tk[i]];
             i++;
@@ -338,14 +346,22 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         newValueHere = (change && (idx === tkLastIdx));
 
         if (typeof curr === 'string'){
-            if (newValueHere){
-                context[curr] = newValue;
-                if (context[curr] !== newValue){ return undefined; } // new value failed to set
+            if (change){
+                if (newValueHere){
+                    context[curr] = newValue;
+                    if (context[curr] !== newValue){ return undefined; } // new value failed to set
+                }
+                else if (force && (prev.constructor === Array ? context[curr] !== UNDEF : !context.hasOwnProperty(curr))) {
+                    context[curr] = {};
+                }
             }
             ret = context[curr];
         }
         else {
-            if (Array.isArray(curr)){
+            if (curr === UNDEF){
+                ret = undefined;
+            }
+            else if (curr.constructor === Array){
                 // call resolvePath again with base value as evaluated value so far and
                 // each element of array as the path. Concat all the results together.
                 ret = [];
@@ -370,9 +386,6 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     }
                 }
             }
-            else if (curr === UNDEF){
-                ret = undefined;
-            }
             else if (curr.w){
                 temp = {
                     w: curr.w + '',
@@ -380,7 +393,8 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     mods: {
                         parent: curr.mods.parent,
                         root: curr.mods.root,
-                        placeholder: curr.mods.placeholder
+                        placeholder: curr.mods.placeholder,
+                        context: curr.mods.context
                     }
                 };
                 // this word token has modifiers, modify current context
@@ -403,25 +417,36 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     delete(temp.mods.placeholder); // Once value has been replaced, don't want to re-process this entry
                     delete(temp.mods.has);
                 }
-
-                // Repeat basic string property processing with word and modified context
-                if (context[temp.w] !== UNDEF) {
-                    if (newValueHere){ context[temp.w] = newValue; }
-                    ret = context[temp.w];
+                
+                // "context" modifier ("@" by default) replaces current context with a value from
+                // the arguments.
+                if (temp.mods.context){
+                    placeInt = Number.parseInt(temp.w) - 1;
+                    if (args[placeInt] === UNDEF){ return undefined; }
+                    // Force args[placeInt] to String, won't attempt to process
+                    // arg of type function, array, or plain object
+                    ret = args[placeInt];
                 }
-                else if (typeof context === 'function'){
-                    ret = temp.w;
-                }
-                else if (wildcardRegEx.test(temp.w) >-1){
-                    ret = [];
-                    for (prop in context){
-                        if (context.hasOwnProperty(prop) && wildCardMatch(temp.w, prop)){
-                            if (newValueHere){ context[prop] = newValue; }
-                            ret.push(context[prop]);
+                else {
+                    // Repeat basic string property processing with word and modified context
+                    if (context[temp.w] !== UNDEF) {
+                        if (newValueHere){ context[temp.w] = newValue; }
+                        ret = context[temp.w];
+                    }
+                    else if (typeof context === 'function'){
+                        ret = temp.w;
+                    }
+                    else if (wildcardRegEx.test(temp.w) >-1){
+                        ret = [];
+                        for (prop in context){
+                            if (context.hasOwnProperty(prop) && wildCardMatch(temp.w, prop)){
+                                if (newValueHere){ context[prop] = newValue; }
+                                ret.push(context[prop]);
+                            }
                         }
                     }
+                    else { return undefined; }
                 }
-                else { return undefined; }
             }
             else if (curr.exec === 'evalProperty'){
                 if (newValueHere){
