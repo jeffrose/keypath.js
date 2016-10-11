@@ -7,6 +7,9 @@ import Syntax from './builder/syntax';
 
 var noop = function(){};
 
+/**
+ * @function Interceptor~getValue
+ */
 function getValue( base, name, create, defaultValue ){
     if( create && !( hasOwnProperty( base, name ) ) ){
         base[ name ] = defaultValue;
@@ -114,21 +117,40 @@ Interpreter.prototype.recurse = function( node, context, create ){
     switch( node.type ){
         
         case Syntax.ArrayExpression: {
-            args = intepretList( interpreter, node.elements, false );
             isRightMost = node.range[ 1 ] === interpreter.eol;
             
-            return function getArrayExpression( base, value ){
-                //console.log( 'Getting ARRAY EXPRESSION' );
-                var result = [], name;
-                forEach( args, function( arg, index ){
-                    name = arg( base, value );
-                    result[ index ] = getValue( base, name, create, isRightMost ? value : {} );
-                } );
-                //console.log( '- ARRAY EXPRESSION RESULT', result );
-                return context ?
-                    { value: result } :
-                    result;
-            };
+            if( Array.isArray( node.elements ) ){
+                args = intepretList( interpreter, node.elements, false );
+                fn = function getArrayExpression( base, value ){
+                    //console.log( 'Getting ARRAY EXPRESSION' );
+                    var result = [],
+                        name;
+                    forEach( args, function( arg, index ){
+                        name = arg( base, value );
+                        result[ index ] = getValue( base, name, create, isRightMost ? value : {} );
+                    } );
+                    //console.log( '- ARRAY EXPRESSION RESULT', result );
+                    return context ?
+                        { value: result } :
+                        result;
+                };
+            } else {
+                args = interpreter.recurse( node.elements, context, create );
+                fn = function getArrayExpression( base, value ){
+                    //console.log( 'Getting ARRAY EXPRESSION' );
+                    var result = [],
+                        names = args( base, value );
+                    forEach( names, function( name, index ){
+                        result[ index ] = getValue( base, name, create, isRightMost ? value : {} );
+                    } );
+                    //console.log( '- ARRAY EXPRESSION RESULT', result );
+                    return context ?
+                        { value: result } :
+                        result;
+                };
+            }
+            
+            return fn;
         }
         
         case Syntax.CallExpression: {
@@ -159,18 +181,6 @@ Interpreter.prototype.recurse = function( node, context, create ){
                 return context ?
                     { value: result }:
                     result;
-            };
-        }
-        
-        case Syntax.ExpressionStatement: {
-            left = interpreter.recurse( node.expression, context, create );
-            
-            return function getExpressionStatement( base, value ){
-                //console.log( 'Getting EXPRESSION STATEMENT' );
-                //console.log( '- EXPRESSION STATEMENT LEFT', left.name );
-                var result = left( base, value );
-                //console.log( '- EXPRESSION STATEMENT RESULT', result );
-                return result;
             };
         }
         
@@ -233,9 +243,6 @@ Interpreter.prototype.recurse = function( node, context, create ){
                                     result[ index ] = getValue( lhs, item, create, isRightMost ? value : {} );
                                 } );
                                 //console.log( '-- LIST|VALUE:LIST', result );
-                                if( result.length === 1 ){
-                                    result = result[ 0 ];
-                                }
                             }
                         }
                         //console.log( '- COMPUTED RESULT', result );
@@ -250,27 +257,24 @@ Interpreter.prototype.recurse = function( node, context, create ){
                             //console.log( '- COMPUTED LEFT', left.name );
                             //console.log( '- COMPUTED RIGHT', right.name );
                             var lhs = left( base, value ),
-                                result = [],
-                                rhs;
+                                result, rhs;
                             //console.log( '- COMPUTED LHS', lhs );
                             if( Array.isArray( lhs ) ){
                                 rhs = right( base, value );
                                 //console.log( '- COMPUTED RHS', rhs );
                                 if( typeof rhs === 'number' ){
-                                    result[ 0 ] = getValue( lhs, rhs, create, isRightMost ? value : {} );
+                                    result = getValue( lhs, rhs, create, isRightMost ? value : {} );
                                 } else {
                                     if( lhs.length === 1 ){
-                                        result[ 0 ] = getValue( lhs[ 0 ], rhs, create, isRightMost ? value : {} );
+                                        result = getValue( lhs[ 0 ], rhs, create, isRightMost ? value : {} );
                                     } else {
+                                        result = [];
                                         forEach( lhs, function( item, index ){
                                             result[ index ] = getValue( item, rhs, create, isRightMost ? value : {} );
                                         } );
                                     }
                                 }
                                 //console.log( '-- LIST:VALUE', result );
-                                if( result.length === 1 ){
-                                    result = result[ 0 ];
-                                }
                             }
                             //console.log( '- COMPUTED RESULT', result );
                             return context ?
@@ -304,6 +308,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
             } else {
                 right = node.property.name;
                 isRightMost = node.property.range[ 1 ] === interpreter.eol;
+                
                 fn = function getNonComputedMember( base, value ){
                     //console.log( 'Getting NON-COMPUTED MEMBER' );
                     //console.log( '- NON-COMPUTED LEFT', left.name );
@@ -316,10 +321,10 @@ Interpreter.prototype.recurse = function( node, context, create ){
                             result = getValue( lhs, right, create, isRightMost ? value : {} );
                             //console.log( '-- VALUE:VALUE', result );
                         } else {
-                            result = [];
                             if( lhs.length === 1 ){
-                                result[ 0 ] = getValue( lhs[ 0 ], right, create, isRightMost ? value : {} );
+                                result = getValue( lhs[ 0 ], right, create, isRightMost ? value : {} );
                             } else {
+                                result = [];
                                 forEach( lhs, function( item, index ){
                                     result[ index ] = getValue( item, right, create, isRightMost ? value : {} );
                                 } );
@@ -337,20 +342,58 @@ Interpreter.prototype.recurse = function( node, context, create ){
             return fn;
         }
         
-        case Syntax.SequenceExpression: {
-            args = intepretList( interpreter, node.expressions, false );
-            
-            return function getSequenceExpression( base, value ){
-                //console.log( 'Getting SEQUENCE EXPRESSION' );
-                var result = [];
-                forEach( args, function( arg, index ){
-                    result[ index ] = arg( base );
-                } );
-                //console.log( '- SEQUENCE RESULT', result );
-                return context ?
+        case Syntax.RangeExpression: {
+            left = interpreter.recurse( node.left, context, create );
+            right = interpreter.recurse( node.right, context, create );
+            return function getRangeExpression( base, value ){
+                 //console.log( 'Getting RANGE EXPRESSION' );
+                 //console.log( '- LEFT', left.name );
+                 //console.log( '- RIGHT', right.name );
+                 var lhs = left( base, value ),
+                    rhs = right( base, value ),
+                    result = [],
+                    index = 1;
+                 
+                 result[ 0 ] = lhs;
+                 for( ; index < rhs; index++ ){
+                     result[ index ] = lhs + index;
+                 }
+                 result[ result.length - 1 ] = rhs;
+                 //console.log( '- RANGE EXPRESSION RESULT', result );
+                 return context ?
                     { value: result } :
                     result;
             };
+        }
+        
+        case Syntax.SequenceExpression: {
+            
+            if( Array.isArray( node.expressions ) ){
+                args = intepretList( interpreter, node.expressions, false, create );
+                fn = function getSequenceExpression( base, value ){
+                    //console.log( 'Getting SEQUENCE EXPRESSION' );
+                    var result = [];
+                    forEach( args, function( arg, index ){
+                        result[ index ] = arg( base );
+                    } );
+                    //console.log( '- SEQUENCE RESULT', result );
+                    return context ?
+                        { value: result } :
+                        result;
+                };
+            } else {
+                args = interpreter.recurse( node.expressions, context, create );
+                fn = function getSequenceExpression( base, value ){
+                    //console.log( 'Getting SEQUENCE EXPRESSION' );
+                    var result = args( base, value );
+                    //console.log( '- SEQUENCE RESULT', result );
+                    return context ?
+                        { value: result } :
+                        result;
+                };
+            }
+            
+            return fn;
         }
         
         default:
