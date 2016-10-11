@@ -734,8 +734,12 @@ function RangeExpression( left, right ){
         throw new TypeError( 'left must be an instance of literal or null' );
     }
     
-    if( !( right instanceof Literal$1 ) ){
-        throw new TypeError( 'right must be an instance of literal' );
+    if( !( right instanceof Literal$1 ) && right !== null ){
+        throw new TypeError( 'right must be an instance of literal or null' );
+    }
+    
+    if( left === null && right === null ){
+        throw new TypeError( 'left and right cannot equal null at the same time' );
     }
     
     /**
@@ -1098,7 +1102,9 @@ Builder.prototype.list = function( terminator ){
     
     if( this.peek().value !== terminator ){
         do {
-            literal = this.literal();
+            literal = this.peek().type === Grammar.Literal ?
+                this.literal() :
+                null;
             if( this.peek().value === '.' ){
                 list = this.rangeExpression( literal );
             } else {
@@ -1224,7 +1230,7 @@ Builder.prototype.sequenceExpression = function( list ){
     if( Array.isArray( list ) ){
         end = list[ list.length - 1 ].range[ 1 ];
     } else if( list instanceof RangeExpression ){
-        end = list.right.range[ 1 ];
+        end = list.range[ 1 ];
     }
     
     node = new SequenceExpression( list );
@@ -1617,7 +1623,9 @@ Interpreter.prototype.recurse = function( node, context, create ){
             left = node.left !== null ?
                 interpreter.recurse( node.left, context, create ) :
                 function(){ return 0; };
-            right = interpreter.recurse( node.right, context, create );
+            right = node.right !== null ?
+                interpreter.recurse( node.right, context, create ) :
+                function(){ return 0; };
             return function getRangeExpression( base, value ){
                  //console.log( 'Getting RANGE EXPRESSION' );
                  //console.log( '- LEFT', left.name );
@@ -1626,12 +1634,20 @@ Interpreter.prototype.recurse = function( node, context, create ){
                     rhs = right( base, value ),
                     result = [],
                     index = 1,
-                    middle = lhs + 1;
+                    middle;
                  //console.log( '- RANGE LHS', lhs );
                  //console.log( '- RANGE RHS', rhs );
                  result[ 0 ] = lhs;
-                 while( middle < rhs ){
-                     result[ index++ ] = middle++;
+                 if( lhs < rhs ){
+                     middle = lhs + 1;
+                     while( middle < rhs ){
+                         result[ index++ ] = middle++;
+                     }
+                 } else if( lhs > rhs ){
+                     middle = lhs - 1;
+                     while( middle > rhs ){
+                         result[ index++ ] = middle--;
+                     }
                  }
                  result[ result.length ] = rhs;
                  //console.log( '- RANGE EXPRESSION RESULT', result );

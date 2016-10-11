@@ -410,8 +410,12 @@ export function RangeExpression( left, right ){
         throw new TypeError( 'left must be an instance of literal or null' );
     }
     
-    if( !( right instanceof Literal ) ){
-        throw new TypeError( 'right must be an instance of literal' );
+    if( !( right instanceof Literal ) && right !== null ){
+        throw new TypeError( 'right must be an instance of literal or null' );
+    }
+    
+    if( left === null && right === null ){
+        throw new TypeError( 'left and right cannot equal null at the same time' );
     }
     
     /**

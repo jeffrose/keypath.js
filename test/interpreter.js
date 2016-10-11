@@ -180,7 +180,21 @@ describe( 'Interpreter', function(){
             expect( result[ 0 ] ).to.equal( 34 );
             expect( result[ 1 ] ).to.equal( 56 );
             expect( result[ 2 ] ).to.equal( 78 );
+            result = undefined;
             
+            fn = interpreter.compile( 'foo[3..1]' );
+            result = fn( object );
+            expect( result ).to.be.an( 'array' );
+            expect( result[ 0 ] ).to.equal( 78 );
+            expect( result[ 1 ] ).to.equal( 56 );
+            expect( result[ 2 ] ).to.equal( 34 );
+            
+            fn = interpreter.compile( 'foo[2..]' );
+            result = fn( object );
+            expect( result ).to.be.an( 'array' );
+            expect( result[ 0 ] ).to.equal( 56 );
+            expect( result[ 1 ] ).to.equal( 34 );
+            expect( result[ 2 ] ).to.equal( 12 );
         } );
         
     } );
