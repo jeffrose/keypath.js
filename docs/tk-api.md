@@ -34,19 +34,22 @@ tk.get(data, 'foo[bar][2]'); // 'c'
 tk.get(data, 'foo[abc.xyz]'); // 12
 ```
 
-Quotes, either single or double (`'` and `"`) are treated as special characters only when immediately inside the property container (`[]` by default). Elsewhere, they are plain characters. This allows compatible support with other keypath libraries that expect quoted strings inside brackets.
+Quotes, either single or double (`'` and `"`) may be used to mark a path segment as literal text - any special characters within the quoted text will be treated as plain text and will not be acted upon. Quoted path segments may appear as part of the main path string or within other containers.
 ```javascript
 var data = {
     foo: {
         bar: ['a','b','c'],
-        '"abc"': 'xyz'
+        'abc': 'def',
+        '"abc"': 'xyz',
+        'one.two': 'three'
     }
 };
 tk.get(data, "foo['bar']2"); // 'c'
 tk.get(data, 'foo["bar"]2'); // 'c'
-tk.get(data, '"abc"'); // 'xyz'
-tk.get(data, '["abc"]'); // undefined
-tk.get(data, '[""abc""]'); // 'xyz'
+tk.get(data, '"abc"'); // 'def'
+tk.get(data, '["abc"]'); // 'def'
+tk.get(data, '\\"abc\\"'); // 'xyz' (see escaped strings below)
+tk.get(data, '"one.two"'); // 'three'
 ```
 
 
@@ -54,10 +57,14 @@ Collections are implemented with `,`.
 ```javascript
 var data = {
     foo: {
-        bar: ['a','b','c']
+        bar: ['a','b','c'],
+        a: 'z',
+        b: 'y'
     }
 };
 tk.get(data, 'foo.bar.0,2'); // ['a', 'c']
+tk.get(data, 'foo.bar[0,2]'); // ['a', 'c']
+tk.get(data, 'foo.bar.a,b'); // ['z', 'y']
 ```
 
 Functions may be called with `()`.
@@ -117,13 +124,37 @@ tk.get(data, 'foo{%1.0,%1.1', 'bar'); // ['one','two']
 tk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
 ```
 
+Numbered context placeholders are indicated with `@n`, again as extra arguments to `get`. These placeholders are tied to arguments in the same way as the `%n` placeholders described above. However, **context** placeholders are different in that they allow references to objects external to the original data object being processed. They are called "context placeholders" because their use will replace the current object context with the referenced value instead. This provides a way to, for example, call functions defined in the programs variable scope or to pluck property names from other objects.
+```javascript
+var data = {
+    foo: {
+        bar: ['a','b','c'],
+        a: 'one',
+        b: 'two',
+        xx: 'blah'
+    }
+};
+var fn = function(str){ return str+str; }
+var other = {
+    prop: 'bar'
+};
+
+tk.get(data, 'foo.bar.0'); // 'a'
+tk.get(data, 'foo.@1.prop', other); // 'bar'
+tk.get(data, 'foo{@1.prop}0', other); // 'a'
+tk.get(data, 'foo{@1(%2)}', fn, 'x'); // 'blah'
+```
+Use of the context placeholder is most likely to be helpful within the indirect property container (`{}`) since that container creates a temporary context for evaluation, then returns to the original data context. In the above examples, the path `'foo.@1.prop'` will replace the original data context for the remainder of the evaluation. The net result is exactly the same as finding `other.prop` directly, except with more work and obfuscation. Within the indirect property container, though, this mechanism can be used to create data transformations or to run locally defined functions that are not native to the values.
+
 ### set
 ```javascript
 var result1 = tk.set(obj, path, newVal);
 var result2 = tk.set(obj, path, newVal, arg1, arg2,..., argN);
 ```
 
-Any property specified in a keypath may be set to a new value. The set function returns the newValue if the set was successful, `undefined` if not. Only the final property in the keypath may be set - any intermediate properties must be defined and valid or `set` will fail. The final property does not need to exist prior to `set`, it will be created if necessary. This behavior is equivalent to setting an object property in plain javascript code.
+Any property specified in a keypath may be set to a new value. The set function returns the newValue if the set was successful, `undefined` if not. By default, only the final property in the keypath may be set - any intermediate properties must be defined and valid or `set` will fail. The final property does not need to exist prior to `set`, it will be created if necessary. This behavior is equivalent to setting an object property in plain javascript code.
+
+This behavior may be changed using `setOptions` (see below), by setting the option "force" to `true`: `tk.setOptions({force:true});` The "force" option will only change `set` behavior for simple dot-separated paths. The use of other mechanisms such as collections, indirect properties, etc. will prevent `set` from succeeding due to the difficulty in guessing how and what properties to create in some advanced scenarios. **Note:** If an intermediate value must be created, it will **always** be created as a plain object, never an array, even if the following path segment is an integer. Since all paths are Strings, it is impossible to guess whether the path segment "12345" is the integer 12,345 or the ZIP code "12345", for example, and it could be computationally expensive to create an array with only one defined index when that index is a very high number. Therefore, be aware that when "force" is enabled, the target object may have objects within in places where arrays are expected. If this is a risk in the program, it would be best to initialize these values before calling `set` or else leave "force" set to `false`.
 
 All keypaths that are valid for `get` will behave in the same way for `set`. One special case is worth noting: If the final path segment is a collection, then every property in that collection will be set to the new value.
 ```javascript
@@ -135,6 +166,8 @@ var data = {
 tk.set(data, 'foo.bar.0,1', 'xxx'); // 'xxx'
 tk.get(data, 'foo.bar.0,1,2'); // ['xxx', 'xxx', 'c']
 ```
+
+Be default, `set` will not create properties/indices that do not already exist, except for the
 
 ### find
 ```javascript
@@ -184,6 +217,9 @@ Sets new operator characters for path interpretation. Can also be used to govern
         },
         '%': {
             'exec': 'placeholder'
+        },
+        '@': {
+            'exec': 'context'
         }
     },
     containers: {
