@@ -116,16 +116,16 @@ OperatorExpression.prototype = Object.create( Expression.prototype );
 
 OperatorExpression.prototype.constructor = OperatorExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the operator expression
+ */
 OperatorExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
     
     json.operator = this.operator;
     
     return json;
-};
-
-OperatorExpression.prototype.toString = function(){
-    return this.operator;
 };
 
 /**
@@ -269,12 +269,22 @@ CallExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Builder~ComputedMemberExpression
+ * @extends Builder~MemberExpression
+ * @param {Builder~Expression} object
+ * @param {Builder~Expression} property
+ */
 export function ComputedMemberExpression( object, property ){
     if( !( property instanceof Expression ) ){
         throw new TypeError( 'property must be an expression when computed is true' );
     }
         
     MemberExpression.call( this, object, property, true );
+    
+    /**
+     * @member Builder~ComputedMemberExpression#computed=true
+     */
 }
 
 ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype );
@@ -396,26 +406,32 @@ Literal.prototype.toJSON = function(){
 export function RangeExpression( left, right ){
     OperatorExpression.call( this, Syntax.RangeExpression, RangeOperator );
     
-    if( !( left instanceof Literal ) ){
-        throw new TypeError( 'left must be an instance of expression' );
+    if( !( left instanceof Literal ) && left !== null ){
+        throw new TypeError( 'left must be an instance of literal or null' );
     }
     
     if( !( right instanceof Literal ) ){
-        throw new TypeError( 'right must be an instance of expression' );
+        throw new TypeError( 'right must be an instance of literal' );
     }
     
     /**
-     * @member {Builder~Literal}
+     * @member {Builder~Literal} Builder~RangeExpression#left
+     */
+     /**
+     * @member {Builder~Literal} Builder~RangeExpression#0
      */
     this[ 0 ] = this.left = left;
     
     /**
-     * @member {Builder~Literal}
+     * @member {Builder~Literal} Builder~RangeExpression#right
+     */
+     /**
+     * @member {Builder~Literal} Builder~RangeExpression#1
      */
     this[ 1 ] = this.right = right;
     
     /**
-     * @member {external:number}
+     * @member {external:number} Builder~RangeExpression#length=2
      */
     this.length = 2;
 }
@@ -431,6 +447,10 @@ RangeExpression.prototype.toJSON = function(){
     json.right = this.right.toJSON();
     
     return json;
+};
+
+RangeExpression.prototype.toString = function(){
+    return this.left.toString() + this.operator + this.right.toString();
 };
 
 /**
@@ -473,12 +493,22 @@ SequenceExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Builder~StaticMemberExpression
+ * @extends Builder~MemberExpression
+ * @param {Builder~Expression} object
+ * @param {Builder~Identifier} property
+ */
 export function StaticMemberExpression( object, property ){
     if( !( property instanceof Identifier ) ){
         throw new TypeError( 'property must be an identifier when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
+    
+    /**
+     * @member Builder~StaticMemberExpression#computed=false
+     */
 }
 
 StaticMemberExpression.prototype = Object.create( MemberExpression.prototype );

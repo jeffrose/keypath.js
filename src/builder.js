@@ -373,7 +373,9 @@ Builder.prototype.rangeExpression = function( right ){
     this.expect( '.' );
     this.expect( '.' );
     
-    left = this.literal();
+    left = this.peek().type === Grammar.Literal ?
+        left = this.literal() :
+        null;
     
     node = new RangeExpression( left, right );
     node.range = [ this.column, end ];

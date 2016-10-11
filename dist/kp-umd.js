@@ -440,16 +440,16 @@ OperatorExpression.prototype = Object.create( Expression.prototype );
 
 OperatorExpression.prototype.constructor = OperatorExpression;
 
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the operator expression
+ */
 OperatorExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
     
     json.operator = this.operator;
     
     return json;
-};
-
-OperatorExpression.prototype.toString = function(){
-    return this.operator;
 };
 
 /**
@@ -593,12 +593,22 @@ CallExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Builder~ComputedMemberExpression
+ * @extends Builder~MemberExpression
+ * @param {Builder~Expression} object
+ * @param {Builder~Expression} property
+ */
 function ComputedMemberExpression( object, property ){
     if( !( property instanceof Expression ) ){
         throw new TypeError( 'property must be an expression when computed is true' );
     }
         
     MemberExpression.call( this, object, property, true );
+    
+    /**
+     * @member Builder~ComputedMemberExpression#computed=true
+     */
 }
 
 ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype );
@@ -720,26 +730,32 @@ Literal$1.prototype.toJSON = function(){
 function RangeExpression( left, right ){
     OperatorExpression.call( this, Syntax.RangeExpression, RangeOperator );
     
-    if( !( left instanceof Literal$1 ) ){
-        throw new TypeError( 'left must be an instance of expression' );
+    if( !( left instanceof Literal$1 ) && left !== null ){
+        throw new TypeError( 'left must be an instance of literal or null' );
     }
     
     if( !( right instanceof Literal$1 ) ){
-        throw new TypeError( 'right must be an instance of expression' );
+        throw new TypeError( 'right must be an instance of literal' );
     }
     
     /**
-     * @member {Builder~Literal}
+     * @member {Builder~Literal} Builder~RangeExpression#left
+     */
+     /**
+     * @member {Builder~Literal} Builder~RangeExpression#0
      */
     this[ 0 ] = this.left = left;
     
     /**
-     * @member {Builder~Literal}
+     * @member {Builder~Literal} Builder~RangeExpression#right
+     */
+     /**
+     * @member {Builder~Literal} Builder~RangeExpression#1
      */
     this[ 1 ] = this.right = right;
     
     /**
-     * @member {external:number}
+     * @member {external:number} Builder~RangeExpression#length=2
      */
     this.length = 2;
 }
@@ -755,6 +771,10 @@ RangeExpression.prototype.toJSON = function(){
     json.right = this.right.toJSON();
     
     return json;
+};
+
+RangeExpression.prototype.toString = function(){
+    return this.left.toString() + this.operator + this.right.toString();
 };
 
 /**
@@ -797,12 +817,22 @@ SequenceExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Builder~StaticMemberExpression
+ * @extends Builder~MemberExpression
+ * @param {Builder~Expression} object
+ * @param {Builder~Identifier} property
+ */
 function StaticMemberExpression( object, property ){
     if( !( property instanceof Identifier$1 ) ){
         throw new TypeError( 'property must be an identifier when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
+    
+    /**
+     * @member Builder~StaticMemberExpression#computed=false
+     */
 }
 
 StaticMemberExpression.prototype = Object.create( MemberExpression.prototype );
@@ -1178,7 +1208,9 @@ Builder.prototype.rangeExpression = function( right ){
     this.expect( '.' );
     this.expect( '.' );
     
-    left = this.literal();
+    left = this.peek().type === Grammar.Literal ?
+        left = this.literal() :
+        null;
     
     node = new RangeExpression( left, right );
     node.range = [ this.column, end ];
@@ -1582,7 +1614,9 @@ Interpreter.prototype.recurse = function( node, context, create ){
         }
         
         case Syntax.RangeExpression: {
-            left = interpreter.recurse( node.left, context, create );
+            left = node.left !== null ?
+                interpreter.recurse( node.left, context, create ) :
+                function(){ return 0; };
             right = interpreter.recurse( node.right, context, create );
             return function getRangeExpression( base, value ){
                  //console.log( 'Getting RANGE EXPRESSION' );
@@ -1591,13 +1625,15 @@ Interpreter.prototype.recurse = function( node, context, create ){
                  var lhs = left( base, value ),
                     rhs = right( base, value ),
                     result = [],
-                    index = 1;
-                 
+                    index = 1,
+                    middle = lhs + 1;
+                 //console.log( '- RANGE LHS', lhs );
+                 //console.log( '- RANGE RHS', rhs );
                  result[ 0 ] = lhs;
-                 for( ; index < rhs; index++ ){
-                     result[ index ] = lhs + index;
+                 while( middle < rhs ){
+                     result[ index++ ] = middle++;
                  }
-                 result[ result.length - 1 ] = rhs;
+                 result[ result.length ] = rhs;
                  //console.log( '- RANGE EXPRESSION RESULT', result );
                  return context ?
                     { value: result } :

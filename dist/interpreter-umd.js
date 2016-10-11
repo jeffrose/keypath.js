@@ -396,7 +396,9 @@ Interpreter.prototype.recurse = function( node, context, create ){
         }
         
         case Syntax.RangeExpression: {
-            left = interpreter.recurse( node.left, context, create );
+            left = node.left !== null ?
+                interpreter.recurse( node.left, context, create ) :
+                function(){ return 0; };
             right = interpreter.recurse( node.right, context, create );
             return function getRangeExpression( base, value ){
                  //console.log( 'Getting RANGE EXPRESSION' );
@@ -405,13 +407,15 @@ Interpreter.prototype.recurse = function( node, context, create ){
                  var lhs = left( base, value ),
                     rhs = right( base, value ),
                     result = [],
-                    index = 1;
-                 
+                    index = 1,
+                    middle = lhs + 1;
+                 //console.log( '- RANGE LHS', lhs );
+                 //console.log( '- RANGE RHS', rhs );
                  result[ 0 ] = lhs;
-                 for( ; index < rhs; index++ ){
-                     result[ index ] = lhs + index;
+                 while( middle < rhs ){
+                     result[ index++ ] = middle++;
                  }
-                 result[ result.length - 1 ] = rhs;
+                 result[ result.length ] = rhs;
                  //console.log( '- RANGE EXPRESSION RESULT', result );
                  return context ?
                     { value: result } :
