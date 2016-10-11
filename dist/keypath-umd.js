@@ -771,8 +771,12 @@ RangeExpression.prototype.constructor = RangeExpression;
 RangeExpression.prototype.toJSON = function(){
     var json = OperatorExpression.prototype.toJSON.call( this );
     
-    json.left = this.left.toJSON();
-    json.right = this.right.toJSON();
+    json.left = this.left !== null ?
+        this.left.toJSON() :
+        this.left;
+    json.right = this.right !== null ?
+        this.right.toJSON() :
+        this.right;
     
     return json;
 };
@@ -857,13 +861,16 @@ Builder.prototype = new Null();
 Builder.prototype.constructor = Builder;
 
 Builder.prototype.arrayExpression = function( list ){
-    var end = ( list.length ? list[ list.length - 1 ].range[ 1 ] : 1 ) + 1,
+    //console.log( 'ARRAY EXPRESSION' );
+    var end = ( Array.isArray( list ) ? list.length ? list[ list.length - 1 ].range[ 1 ] : 1 : list.range[ 1 ] ) + 1,
         node;
         
     this.consume( '[' );
     
     node = new ArrayExpression( list );
     node.range = [ this.column, end ];
+    
+    //console.log( '- ARRAY EXPRESSION RANGE', node.range );
     
     return node;
 };
@@ -1208,7 +1215,7 @@ Builder.prototype.program = function(){
 };
 
 Builder.prototype.rangeExpression = function( right ){
-    var end = this.column + 1,
+    var end = right !== null ? right.range[ 1 ] : this.column,
         left, node;
     
     this.expect( '.' );
@@ -1283,6 +1290,7 @@ function hasOwnProperty( object, property ){
 }
 
 var noop = function(){};
+var cache$1 = new Null();
 
 /**
  * @function Interceptor~getValue
@@ -1295,19 +1303,11 @@ function getValue( base, name, create, defaultValue ){
 }
 
 /**
- * @function Interpreter~intepretList
- * @param {Interpreter} interpreter
- * @param {Array-Like} list
- * @param {external:boolean} context
- * @param {external:boolean} create
- * @returns {Array<external:Function>} The interpreted list
+ * @function Interceptor~returnZero
+ * @returns {external:number} zero
  */
-function intepretList( interpreter, list, context, create ){
-    var result = [];
-    forEach( list, function( expression, index ){
-        result[ index ] = interpreter.recurse( expression, context, create );
-    } );
-    return result;
+function returnZero(){
+    return 0;
 }
 
 /**
@@ -1335,7 +1335,9 @@ Interpreter.prototype.constructor = Interpreter;
  * @param {external:string} expression
  */
 Interpreter.prototype.compile = function( expression, create ){
-    var program = this.builder.build( expression ),
+    var program = hasOwnProperty( cache$1, expression ) ?
+            cache$1[ expression ] :
+            cache$1[ expression ] = this.builder.build( expression ),
         body = program.body,
         interpreter = this,
         expressions, fn;
@@ -1383,6 +1385,9 @@ Interpreter.prototype.compile = function( expression, create ){
     return fn;
 };
 
+/**
+ * 
+ */
 Interpreter.prototype.recurse = function( node, context, create ){
     var interpreter = this,
         isRightMost = false,
@@ -1397,15 +1402,24 @@ Interpreter.prototype.recurse = function( node, context, create ){
             isRightMost = node.range[ 1 ] === interpreter.eol;
             
             if( Array.isArray( node.elements ) ){
-                args = intepretList( interpreter, node.elements, false );
+                args = interpreter.recurseList( node.elements, false, create );
                 fn = function getArrayExpression( base, value ){
                     //console.log( 'Getting ARRAY EXPRESSION' );
-                    var result = [],
-                        name;
-                    forEach( args, function( arg, index ){
-                        name = arg( base, value );
-                        result[ index ] = getValue( base, name, create, isRightMost ? value : {} );
-                    } );
+                    var result = [], name;
+                    switch( args.length ){
+                        case 0:
+                            break;
+                        case 1:
+                            name = args[ 0 ]( base, value );
+                            result[ 0 ] = getValue( base, name, create, isRightMost ? value : {} );
+                            break;
+                        default:
+                            forEach( args, function( arg, index ){
+                                name = arg( base, value );
+                                result[ index ] = getValue( base, name, create, isRightMost ? value : {} );
+                            } );
+                            break;
+                    }
                     //console.log( '- ARRAY EXPRESSION RESULT', result );
                     return context ?
                         { value: result } :
@@ -1417,9 +1431,18 @@ Interpreter.prototype.recurse = function( node, context, create ){
                     //console.log( 'Getting ARRAY EXPRESSION' );
                     var result = [],
                         names = args( base, value );
-                    forEach( names, function( name, index ){
-                        result[ index ] = getValue( base, name, create, isRightMost ? value : {} );
-                    } );
+                    switch( names.length ){
+                        case 0:
+                            break;
+                        case 1:
+                            result[ 0 ] = getValue( base, names[ 0 ], create, isRightMost ? value : {} );
+                            break;
+                        default:
+                            forEach( names, function( name, index ){
+                                result[ index ] = getValue( base, name, create, isRightMost ? value : {} );
+                            } );
+                            break;
+                    }
                     //console.log( '- ARRAY EXPRESSION RESULT', result );
                     return context ?
                         { value: result } :
@@ -1431,7 +1454,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
         }
         
         case Syntax.CallExpression: {
-            args = intepretList( interpreter, node.arguments, false );
+            args = interpreter.recurseList( node.arguments, false, create );
             right = interpreter.recurse( node.callee, true, create );
             
             return function getCallExpression( base, value ){
@@ -1443,11 +1466,18 @@ Interpreter.prototype.recurse = function( node, context, create ){
                 //console.log( '- RHS', rhs );
                 if( typeof rhs.value === 'function' ){
                     values = [];
-                    
-                    forEach( args, function( arg, index ){
-                        values[ index ] = arg( base );
-                    } );
-                    
+                    switch( args.length ){
+                        case 0:
+                            break;
+                        case 1:
+                            values[ 0 ] = args[ 0 ]( base, value );
+                            break;
+                        default:
+                            forEach( args, function( arg, index ){
+                                values[ index ] = arg( base, value );
+                            } );
+                            break;
+                    }
                     result = rhs.value.apply( rhs.context, values );
                 } else if( create && typeof rhs.value === 'undefined' ){
                     throw new Error( 'cannot create call expressions' );
@@ -1469,12 +1499,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
                 var name = node.name,
                     result;
                 if( typeof base !== 'undefined' ){
-                    if( create && !( hasOwnProperty( base, name ) ) ){
-                        base[ name ] = isRightMost ?
-                            value :
-                            {};
-                    }
-                    result = base[ name ];
+                    result = getValue( base, name, create, isRightMost ? value : {} );
                 }
                 //console.log( '- NAME', name );
                 //console.log( '- IDENTIFIER RESULT', result );
@@ -1622,10 +1647,10 @@ Interpreter.prototype.recurse = function( node, context, create ){
         case Syntax.RangeExpression: {
             left = node.left !== null ?
                 interpreter.recurse( node.left, context, create ) :
-                function(){ return 0; };
+                returnZero;
             right = node.right !== null ?
                 interpreter.recurse( node.right, context, create ) :
-                function(){ return 0; };
+                returnZero;
             return function getRangeExpression( base, value ){
                  //console.log( 'Getting RANGE EXPRESSION' );
                  //console.log( '- LEFT', left.name );
@@ -1660,7 +1685,7 @@ Interpreter.prototype.recurse = function( node, context, create ){
         case Syntax.SequenceExpression: {
             
             if( Array.isArray( node.expressions ) ){
-                args = intepretList( interpreter, node.expressions, false, create );
+                args = interpreter.recurseList( node.expressions, false, create );
                 fn = function getSequenceExpression( base, value ){
                     //console.log( 'Getting SEQUENCE EXPRESSION' );
                     var result = [];
@@ -1692,6 +1717,17 @@ Interpreter.prototype.recurse = function( node, context, create ){
     }
 };
 
+Interpreter.prototype.recurseList = function( nodes, context, create ){
+    var interpreter = this,
+        result = [];
+        
+    forEach( nodes, function( expression, index ){
+        result[ index ] = interpreter.recurse( expression, context, create );
+    } );
+    
+    return result;
+};
+
 Interpreter.prototype.throwError = function( message ){
     throw new Error( message );
 };
@@ -1711,7 +1747,7 @@ function KeyPathExp( pattern, flags ){
     typeof pattern !== 'string' && ( pattern = '' );
     typeof flags !== 'string' && ( flags = '' );
     
-    var tokens = pattern in cache ?
+    var tokens = hasOwnProperty( cache, pattern ) ?
         cache[ pattern ] :
         cache[ pattern ] = lexer.lex( pattern );
     

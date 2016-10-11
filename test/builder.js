@@ -184,7 +184,7 @@ describe( 'Builder', function(){
             expect( expression.range ).to.deep.equal( [ 0, 13 ] );
         } );
         
-        it( 'should build sequence expressions', function(){
+        it( 'should parse sequence expressions', function(){
             program = builder.build( 'foo[123,456]' );
             expression = program.body[ 0 ].expression;
             
@@ -199,6 +199,54 @@ describe( 'Builder', function(){
             expect( expression.property.expressions[ 1 ].type ).to.equal( 'Literal' );
             expect( expression.property.expressions[ 1 ].value ).to.equal( 456 );
             expect( expression.property.range ).to.deep.equal( [ 4, 11 ] );
+        } );
+        
+        it( 'should parse range expressions', function(){
+            program = builder.build( '[1..10]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'ArrayExpression' );
+            expect( expression.range ).to.deep.equal( [ 0, 7 ] );
+            expect( expression.elements.type ).to.equal( 'RangeExpression' );
+            expect( expression.elements.left.type ).to.equal( 'Literal' );
+            expect( expression.elements.left.value ).to.equal( 1 );
+            expect( expression.elements.right.type ).to.equal( 'Literal' );
+            expect( expression.elements.right.value ).to.equal( 10 );
+            expect( expression.elements.range ).to.deep.equal( [ 1, 6 ] );
+            
+            program = builder.build( '[6..2]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'ArrayExpression' );
+            expect( expression.range ).to.deep.equal( [ 0, 6 ] );
+            expect( expression.elements.type ).to.equal( 'RangeExpression' );
+            expect( expression.elements.left.type ).to.equal( 'Literal' );
+            expect( expression.elements.left.value ).to.equal( 6 );
+            expect( expression.elements.right.type ).to.equal( 'Literal' );
+            expect( expression.elements.right.value ).to.equal( 2 );
+            expect( expression.elements.range ).to.deep.equal( [ 1, 5 ] );
+            
+            program = builder.build( '[..3]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'ArrayExpression' );
+            expect( expression.range ).to.deep.equal( [ 0, 5 ] );
+            expect( expression.elements.type ).to.equal( 'RangeExpression' );
+            expect( expression.elements.left ).to.equal( null );
+            expect( expression.elements.right.type ).to.equal( 'Literal' );
+            expect( expression.elements.right.value ).to.equal( 3 );
+            expect( expression.elements.range ).to.deep.equal( [ 1, 4 ] );
+            
+            program = builder.build( '[7..]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'ArrayExpression' );
+            expect( expression.range ).to.deep.equal( [ 0, 5 ] );
+            expect( expression.elements.type ).to.equal( 'RangeExpression' );
+            expect( expression.elements.left.type ).to.equal( 'Literal' );
+            expect( expression.elements.left.value ).to.equal( 7 );
+            expect( expression.elements.right ).to.equal( null );
+            expect( expression.elements.range ).to.deep.equal( [ 1, 4 ] );
         } );
         
         it( 'should parse non-computed member expressions', function(){

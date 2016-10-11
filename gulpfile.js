@@ -11,6 +11,7 @@ const gulp = require( 'gulp' ),
     istanbul = require( 'gulp-istanbul' ),
     jsdoc = require( 'gulp-jsdoc-to-markdown' ),
     mocha = require( 'gulp-mocha' ),
+    monitor = require( 'gulp-nodemon' ),
     rename = require( 'gulp-rename' ),
     rollup = require( 'rollup-stream' ),
     source = require( 'vinyl-source-stream' ),
@@ -145,6 +146,24 @@ gulp.task( 'benchmark', [ 'dist' ], () => {
         .pipe( debug( { title: 'Benchmarking' } ) )
         .pipe( benchmark() )
         .pipe( gulp.dest( './benchmark' ) );
+} );
+
+gulp.task( 'monitor', [ 'dist' ], ( done ) => {
+    var started = false;
+    
+    monitor( {
+            script: 'app.js',
+            args: [ '--fgrep', yargs.argv.fgrep ],
+            watch: [ 'src', 'views', 'app.js' ],
+            tasks: [ 'dist' ]
+        } )
+        .on( 'start', () => {
+            // to avoid nodemon being started multiple times
+            if( !started ){
+                done();
+                started = true; 
+            } 
+        } );
 } );
 
 gulp.task( 'default', [ 'tk-test', 'test' ] );
