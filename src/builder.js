@@ -2,7 +2,7 @@
 
 import Null from './null';
 import Grammar from './lexer/grammar';
-import { ArrayExpression, CallExpression, ComputedMemberExpression, ExpressionStatement, Identifier, Literal, Program, SequenceExpression, StaticMemberExpression } from './builder/node';
+import { ArrayExpression, CallExpression, ComputedMemberExpression, ExpressionStatement, Identifier, Literal, Program, RangeExpression, SequenceExpression, StaticMemberExpression } from './builder/node';
 
 /**
  * @class Builder
@@ -154,7 +154,9 @@ Builder.prototype.expression = function(){
             } else if( list.length > 1 ){
                 expression = this.sequenceExpression( list );
             } else {
-                expression = list[ 0 ];
+                expression = Array.isArray( list ) ?
+                    list[ 0 ] :
+                    list;
             }
         } else if( next.type === Grammar.Identifier ){
             expression = this.identifier();
@@ -256,11 +258,19 @@ Builder.prototype.literal = function(){
  * @returns {external:Array<Literal>} The list of literals
  */
 Builder.prototype.list = function( terminator ){
-    var list = [];
+    var list = [],
+        literal;
     
     if( this.peek().value !== terminator ){
         do {
-            list.unshift( this.literal() );
+            literal = this.peek().type === Grammar.Literal ?
+                this.literal() :
+                null;
+            if( this.peek().value === '.' ){
+                list = this.rangeExpression( literal );
+            } else {
+                list.unshift( literal );
+            }
         } while( this.expect( ',' ) );
     }
     
@@ -358,9 +368,33 @@ Builder.prototype.program = function(){
     }
 };
 
+Builder.prototype.rangeExpression = function( right ){
+    var end = this.column + 1,
+        left, node;
+    
+    this.expect( '.' );
+    this.expect( '.' );
+    
+    left = this.peek().type === Grammar.Literal ?
+        left = this.literal() :
+        null;
+    
+    node = new RangeExpression( left, right );
+    node.range = [ this.column, end ];
+    
+    return node;
+};
+
 Builder.prototype.sequenceExpression = function( list ){
-    var end = list[ list.length - 1 ].range[ 1 ],
-        node = new SequenceExpression( list );
+    var end, node;
+    
+    if( Array.isArray( list ) ){
+        end = list[ list.length - 1 ].range[ 1 ];
+    } else if( list instanceof RangeExpression ){
+        end = list.range[ 1 ];
+    }
+    
+    node = new SequenceExpression( list );
     
     node.range = [ this.column, end ];
     

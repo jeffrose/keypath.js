@@ -139,5 +139,63 @@ describe( 'Interpreter', function(){
             expect( fn( data ) ).to.equal( 123 );
         } );
         
+        it( 'should interpret range expressions', function(){
+            var array = [
+                    { foo: 12 },
+                    { foo: 34 },
+                    { foo: 56 },
+                    { foo: 78 },
+                    { foo: 90 }
+                ],
+                object = {
+                    foo: [
+                        12,
+                        34,
+                        56,
+                        78,
+                        90
+                    ]
+                },
+                fn, result;
+            
+            fn = interpreter.compile( '[1..3]foo' );
+            result = fn( array );
+            expect( result ).to.be.an( 'array' );
+            expect( result[ 0 ] ).to.equal( 34 );
+            expect( result[ 1 ] ).to.equal( 56 );
+            expect( result[ 2 ] ).to.equal( 78 );
+            result = undefined;
+            
+            fn = interpreter.compile( '[..2]foo' );
+            result = fn( array );
+            expect( result ).to.be.an( 'array' );
+            expect( result[ 0 ] ).to.equal( 12 );
+            expect( result[ 1 ] ).to.equal( 34 );
+            expect( result[ 2 ] ).to.equal( 56 );
+            result = undefined;
+            
+            fn = interpreter.compile( 'foo[1..3]' );
+            result = fn( object );
+            expect( result ).to.be.an( 'array' );
+            expect( result[ 0 ] ).to.equal( 34 );
+            expect( result[ 1 ] ).to.equal( 56 );
+            expect( result[ 2 ] ).to.equal( 78 );
+            result = undefined;
+            
+            fn = interpreter.compile( 'foo[3..1]' );
+            result = fn( object );
+            expect( result ).to.be.an( 'array' );
+            expect( result[ 0 ] ).to.equal( 78 );
+            expect( result[ 1 ] ).to.equal( 56 );
+            expect( result[ 2 ] ).to.equal( 34 );
+            
+            fn = interpreter.compile( 'foo[2..]' );
+            result = fn( object );
+            expect( result ).to.be.an( 'array' );
+            expect( result[ 0 ] ).to.equal( 56 );
+            expect( result[ 1 ] ).to.equal( 34 );
+            expect( result[ 2 ] ).to.equal( 12 );
+        } );
+        
     } );
 } );

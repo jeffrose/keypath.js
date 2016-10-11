@@ -28,19 +28,17 @@ Syntax.Identifier           = 'Identifier';
 Syntax.Literal              = 'Literal';
 Syntax.MemberExpression     = 'MemberExpression';
 Syntax.Program              = 'Program';
+Syntax.RangeExpression      = 'RangeExpression';
 Syntax.SequenceExpression   = 'SequenceExpression';
 
 var nodeId = 0;
 var literalTypes = 'boolean number string'.split( ' ' );
-
-/**
- * @typedef {external:string} Builder~NodeType
- */
+var RangeOperator = '..';
 
 /**
  * @class Builder~Node
  * @extends Null
- * @param {Builder~NodeType} type A node type
+ * @param {external:string} type A node type
  */
 function Node( type ){
     
@@ -53,7 +51,7 @@ function Node( type ){
      */
     this.id = ++nodeId;
     /**
-     * @member {Builder~NodeType} Builder~Node#type
+     * @member {external:string} Builder~Node#type
      */
     this.type = type;
 }
@@ -89,7 +87,7 @@ Node.prototype.valueOf = function(){
 /**
  * @class Builder~Expression
  * @extends Builder~Node
- * @param {Builder~NodeType} expressionType A node type
+ * @param {external:string} expressionType A node type
  */
 function Expression( expressionType ){
     Node.call( this, expressionType );
@@ -126,6 +124,34 @@ function MemberExpression( object, property, computed ){
 MemberExpression.prototype = Object.create( Expression.prototype );
 
 MemberExpression.prototype.constructor = MemberExpression;
+
+/**
+ * @class Builder~OperatorExpression
+ * @extends Builder~Expression
+ * @param {external:string} expressionType
+ * @param {external:string} operator
+ */
+function OperatorExpression( expressionType, operator ){
+    Expression.call( this, expressionType );
+    
+    this.operator = operator;
+}
+
+OperatorExpression.prototype = Object.create( Expression.prototype );
+
+OperatorExpression.prototype.constructor = OperatorExpression;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the operator expression
+ */
+OperatorExpression.prototype.toJSON = function(){
+    var json = Node.prototype.toJSON.call( this );
+    
+    json.operator = this.operator;
+    
+    return json;
+};
 
 /**
  * @function
@@ -178,7 +204,7 @@ Program.prototype.toJSON = function(){
 /**
  * @class Builder~Statement
  * @extends Builder~Node
- * @param {Builder~NodeType} statementType A node type
+ * @param {external:string} statementType A node type
  */
 function Statement( statementType ){
     Node.call( this, statementType );
@@ -191,17 +217,17 @@ Statement.prototype.constructor = Statement;
 /**
  * @class Builder~ArrayExpression
  * @extends Builder~Expression
- * @param {external:Array<Builder~Expression>} elements A list of expressions
+ * @param {external:Array<Builder~Expression>|RangeExpression} elements A list of expressions
  */
 function ArrayExpression( elements ){
     Expression.call( this, Syntax.ArrayExpression );
     
-    if( !( Array.isArray( elements ) ) ){
-        throw new TypeError( 'elements must be a list of expressions' );
+    if( !( Array.isArray( elements ) ) && !( elements instanceof RangeExpression ) ){
+        throw new TypeError( 'elements must be a list of expressions or an instance of range expression' );
     }
     
     /**
-     * @member {Array<Builder~Expression>}
+     * @member {Array<Builder~Expression>|RangeExpression}
      */
     this.elements = elements;
 }
@@ -217,9 +243,13 @@ ArrayExpression.prototype.constructor = ArrayExpression;
 ArrayExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
-    json.elements = this.elements.map( function( element ){
-        return element.toJSON();
-    } );
+    if( Array.isArray( this.elements ) ){
+        json.elements = this.elements.map( function( element ){
+            return element.toJSON();
+        } );
+    } else {
+        json.elements = this.elements.toJSON();
+    }
     
     return json;
 };
@@ -264,12 +294,22 @@ CallExpression.prototype.toJSON = function(){
     return json;
 };
 
+/**
+ * @class Builder~ComputedMemberExpression
+ * @extends Builder~MemberExpression
+ * @param {Builder~Expression} object
+ * @param {Builder~Expression} property
+ */
 function ComputedMemberExpression( object, property ){
     if( !( property instanceof Expression ) ){
         throw new TypeError( 'property must be an expression when computed is true' );
     }
         
     MemberExpression.call( this, object, property, true );
+    
+    /**
+     * @member Builder~ComputedMemberExpression#computed=true
+     */
 }
 
 ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype );
@@ -383,19 +423,79 @@ Literal.prototype.toJSON = function(){
 };
 
 /**
+ * @class Builder~RangeExpression
+ * @extends Builder~OperatorExpression
+ * @param {Builder~Expression} left
+ * @param {Builder~Expression} right
+ */
+function RangeExpression( left, right ){
+    OperatorExpression.call( this, Syntax.RangeExpression, RangeOperator );
+    
+    if( !( left instanceof Literal ) && left !== null ){
+        throw new TypeError( 'left must be an instance of literal or null' );
+    }
+    
+    if( !( right instanceof Literal ) && right !== null ){
+        throw new TypeError( 'right must be an instance of literal or null' );
+    }
+    
+    if( left === null && right === null ){
+        throw new TypeError( 'left and right cannot equal null at the same time' );
+    }
+    
+    /**
+     * @member {Builder~Literal} Builder~RangeExpression#left
+     */
+     /**
+     * @member {Builder~Literal} Builder~RangeExpression#0
+     */
+    this[ 0 ] = this.left = left;
+    
+    /**
+     * @member {Builder~Literal} Builder~RangeExpression#right
+     */
+     /**
+     * @member {Builder~Literal} Builder~RangeExpression#1
+     */
+    this[ 1 ] = this.right = right;
+    
+    /**
+     * @member {external:number} Builder~RangeExpression#length=2
+     */
+    this.length = 2;
+}
+
+RangeExpression.prototype = Object.create( Expression.prototype );
+
+RangeExpression.prototype.constructor = RangeExpression;
+
+RangeExpression.prototype.toJSON = function(){
+    var json = OperatorExpression.prototype.toJSON.call( this );
+    
+    json.left = this.left.toJSON();
+    json.right = this.right.toJSON();
+    
+    return json;
+};
+
+RangeExpression.prototype.toString = function(){
+    return this.left.toString() + this.operator + this.right.toString();
+};
+
+/**
  * @class Builder~SequenceExpression
  * @extends Builder~Expression
- * @param {Array<Builder~Expression>} expressions The expressions in the sequence
+ * @param {Array<Builder~Expression>|RangeExpression} expressions The expressions in the sequence
  */
 function SequenceExpression( expressions ){
     Expression.call( this, Syntax.SequenceExpression );
     
-    if( !( Array.isArray( expressions ) ) ){
-        throw new TypeError( 'expressions must be a list of expressions' );
+    if( !( Array.isArray( expressions ) ) && !( expressions instanceof RangeExpression ) ){
+        throw new TypeError( 'expressions must be a list of expressions or an instance of range expression' );
     }
     
     /**
-     * @member {Array<Builder~Expression>}
+     * @member {Array<Builder~Expression>|RangeExpression}
      */
     this.expressions = expressions;
 }
@@ -411,19 +511,33 @@ SequenceExpression.prototype.constructor = SequenceExpression;
 SequenceExpression.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
-    json.expressions = this.expressions.map( function( expression ){
-        return expression.toJSON();
-    } );
+    if( Array.isArray( this.expressions ) ){
+        json.expressions = this.expressions.map( function( expression ){
+            return expression.toJSON();
+        } );
+    } else {
+        json.expressions = this.expressions.toJSON();
+    }
     
     return json;
 };
 
+/**
+ * @class Builder~StaticMemberExpression
+ * @extends Builder~MemberExpression
+ * @param {Builder~Expression} object
+ * @param {Builder~Identifier} property
+ */
 function StaticMemberExpression( object, property ){
     if( !( property instanceof Identifier ) ){
         throw new TypeError( 'property must be an identifier when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
+    
+    /**
+     * @member Builder~StaticMemberExpression#computed=false
+     */
 }
 
 StaticMemberExpression.prototype = Object.create( MemberExpression.prototype );
@@ -580,7 +694,9 @@ Builder.prototype.expression = function(){
             } else if( list.length > 1 ){
                 expression = this.sequenceExpression( list );
             } else {
-                expression = list[ 0 ];
+                expression = Array.isArray( list ) ?
+                    list[ 0 ] :
+                    list;
             }
         } else if( next.type === Grammar.Identifier ){
             expression = this.identifier();
@@ -682,11 +798,19 @@ Builder.prototype.literal = function(){
  * @returns {external:Array<Literal>} The list of literals
  */
 Builder.prototype.list = function( terminator ){
-    var list = [];
+    var list = [],
+        literal;
     
     if( this.peek().value !== terminator ){
         do {
-            list.unshift( this.literal() );
+            literal = this.peek().type === Grammar.Literal ?
+                this.literal() :
+                null;
+            if( this.peek().value === '.' ){
+                list = this.rangeExpression( literal );
+            } else {
+                list.unshift( literal );
+            }
         } while( this.expect( ',' ) );
     }
     
@@ -784,9 +908,33 @@ Builder.prototype.program = function(){
     }
 };
 
+Builder.prototype.rangeExpression = function( right ){
+    var end = this.column + 1,
+        left, node;
+    
+    this.expect( '.' );
+    this.expect( '.' );
+    
+    left = this.peek().type === Grammar.Literal ?
+        left = this.literal() :
+        null;
+    
+    node = new RangeExpression( left, right );
+    node.range = [ this.column, end ];
+    
+    return node;
+};
+
 Builder.prototype.sequenceExpression = function( list ){
-    var end = list[ list.length - 1 ].range[ 1 ],
-        node = new SequenceExpression( list );
+    var end, node;
+    
+    if( Array.isArray( list ) ){
+        end = list[ list.length - 1 ].range[ 1 ];
+    } else if( list instanceof RangeExpression ){
+        end = list.range[ 1 ];
+    }
+    
+    node = new SequenceExpression( list );
     
     node.range = [ this.column, end ];
     

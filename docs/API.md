@@ -13,10 +13,23 @@
 <dd></dd>
 </dl>
 
+## Members
+
+<dl>
+<dt><a href="#object">object</a> : <code><a href="#Builder..Expression">Expression</a></code></dt>
+<dd></dd>
+<dt><a href="#property">property</a> : <code><a href="#Builder..Expression">Expression</a></code> | <code><a href="#Builder..Identifier">Identifier</a></code></dt>
+<dd></dd>
+<dt><a href="#computed">computed</a> : <code><a href="#external_boolean">boolean</a></code></dt>
+<dd></dd>
+</dl>
+
 ## Functions
 
 <dl>
 <dt><a href="#forEach">forEach(list, callback)</a></dt>
+<dd></dd>
+<dt><a href="#hasOwnProperty">hasOwnProperty(object, property)</a></dt>
 <dd></dd>
 <dt><a href="#kp">kp(literals, values)</a> ⇒ <code><a href="#KeyPathCallback">KeyPathCallback</a></code></dt>
 <dd><p>A template literal tag for keypath processing.</p>
@@ -88,7 +101,7 @@
 * [Builder](#Builder) ⇐ <code>[Null](#Null)</code>
     * [new Builder(lexer)](#new_Builder_new)
     * _instance_
-        * [.build(text)](#Builder+build) ⇒ <code>Program</code>
+        * [.build(input)](#Builder+build) ⇒ <code>Program</code>
             * [.text](#Builder+build+text) : <code>[string](#external_string)</code>
             * [.tokens](#Builder+build+tokens) : <code>external:Array.&lt;Token&gt;</code>
         * [.callExpression()](#Builder+callExpression) ⇒ <code>CallExpression</code>
@@ -108,51 +121,69 @@
         * [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
             * [new Node(type)](#new_Builder..Node_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-        * [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
-            * [new Statement(statementType)](#new_Builder..Statement_new)
-            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
             * [new Expression(expressionType)](#new_Builder..Expression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-        * [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
-            * [new Program(body)](#new_Builder..Program_new)
-            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-        * [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
-            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
-            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-        * [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
-            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-        * [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
-            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
-            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
             * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Program(body)](#new_Builder..Program_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
             * [new Identifier(name)](#new_Builder..Identifier_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
             * [new Literal(value)](#new_Builder..Literal_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
             * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-        * [~Punctuator](#Builder..Punctuator) ⇐ <code>[Node](#Builder..Node)</code>
-            * [new Punctuator(value)](#new_Builder..Punctuator_new)
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [.computed](#Builder..StaticMemberExpression+computed)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-        * [~NodeType](#Builder..NodeType) : <code>[string](#external_string)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
 <a name="new_Builder_new"></a>
 
@@ -164,16 +195,16 @@
 
 <a name="Builder+build"></a>
 
-### builder.build(text) ⇒ <code>Program</code>
+### builder.build(input) ⇒ <code>Program</code>
 **Kind**: instance method of <code>[Builder](#Builder)</code>  
 **Returns**: <code>Program</code> - The built abstract syntax tree  
 
 | Param | Type |
 | --- | --- |
-| text | <code>[string](#external_string)</code> | 
+| input | <code>[string](#external_string)</code> &#124; <code>Array.&lt;Builder~Token&gt;</code> | 
 
 
-* [.build(text)](#Builder+build) ⇒ <code>Program</code>
+* [.build(input)](#Builder+build) ⇒ <code>Program</code>
     * [.text](#Builder+build+text) : <code>[string](#external_string)</code>
     * [.tokens](#Builder+build+tokens) : <code>external:Array.&lt;Token&gt;</code>
 
@@ -324,7 +355,7 @@ Provides the token at the requested position _without removing it_ from the toke
 * [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
     * [new Node(type)](#new_Builder..Node_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
 <a name="new_Builder..Node_new"></a>
 
@@ -332,7 +363,7 @@ Provides the token at the requested position _without removing it_ from the toke
 
 | Param | Type | Description |
 | --- | --- | --- |
-| type | <code>[NodeType](#Builder..NodeType)</code> | A node type |
+| type | <code>[string](#external_string)</code> | A node type |
 
 <a name="Builder..Node+id"></a>
 
@@ -340,35 +371,8 @@ Provides the token at the requested position _without removing it_ from the toke
 **Kind**: instance property of <code>[Node](#Builder..Node)</code>  
 <a name="Builder..Node+type"></a>
 
-#### node.type : <code>[NodeType](#Builder..NodeType)</code>
+#### node.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Node](#Builder..Node)</code>  
-<a name="Builder..Statement"></a>
-
-### Builder~Statement ⇐ <code>[Node](#Builder..Node)</code>
-**Kind**: inner class of <code>[Builder](#Builder)</code>  
-**Extends:** <code>[Node](#Builder..Node)</code>  
-
-* [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
-    * [new Statement(statementType)](#new_Builder..Statement_new)
-    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-
-<a name="new_Builder..Statement_new"></a>
-
-#### new Statement(statementType)
-
-| Param | Type | Description |
-| --- | --- | --- |
-| statementType | <code>[NodeType](#Builder..NodeType)</code> | A node type |
-
-<a name="Builder..Node+id"></a>
-
-#### statement.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
-<a name="Builder..Node+type"></a>
-
-#### statement.type : <code>[NodeType](#Builder..NodeType)</code>
-**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
 <a name="Builder..Expression"></a>
 
 ### Builder~Expression ⇐ <code>[Node](#Builder..Node)</code>
@@ -378,7 +382,7 @@ Provides the token at the requested position _without removing it_ from the toke
 * [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
     * [new Expression(expressionType)](#new_Builder..Expression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
 <a name="new_Builder..Expression_new"></a>
 
@@ -386,7 +390,7 @@ Provides the token at the requested position _without removing it_ from the toke
 
 | Param | Type | Description |
 | --- | --- | --- |
-| expressionType | <code>[NodeType](#Builder..NodeType)</code> | A node type |
+| expressionType | <code>[string](#external_string)</code> | A node type |
 
 <a name="Builder..Node+id"></a>
 
@@ -394,108 +398,8 @@ Provides the token at the requested position _without removing it_ from the toke
 **Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
 <a name="Builder..Node+type"></a>
 
-#### expression.type : <code>[NodeType](#Builder..NodeType)</code>
+#### expression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
-<a name="Builder..Program"></a>
-
-### Builder~Program ⇐ <code>[Node](#Builder..Node)</code>
-**Kind**: inner class of <code>[Builder](#Builder)</code>  
-**Extends:** <code>[Node](#Builder..Node)</code>  
-
-* [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
-    * [new Program(body)](#new_Builder..Program_new)
-    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-
-<a name="new_Builder..Program_new"></a>
-
-#### new Program(body)
-
-| Param | Type |
-| --- | --- |
-| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
-
-<a name="Builder..Node+id"></a>
-
-#### program.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
-<a name="Builder..Node+type"></a>
-
-#### program.type : <code>[NodeType](#Builder..NodeType)</code>
-**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
-<a name="Builder..ArrayExpression"></a>
-
-### Builder~ArrayExpression ⇐ <code>[Expression](#Builder..Expression)</code>
-**Kind**: inner class of <code>[Builder](#Builder)</code>  
-**Extends:** <code>[Expression](#Builder..Expression)</code>  
-
-* [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
-    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
-    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-
-<a name="new_Builder..ArrayExpression_new"></a>
-
-#### new ArrayExpression(elements)
-
-| Param | Type | Description |
-| --- | --- | --- |
-| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> | A list of expressions |
-
-<a name="Builder..Node+id"></a>
-
-#### arrayExpression.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
-<a name="Builder..Node+type"></a>
-
-#### arrayExpression.type : <code>[NodeType](#Builder..NodeType)</code>
-**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
-<a name="Builder..ExpressionStatement"></a>
-
-### Builder~ExpressionStatement ⇐ <code>[Statement](#Builder..Statement)</code>
-**Kind**: inner class of <code>[Builder](#Builder)</code>  
-**Extends:** <code>[Statement](#Builder..Statement)</code>  
-
-* [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
-    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-
-<a name="Builder..Node+id"></a>
-
-#### expressionStatement.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
-<a name="Builder..Node+type"></a>
-
-#### expressionStatement.type : <code>[NodeType](#Builder..NodeType)</code>
-**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
-<a name="Builder..CallExpression"></a>
-
-### Builder~CallExpression ⇐ <code>[Expression](#Builder..Expression)</code>
-**Kind**: inner class of <code>[Builder](#Builder)</code>  
-**Extends:** <code>[Expression](#Builder..Expression)</code>  
-
-* [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
-    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
-    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
-
-<a name="new_Builder..CallExpression_new"></a>
-
-#### new CallExpression(callee, args)
-
-| Param | Type |
-| --- | --- |
-| callee | <code>[Expression](#Builder..Expression)</code> | 
-| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
-
-<a name="Builder..Node+id"></a>
-
-#### callExpression.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
-<a name="Builder..Node+type"></a>
-
-#### callExpression.type : <code>[NodeType](#Builder..NodeType)</code>
-**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
 <a name="Builder..MemberExpression"></a>
 
 ### Builder~MemberExpression ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -505,7 +409,7 @@ Provides the token at the requested position _without removing it_ from the toke
 * [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
 <a name="new_Builder..MemberExpression_new"></a>
 
@@ -523,8 +427,196 @@ Provides the token at the requested position _without removing it_ from the toke
 **Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
 <a name="Builder..Node+type"></a>
 
-#### memberExpression.type : <code>[NodeType](#Builder..NodeType)</code>
+#### memberExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+<a name="Builder..OperatorExpression"></a>
+
+### Builder~OperatorExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### operatorExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+<a name="Builder..Node+type"></a>
+
+#### operatorExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+<a name="Builder..Program"></a>
+
+### Builder~Program ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Program(body)](#new_Builder..Program_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### program.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+<a name="Builder..Node+type"></a>
+
+#### program.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+<a name="Builder..Statement"></a>
+
+### Builder~Statement ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### statement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+<a name="Builder..Node+type"></a>
+
+#### statement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+<a name="Builder..ArrayExpression"></a>
+
+### Builder~ArrayExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
+
+<a name="Builder..Node+id"></a>
+
+#### arrayExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+<a name="Builder..Node+type"></a>
+
+#### arrayExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+<a name="Builder..CallExpression"></a>
+
+### Builder~CallExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### callExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+<a name="Builder..Node+type"></a>
+
+#### callExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+<a name="Builder..ComputedMemberExpression"></a>
+
+### Builder~ComputedMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
+
+* [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..Node+id"></a>
+
+#### computedMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..Node+type"></a>
+
+#### computedMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..ExpressionStatement"></a>
+
+### Builder~ExpressionStatement ⇐ <code>[Statement](#Builder..Statement)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Statement](#Builder..Statement)</code>  
+
+* [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="Builder..Node+id"></a>
+
+#### expressionStatement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+<a name="Builder..Node+type"></a>
+
+#### expressionStatement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
 <a name="Builder..Identifier"></a>
 
 ### Builder~Identifier ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -534,7 +626,7 @@ Provides the token at the requested position _without removing it_ from the toke
 * [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new Identifier(name)](#new_Builder..Identifier_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
 <a name="new_Builder..Identifier_new"></a>
 
@@ -550,7 +642,7 @@ Provides the token at the requested position _without removing it_ from the toke
 **Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
 <a name="Builder..Node+type"></a>
 
-#### identifier.type : <code>[NodeType](#Builder..NodeType)</code>
+#### identifier.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
 <a name="Builder..Literal"></a>
 
@@ -561,7 +653,7 @@ Provides the token at the requested position _without removing it_ from the toke
 * [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new Literal(value)](#new_Builder..Literal_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
 <a name="new_Builder..Literal_new"></a>
 
@@ -577,8 +669,62 @@ Provides the token at the requested position _without removing it_ from the toke
 **Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
 <a name="Builder..Node+type"></a>
 
-#### literal.type : <code>[NodeType](#Builder..NodeType)</code>
+#### literal.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+<a name="Builder..RangeExpression"></a>
+
+### Builder~RangeExpression ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+
+* [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
+<a name="Builder..Node+id"></a>
+
+#### rangeExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..Node+type"></a>
+
+#### rangeExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
 <a name="Builder..SequenceExpression"></a>
 
 ### Builder~SequenceExpression ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -588,7 +734,7 @@ Provides the token at the requested position _without removing it_ from the toke
 * [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
 <a name="new_Builder..SequenceExpression_new"></a>
 
@@ -596,7 +742,7 @@ Provides the token at the requested position _without removing it_ from the toke
 
 | Param | Type | Description |
 | --- | --- | --- |
-| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | The expressions in the sequence |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
 
 <a name="Builder..Node+id"></a>
 
@@ -604,39 +750,41 @@ Provides the token at the requested position _without removing it_ from the toke
 **Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
 <a name="Builder..Node+type"></a>
 
-#### sequenceExpression.type : <code>[NodeType](#Builder..NodeType)</code>
+#### sequenceExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
-<a name="Builder..Punctuator"></a>
+<a name="Builder..StaticMemberExpression"></a>
 
-### Builder~Punctuator ⇐ <code>[Node](#Builder..Node)</code>
+### Builder~StaticMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
 **Kind**: inner class of <code>[Builder](#Builder)</code>  
-**Extends:** <code>[Node](#Builder..Node)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
 
-* [~Punctuator](#Builder..Punctuator) ⇐ <code>[Node](#Builder..Node)</code>
-    * [new Punctuator(value)](#new_Builder..Punctuator_new)
+* [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [.computed](#Builder..StaticMemberExpression+computed)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[NodeType](#Builder..NodeType)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
-<a name="new_Builder..Punctuator_new"></a>
+<a name="new_Builder..StaticMemberExpression_new"></a>
 
-#### new Punctuator(value)
+#### new StaticMemberExpression(object, property)
 
 | Param | Type |
 | --- | --- |
-| value | <code>[string](#external_string)</code> | 
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
 
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
 <a name="Builder..Node+id"></a>
 
-#### punctuator.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[Punctuator](#Builder..Punctuator)</code>  
+#### staticMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
 <a name="Builder..Node+type"></a>
 
-#### punctuator.type : <code>[NodeType](#Builder..NodeType)</code>
-**Kind**: instance property of <code>[Punctuator](#Builder..Punctuator)</code>  
-<a name="Builder..NodeType"></a>
-
-### Builder~NodeType : <code>[string](#external_string)</code>
-**Kind**: inner typedef of <code>[Builder](#Builder)</code>  
+#### staticMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
 <a name="Interpreter"></a>
 
 ## Interpreter ⇐ <code>[Null](#Null)</code>
@@ -649,7 +797,6 @@ Provides the token at the requested position _without removing it_ from the toke
         * [.builder](#Interpreter+builder) : <code>[Builder](#Builder)</code>
         * [.compile(expression)](#Interpreter+compile)
     * _inner_
-        * [~getValue(target, key, create)](#Interpreter..getValue) ⇒ <code>\*</code>
         * [~intepretList(interpreter, list, context, create)](#Interpreter..intepretList) ⇒ <code>[Array.&lt;Function&gt;](#external_Function)</code>
 
 <a name="new_Interpreter_new"></a>
@@ -673,18 +820,6 @@ Provides the token at the requested position _without removing it_ from the toke
 | --- | --- |
 | expression | <code>[string](#external_string)</code> | 
 
-<a name="Interpreter..getValue"></a>
-
-### Interpreter~getValue(target, key, create) ⇒ <code>\*</code>
-**Kind**: inner method of <code>[Interpreter](#Interpreter)</code>  
-**Returns**: <code>\*</code> - The value for the given `key`  
-
-| Param | Type |
-| --- | --- |
-| target | <code>\*</code> | 
-| key | <code>[string](#external_string)</code> | 
-| create | <code>[boolean](#external_boolean)</code> | 
-
 <a name="Interpreter..intepretList"></a>
 
 ### Interpreter~intepretList(interpreter, list, context, create) ⇒ <code>[Array.&lt;Function&gt;](#external_Function)</code>
@@ -707,6 +842,7 @@ Provides the token at the requested position _without removing it_ from the toke
 * [KeyPathExp](#KeyPathExp) ⇐ <code>[Null](#Null)</code>
     * [new KeyPathExp(pattern, flags)](#new_KeyPathExp_new)
     * [.get()](#KeyPathExp+get)
+    * [.has()](#KeyPathExp+has)
     * [.set()](#KeyPathExp+set)
     * [.toJSON()](#KeyPathExp+toJSON)
     * [.toString()](#KeyPathExp+toString)
@@ -723,6 +859,10 @@ Provides the token at the requested position _without removing it_ from the toke
 <a name="KeyPathExp+get"></a>
 
 ### keyPathExp.get()
+**Kind**: instance method of <code>[KeyPathExp](#KeyPathExp)</code>  
+<a name="KeyPathExp+has"></a>
+
+### keyPathExp.has()
 **Kind**: instance method of <code>[KeyPathExp](#KeyPathExp)</code>  
 <a name="KeyPathExp+set"></a>
 
@@ -1076,6 +1216,18 @@ The length of the token value
 ### new Null()
 A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
 
+<a name="object"></a>
+
+## object : <code>[Expression](#Builder..Expression)</code>
+**Kind**: global variable  
+<a name="property"></a>
+
+## property : <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code>
+**Kind**: global variable  
+<a name="computed"></a>
+
+## computed : <code>[boolean](#external_boolean)</code>
+**Kind**: global variable  
 <a name="forEach"></a>
 
 ## forEach(list, callback)
@@ -1085,6 +1237,16 @@ A "clean", empty container. Instantiating this is faster than explicitly calling
 | --- | --- |
 | list | <code>[Array-Like](#Array-Like)</code> | 
 | callback | <code>[ForEachCallback](#ForEachCallback)</code> | 
+
+<a name="hasOwnProperty"></a>
+
+## hasOwnProperty(object, property)
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| object | <code>\*</code> | 
+| property | <code>[string](#external_string)</code> | 
 
 <a name="kp"></a>
 
