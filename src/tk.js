@@ -1,7 +1,6 @@
 // Parsing, tokeninzing, etc
 'use strict';
 
-var EMPTY_STRING = '';
 var UNDEF = (function(u){return u;})();
 var WILDCARD = '*';
 
@@ -314,7 +313,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         tk = path.split(propertySeparator);
         tkLength = tk.length;
         while (prev !== UNDEF && i < tkLength){
-            if (tk[i] === EMPTY_STRING){ return undefined; }
+            if (tk[i] === ''){ return undefined; }
             else if (change){
                 if (i === tkLength - 1){
                     prev[tk[i]] = newValue;
