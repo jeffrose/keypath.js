@@ -472,8 +472,12 @@ RangeExpression.prototype.constructor = RangeExpression;
 RangeExpression.prototype.toJSON = function(){
     var json = OperatorExpression.prototype.toJSON.call( this );
     
-    json.left = this.left.toJSON();
-    json.right = this.right.toJSON();
+    json.left = this.left !== null ?
+        this.left.toJSON() :
+        this.left;
+    json.right = this.right !== null ?
+        this.right.toJSON() :
+        this.right;
     
     return json;
 };
@@ -558,13 +562,16 @@ Builder.prototype = new Null();
 Builder.prototype.constructor = Builder;
 
 Builder.prototype.arrayExpression = function( list ){
-    var end = ( list.length ? list[ list.length - 1 ].range[ 1 ] : 1 ) + 1,
+    //console.log( 'ARRAY EXPRESSION' );
+    var end = ( Array.isArray( list ) ? list.length ? list[ list.length - 1 ].range[ 1 ] : 1 : list.range[ 1 ] ) + 1,
         node;
         
     this.consume( '[' );
     
     node = new ArrayExpression( list );
     node.range = [ this.column, end ];
+    
+    //console.log( '- ARRAY EXPRESSION RANGE', node.range );
     
     return node;
 };
@@ -909,7 +916,7 @@ Builder.prototype.program = function(){
 };
 
 Builder.prototype.rangeExpression = function( right ){
-    var end = this.column + 1,
+    var end = right !== null ? right.range[ 1 ] : this.column,
         left, node;
     
     this.expect( '.' );

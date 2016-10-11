@@ -4,6 +4,7 @@ import Null from './null';
 import Lexer from './lexer';
 import Builder from './builder';
 import Interpreter from './interpreter';
+import hasOwnProperty from './hasOwnProperty';
 
 var lexer = new Lexer(),
     builder = new Builder( lexer ),
@@ -21,7 +22,7 @@ function KeyPathExp( pattern, flags ){
     typeof pattern !== 'string' && ( pattern = '' );
     typeof flags !== 'string' && ( flags = '' );
     
-    var tokens = pattern in cache ?
+    var tokens = hasOwnProperty( cache, pattern ) ?
         cache[ pattern ] :
         cache[ pattern ] = lexer.lex( pattern );
     

@@ -447,8 +447,12 @@ RangeExpression.prototype.constructor = RangeExpression;
 RangeExpression.prototype.toJSON = function(){
     var json = OperatorExpression.prototype.toJSON.call( this );
     
-    json.left = this.left.toJSON();
-    json.right = this.right.toJSON();
+    json.left = this.left !== null ?
+        this.left.toJSON() :
+        this.left;
+    json.right = this.right !== null ?
+        this.right.toJSON() :
+        this.right;
     
     return json;
 };

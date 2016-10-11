@@ -18,13 +18,16 @@ Builder.prototype = new Null();
 Builder.prototype.constructor = Builder;
 
 Builder.prototype.arrayExpression = function( list ){
-    var end = ( list.length ? list[ list.length - 1 ].range[ 1 ] : 1 ) + 1,
+    //console.log( 'ARRAY EXPRESSION' );
+    var end = ( Array.isArray( list ) ? list.length ? list[ list.length - 1 ].range[ 1 ] : 1 : list.range[ 1 ] ) + 1,
         node;
         
     this.consume( '[' );
     
     node = new ArrayExpression( list );
     node.range = [ this.column, end ];
+    
+    //console.log( '- ARRAY EXPRESSION RANGE', node.range );
     
     return node;
 };
@@ -369,7 +372,7 @@ Builder.prototype.program = function(){
 };
 
 Builder.prototype.rangeExpression = function( right ){
-    var end = this.column + 1,
+    var end = right !== null ? right.range[ 1 ] : this.column,
         left, node;
     
     this.expect( '.' );

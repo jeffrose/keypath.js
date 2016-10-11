@@ -6,13 +6,6 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
     
-    // path = 'foo[0][1][0]',
-    // data = {
-    //     foo: [
-    //         [ [ 123 ], [ 456 ], [ 789 ] ],
-    //         [ [ 123 ], [ 456 ], [ 789 ] ]
-    //     ]
-    // },
     path = '["foo"]["bar"]["qux"]["baz"]',
     data = {
         foo: {
