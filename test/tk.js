@@ -21,7 +21,7 @@ describe( 'tk', function(){
             'propB': 'two',
             'propC': 'three',
             'foo.bar': 'FooBar',
-            '"blah"': 'quoted',
+            'blah': 'quoted',
             'John "Johnny" Doe': 'a name',
             'accounts': [
                 /* 0 */ { 'ary': [9,8,7,6] },
@@ -276,7 +276,7 @@ describe( 'tk', function(){
         it('should handle plain property container, treats contents as property name', function () {
             var str1 = 'accounts[0]ary[0]';
             expect(tk.get(data, str1)).to.equal(data.accounts[0].ary[0]);
-            var str2 = '[foo.bar]';
+            var str2 = '["foo.bar"]';
             expect(tk.get(data, str2)).to.equal(data['foo.bar']);
             var str3 = 'accounts.[0].ary[0]';
             expect(tk.get(data, str3)).to.equal(data.accounts[0].ary[0]);
@@ -293,8 +293,8 @@ describe( 'tk', function(){
 
         it('should treat quotes as normal characters when not inside property container', function () {
             var str1 = '"blah"';
-            expect(tk.get(data, str1)).to.equal(data['"blah"']);
-            var str2 = '[John "Johnny" Doe]';
+            expect(tk.get(data, str1)).to.equal(data['blah']);
+            var str2 = '[\'John "Johnny" Doe\']';
             expect(tk.get(data, str2)).to.equal(data['John "Johnny" Doe']);
         });
 
@@ -315,6 +315,32 @@ describe( 'tk', function(){
             expect(tk.get(data, str, other)).to.equal(data.accounts[1][other.z].id);
             expect(tk.get(data, str2, fn, 'checking')).to.equal(data.accounts[1][fn('checking')].id);
         });
+
+        it( 'should allow plain property array notation', function(){
+            var str = 'accounts.0.ary[0,1]';
+            var ary = [];
+            ary.push(data.accounts[0].ary[0]);
+            ary.push(data.accounts[0].ary[1]);
+            expect(tk.get(data, str)).to.be.an.array;
+            expect(tk.get(data, str).length).to.equal(ary.length);
+            expect(tk.get(data, str).join(',')).to.equal(ary.join(','));
+
+            var str2 = 'accounts.1["test1","test2"]';
+            var ary2 = [];
+            ary2.push(data.accounts[1].test1);
+            ary2.push(data.accounts[1].test2);
+            expect(tk.get(data, str2)).to.be.an.array;
+            expect(tk.get(data, str2).length).to.equal(ary2.length);
+            expect(tk.get(data, str2).join(',')).to.equal(ary2.join(','));
+
+            var str3 = 'accounts.1[test1,test2]';
+            var ary3 = [];
+            ary3.push(data.accounts[1].test1);
+            ary3.push(data.accounts[1].test2);
+            expect(tk.get(data, str3)).to.be.an.array;
+            expect(tk.get(data, str3).length).to.equal(ary3.length);
+            expect(tk.get(data, str3).join(',')).to.equal(ary3.join(','));
+        } );
     });
 
     describe( 'set', function(){
@@ -513,7 +539,11 @@ describe( 'tk', function(){
             expect(tk.isValid('accounts.1.test2')).to.be.true;
             expect(tk.isValid('accounts.{1.test2')).to.be.false;
             expect(tk.isValid('accounts(.test2')).to.be.false;
+            console.log('isValid:', tk.isValid('accounts{{a()},{b.c,d}}'));
+            console.log('tokens:', tk.getTokens('accounts{{a()},{b.c,d}}'));
             expect(tk.isValid('accounts{{a()},{b.c,d}}')).to.be.true;
+            console.log('isValid:', tk.isValid('accounts{{a(),{b.c,d}}'));
+            console.log('tokens:', tk.getTokens('accounts{{a(),{b.c,d}}'));
             expect(tk.isValid('accounts{{a(),{b.c,d}}')).to.be.false;
         });
     });
@@ -646,7 +676,7 @@ describe( 'tk', function(){
             expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
             expect(result).to.be.true;
             
-            str = 'accounts.1[new.PropA]newPropB';
+            str = 'accounts.1["new.PropA"]newPropB';
             result = tk.set(data, str, newVal);
             expect(tk.get(data, str)).to.equal(newVal);
             expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);

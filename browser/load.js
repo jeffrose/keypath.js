@@ -1,5 +1,6 @@
 'use strict';
 require(['../dist/tk-umd' /* other stuff here */], function(tk){
+    tk.setOptions({cache:false});
 	var modules = {
 		'tk': tk
 		/* other stuff here */
@@ -42,7 +43,7 @@ require(['../dist/tk-umd' /* other stuff here */], function(tk){
     var button = document.getElementById('go');
     var content = document.getElementById('results');
 
-    var count = 1000;
+    var count = 1;
 
     var simplePathGet = function(){
 	    for (var i = count; i > 0; i--){
@@ -67,7 +68,8 @@ require(['../dist/tk-umd' /* other stuff here */], function(tk){
     		fn = modules[module][func];
 		    for (var i = count; i > 0; i--){
 		    	modules[module][func]
-		    	retVal = fn(data, path);
+		    	// retVal = fn(path);
+                retVal = fn(data, path);
 		    }
 		    content.innerHTML = module + '.' + func + ' done: ' + retVal;
     	}

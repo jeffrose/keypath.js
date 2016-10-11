@@ -119,6 +119,7 @@ var tokenize = function (str){
     path = str.replace(escapedNonSpecialsRegEx, '$&'.substr(1));
 
     var tokens = [],
+        recur = [],
         mods = {},
         pathLength = path.length,
         word = '',
@@ -143,7 +144,8 @@ var tokenize = function (str){
         }
         if (depth > 0){
             // Scan for closer
-            !escaped && path[i] === opener && depth++;
+            // Be careful: quote container uses same character for opener and closer
+            !escaped && path[i] === opener && opener !== closer.closer && depth++;
             !escaped && path[i] === closer.closer && depth--;
 
             if (depth > 0){
@@ -152,32 +154,44 @@ var tokenize = function (str){
             // TODO: handle comma-separated elements when depth === 1, process as function arguments
             else {
                 if (i+1 < pathLength && separators[path[i+1]] && separators[path[i+1]].exec === 'collection'){
-                    collection.push({'t':tokenize(subpath), 'exec': closer.exec});
+                    recur = tokenize(subpath);
+                    if (recur === UNDEF){ return undefined; }
+                    collection.push({'t':recur.concat(), 'exec': closer.exec});
                 }
                 else if (collection[0]){
-                    collection.push({'t':tokenize(subpath), 'exec': closer.exec});
+                    recur = tokenize(subpath);
+                    if (recur === UNDEF){ return undefined; }
+                    collection.push({'t':recur.concat(), 'exec': closer.exec});
                     tokens.push(collection);
                     collection = [];
                 }
                 else if (closer.exec === 'property'){
                     // Simple property container means to take contents as literal property,
                     // without processing special characters inside
-                    if (subpath.length && containers[subpath[0]] && containers[subpath[0]].exec === 'quote' ){
-                        if (subpath[subpath.length-1] === containers[subpath[0]].closer){
-                            // pathip leading and trailing quote
-                            tokens.push(subpath.substr(1, subpath.length - 2));
-                        }
-                        else {
-                            // Mismatched quote inside [ ]
-                            return undefined;
-                        }
-                    }
-                    else {
-                        tokens.push(subpath);
-                    }
+                    // if (subpath.length && containers[subpath[0]] && containers[subpath[0]].exec === 'quote' ){
+                    //     if (subpath[subpath.length-1] === containers[subpath[0]].closer){
+                    //         // pathip leading and trailing quote
+                    //         tokens.push(subpath.substr(1, subpath.length - 2));
+                    //     }
+                    //     else {
+                    //         // Mismatched quote inside [ ]
+                    //         return undefined;
+                    //     }
+                    // }
+                    // else {
+                        // tokens.push(subpath);
+                        recur = tokenize(subpath);
+                        if (recur === UNDEF){ return undefined; }
+                        tokens = tokens.concat(recur.concat());
+                    // }
+                }
+                else if (closer.exec === 'quote'){
+                    tokens.push(subpath);
                 }
                 else {
-                    tokens.push({'t':tokenize(subpath), 'exec': closer.exec});
+                    recur = tokenize(subpath);
+                    if (recur === UNDEF){ return undefined; }
+                    tokens.push({'t':recur.concat(), 'exec': closer.exec});
                 }
                 subpath = '';
             }
@@ -217,7 +231,8 @@ var tokenize = function (str){
             word = '';
             hasWildcard = false;
         }
-        else if (!escaped && path[i] in containers && containers[path[i]].exec && containers[path[i]].exec !== 'quote'){
+        else if (!escaped && containers.hasOwnProperty(path[i]) && containers[path[i]].exec){
+            //  && containers[path[i]].exec !== 'quote'
             // found opener, initiate scan for closer
             closer = containers[path[i]];
             if (word && (mods.has || hasWildcard)){
@@ -271,6 +286,7 @@ var tokenize = function (str){
 
     // If path was valid, cache the result
     useCache && (cache[str] = tokens);
+
     return tokens;
 };
 
