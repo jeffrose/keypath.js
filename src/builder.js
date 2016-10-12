@@ -2,7 +2,20 @@
 
 import Null from './null';
 import Grammar from './lexer/grammar';
-import { ArrayExpression, CallExpression, ComputedMemberExpression, ExpressionStatement, Identifier, Literal, Program, RangeExpression, SequenceExpression, StaticMemberExpression } from './builder/node';
+import {
+    ArrayExpression,
+    CallExpression,
+    ComputedMemberExpression,
+    ExpressionStatement,
+    Identifier,
+    NullLiteral,
+    NumericLiteral,
+    PlaceholderExpression,
+    Program,
+    RangeExpression,
+    SequenceExpression,
+    StaticMemberExpression,
+    StringLiteral } from './builder/node';
 
 /**
  * @class Builder
@@ -26,9 +39,7 @@ Builder.prototype.arrayExpression = function( list ){
     
     node = new ArrayExpression( list );
     node.range = [ this.column, end ];
-    
-    //console.log( '- ARRAY EXPRESSION RANGE', node.range );
-    
+    //console.log( '- RANGE', node.range );
     return node;
 };
 
@@ -58,11 +69,9 @@ Builder.prototype.build = function( input ){
     } else {
         this.throwError( 'invalid input' );
     }
-    
     //console.log( 'BUILD' );
     //console.log( '- ', this.text.length, 'CHARS', this.text );
     //console.log( '- ', this.tokens.length, 'TOKENS', this.tokens );
-    
     this.column = this.text.length;
     
     var program = this.program();
@@ -88,11 +97,9 @@ Builder.prototype.callExpression = function(){
     callee = this.expression();
     
     start = this.column;
-    
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
     //console.log( '- ARGUMENTS', args, args.length );
-    
     node = new CallExpression( callee, args );
     node.range = [ start, end ];
     
@@ -148,7 +155,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
 Builder.prototype.expression = function(){
     var expression = null,
         list, next, token;
-    
+        
     if( next = this.peek() ){
         if( this.expect( ']' ) ){
             list = this.list( '[' );
@@ -162,17 +169,18 @@ Builder.prototype.expression = function(){
                     list;
             }
         } else if( next.type === Grammar.Identifier ){
-            expression = this.identifier();
+            expression = this.placeholder();
             next = this.peek();
-            
             // Implied member expression
-            if( next && next.type === Grammar.Punctuator ){
-                if( next.value === ')' || next.value === ']' ){
-                    expression = this.memberExpression( expression, false );
-                }
+            if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
+                expression = this.memberExpression( expression, false );
             }
-        } else if( next.type === Grammar.Literal ){
+        } else if( next.type === Grammar.NumericLiteral || next.type === Grammar.StringLiteral ){
+            expression = this.placeholder();
+            next = this.peek();
+        } else if( next.type === Grammar.NullLiteral ){
             expression = this.literal();
+            next = this.peek();
         }
         
         while( ( token = this.expect( ')', '[', '.' ) ) ){
@@ -199,8 +207,9 @@ Builder.prototype.expressionStatement = function(){
     var end = this.column,
         node = this.expression(),
         start = this.column,
-        expressionStatement = new ExpressionStatement( node );
-    
+        expressionStatement;
+    //console.log( 'EXPRESSION STATEMENT WITH', node );
+    expressionStatement = new ExpressionStatement( node );
     expressionStatement.range = [ start, end ];
     
     return expressionStatement;
@@ -229,55 +238,68 @@ Builder.prototype.identifier = function(){
 
 /**
  * @function
+ * @param {external:string} terminator
+ * @returns {external:Array<Expression>|RangeExpression} The list of expressions or range expression
+ */
+Builder.prototype.list = function( terminator ){
+    var list = [],
+        isNumeric = false,
+        expression, next;
+    //console.log( 'LIST', terminator );
+    if( !this.peek( terminator ) ){
+        next = this.peek();
+        isNumeric = next.type === Grammar.NumericLiteral;
+        
+        // Examples: [1..3], [5..], [..7]
+        if( ( isNumeric || next.value === '.' ) && this.peekAt( 1, '.' ) ){
+            //console.log( '- RANGE EXPRESSION' );
+            expression = isNumeric ?
+                this.placeholder() :
+                null;
+            list = this.rangeExpression( expression );
+        
+        // Examples: [1,2,3], ["abc","def"], [foo,bar]
+        } else {
+            //console.log( '- ARRAY OF EXPRESSIONS' );
+            do {
+                expression = this.placeholder();
+                list.unshift( expression );
+            } while( this.expect( ',' ) );
+        } 
+    }
+    //console.log( '- LIST RESULT', list );
+    return list;
+};
+
+/**
+ * @function
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
     var end = this.column,
         token = this.consume(),
         start = this.column,
-        node, raw, value;
-    
-    if( !( token.type === Grammar.Literal ) ){
-        this.throwError( 'Literal expected' );
-    }
+        node, raw;
     
     raw = token.value;
-
-    value = raw[ 0 ] === '"' || raw[ 0 ] === "'" ?
-        // String Literal
-        raw.substring( 1, raw.length - 1 ) :
-        // Numeric Literal
-        parseFloat( raw );
     
-    node = new Literal( value, raw );
+    switch( token.type ){
+        case Grammar.NumericLiteral:
+            node = new NumericLiteral( raw );
+            break;
+        case Grammar.StringLiteral:
+            node = new StringLiteral( raw );
+            break;
+        case Grammar.NullLiteral:
+            node = new NullLiteral( raw );
+            break;
+        default:
+            this.throwError( 'Literal expected' );
+    }
+    
     node.range = [ start, end ];
     
     return node;
-};
-
-/**
- * @function
- * @param {external:string} terminator
- * @returns {external:Array<Literal>} The list of literals
- */
-Builder.prototype.list = function( terminator ){
-    var list = [],
-        literal;
-    
-    if( this.peek().value !== terminator ){
-        do {
-            literal = this.peek().type === Grammar.Literal ?
-                this.literal() :
-                null;
-            if( this.peek().value === '.' ){
-                list = this.rangeExpression( literal );
-            } else {
-                list.unshift( literal );
-            }
-        } while( this.expect( ',' ) );
-    }
-    
-    return list;
 };
 
 /**
@@ -291,12 +313,10 @@ Builder.prototype.memberExpression = function( property, computed ){
         object = this.expression(),
         start = this.column,
         node;
-    
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
     //console.log( '- PROPERTY', property );
     //console.log( '- COMPUTED', computed );
-    
     node = computed ?
         new ComputedMemberExpression( object, property ) :
         new StaticMemberExpression( object, property );
@@ -316,9 +336,7 @@ Builder.prototype.memberExpression = function( property, computed ){
  * @returns {Lexer~Token} The next token in the list or `undefined` if it did not exist
  */
 Builder.prototype.peek = function( first, second, third, fourth ){
-    return this.tokens.length ?
-        this.peekAt( 0, first, second, third, fourth ) :
-        undefined;
+    return this.peekAt( 0, first, second, third, fourth );
 };
 
 /**
@@ -332,10 +350,11 @@ Builder.prototype.peek = function( first, second, third, fourth ){
  * @returns {Lexer~Token} The token at the requested position or `undefined` if it did not exist
  */
 Builder.prototype.peekAt = function( position, first, second, third, fourth ){
-    var index, length, token, value;
+    var length = this.tokens.length,
+        index, token, value;
     
-    if( typeof position === 'number' && position > -1 ){
-        length = this.tokens.length;
+    if( length && typeof position === 'number' && position > -1 ){
+        // Calculate a zero-based index starting from the end of the list
         index = length - position - 1;
         
         if( index > -1 && index < length ){
@@ -359,7 +378,7 @@ Builder.prototype.program = function(){
     var end = this.column,
         body = [],
         node;
-    
+    //console.log( 'PROGRAM' );
     while( true ){
         if( this.tokens.length ){
             body.unshift( this.expressionStatement() );
@@ -371,6 +390,44 @@ Builder.prototype.program = function(){
     }
 };
 
+Builder.prototype.placeholder = function(){
+    var next = this.peek(),
+        expression;
+    
+    switch( next.type ){
+        case Grammar.Identifier:
+            expression = this.identifier();
+            break;
+        case Grammar.NumericLiteral:
+        case Grammar.StringLiteral:
+            expression = this.literal();
+            break;
+        default:
+            this.throwError( 'token cannot be a placeholder' );
+    }
+    
+    next = this.peek();
+    
+    if( next && next.value === '%' ){
+        expression = this.placeholderExpression( expression );
+    }
+    
+    return expression;
+};
+
+Builder.prototype.placeholderExpression = function( key ){
+    var end = key.range[ 1 ],
+        node, start;
+        
+    this.consume( '%' );
+    
+    start = this.column;
+    node = new PlaceholderExpression( key );
+    node.range = [ start, end ];
+    
+    return node;
+};
+
 Builder.prototype.rangeExpression = function( right ){
     var end = right !== null ? right.range[ 1 ] : this.column,
         left, node;
@@ -378,7 +435,7 @@ Builder.prototype.rangeExpression = function( right ){
     this.expect( '.' );
     this.expect( '.' );
     
-    left = this.peek().type === Grammar.Literal ?
+    left = this.peek().type === Grammar.NumericLiteral ?
         left = this.literal() :
         null;
     
@@ -398,7 +455,6 @@ Builder.prototype.sequenceExpression = function( list ){
     }
     
     node = new SequenceExpression( list );
-    
     node.range = [ this.column, end ];
     
     return node;

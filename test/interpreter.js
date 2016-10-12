@@ -139,6 +139,21 @@ describe( 'Interpreter', function(){
             expect( fn( data ) ).to.equal( 123 );
         } );
         
+        it( 'should interpret placeholder expressions', function(){
+            var data = { foo: { bar: 123, qux: 456, baz: 789 } },
+                fn, result;
+                
+            fn = interpreter.compile( '%1.%2', false ),
+            result = fn( data, null, [ 'foo', 'qux' ] );
+            
+            expect( result ).to.equal( 456 );
+            
+            fn = interpreter.compile( '%f.%b', false ),
+            result = fn( data, null, { f: 'foo', b: 'bar' } );
+            
+            expect( result ).to.equal( 123 );
+        } );
+        
         it( 'should interpret range expressions', function(){
             var array = [
                     { foo: 12 },

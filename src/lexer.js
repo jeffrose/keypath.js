@@ -1,7 +1,7 @@
 'use strict';
 
 import Null from './null';
-import { Identifier, Literal, Punctuator } from './lexer/token';
+import { Identifier, NullLiteral, NumericLiteral, Punctuator, StringLiteral } from './lexer/token';
 
 /**
  * @function Lexer~isIdentifier
@@ -103,7 +103,9 @@ Lexer.prototype.lex = function( text ){
                 return !isIdentifier( char ) && !isNumeric( char );
             } );
             
-            this.tokens.push( new Identifier( word ) );
+            word === 'null' ?
+                this.tokens.push( new NullLiteral( word ) ) :
+                this.tokens.push( new Identifier( word ) );
         
         // Punctuator
         } else if( isPunctuator( char ) ){
@@ -120,7 +122,7 @@ Lexer.prototype.lex = function( text ){
                 return char === quote;
             } );
             
-            this.tokens.push( new Literal( quote + word + quote ) );
+            this.tokens.push( new StringLiteral( quote + word + quote ) );
             
             this.index++;
         
@@ -130,7 +132,7 @@ Lexer.prototype.lex = function( text ){
                 return !isNumeric( char );
             } );
             
-            this.tokens.push( new Literal( word ) );
+            this.tokens.push( new NumericLiteral( word ) );
         
         // Whitespace
         } else if( isWhitespace( char ) ){

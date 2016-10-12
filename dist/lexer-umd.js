@@ -13,11 +13,16 @@ function Null(){}
 Null.prototype = Object.create( null );
 Null.prototype.constructor =  Null;
 
+/**
+ * @namespace Lexer~Grammar
+ */
 var Grammar = new Null();
 
-Grammar.Identifier  = 'Identifier';
-Grammar.Literal     = 'Literal';
-Grammar.Punctuator  = 'Punctuator';
+Grammar.Identifier      = 'Identifier';
+Grammar.NumericLiteral  = 'NumericLiteral';
+Grammar.NullLiteral     = 'NullLiteral';
+Grammar.Punctuator      = 'Punctuator';
+Grammar.StringLiteral   = 'StringLiteral';
 
 var tokenId = 0;
 
@@ -96,17 +101,30 @@ Identifier.prototype = Object.create( Token.prototype );
 Identifier.prototype.constructor = Identifier;
 
 /**
- * @class Lexer~Literal
+ * @class Lexer~NumericLiteral
  * @extends Lexer~Token
  * @param {external:string} value
  */
-function Literal( value ){
-    Token.call( this, Grammar.Literal, value );
+function NumericLiteral( value ){
+    Token.call( this, Grammar.NumericLiteral, value );
 }
 
-Literal.prototype = Object.create( Token.prototype );
+NumericLiteral.prototype = Object.create( Token.prototype );
 
-Literal.prototype.constructor = Literal;
+NumericLiteral.prototype.constructor = NumericLiteral;
+
+/**
+ * @class Lexer~NullLiteral
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
+function NullLiteral( value ){
+    Token.call( this, Grammar.NullLiteral, value );
+}
+
+NullLiteral.prototype = Object.create( Token.prototype );
+
+NullLiteral.prototype.constructor = NullLiteral;
 
 /**
  * @class Lexer~Punctuator
@@ -120,6 +138,19 @@ function Punctuator( value ){
 Punctuator.prototype = Object.create( Token.prototype );
 
 Punctuator.prototype.constructor = Punctuator;
+
+/**
+ * @class Lexer~StringLiteral
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
+function StringLiteral( value ){
+    Token.call( this, Grammar.StringLiteral, value );
+}
+
+StringLiteral.prototype = Object.create( Token.prototype );
+
+StringLiteral.prototype.constructor = StringLiteral;
 
 /**
  * @function Lexer~isIdentifier
@@ -221,7 +252,9 @@ Lexer.prototype.lex = function( text ){
                 return !isIdentifier( char ) && !isNumeric( char );
             } );
             
-            this.tokens.push( new Identifier( word ) );
+            word === 'null' ?
+                this.tokens.push( new NullLiteral( word ) ) :
+                this.tokens.push( new Identifier( word ) );
         
         // Punctuator
         } else if( isPunctuator( char ) ){
@@ -238,7 +271,7 @@ Lexer.prototype.lex = function( text ){
                 return char === quote;
             } );
             
-            this.tokens.push( new Literal( quote + word + quote ) );
+            this.tokens.push( new StringLiteral( quote + word + quote ) );
             
             this.index++;
         
@@ -248,7 +281,7 @@ Lexer.prototype.lex = function( text ){
                 return !isNumeric( char );
             } );
             
-            this.tokens.push( new Literal( word ) );
+            this.tokens.push( new NumericLiteral( word ) );
         
         // Whitespace
         } else if( isWhitespace( char ) ){

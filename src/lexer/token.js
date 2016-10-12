@@ -80,17 +80,30 @@ Identifier.prototype = Object.create( Token.prototype );
 Identifier.prototype.constructor = Identifier;
 
 /**
- * @class Lexer~Literal
+ * @class Lexer~NumericLiteral
  * @extends Lexer~Token
  * @param {external:string} value
  */
-export function Literal( value ){
-    Token.call( this, Grammar.Literal, value );
+export function NumericLiteral( value ){
+    Token.call( this, Grammar.NumericLiteral, value );
 }
 
-Literal.prototype = Object.create( Token.prototype );
+NumericLiteral.prototype = Object.create( Token.prototype );
 
-Literal.prototype.constructor = Literal;
+NumericLiteral.prototype.constructor = NumericLiteral;
+
+/**
+ * @class Lexer~NullLiteral
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
+export function NullLiteral( value ){
+    Token.call( this, Grammar.NullLiteral, value );
+}
+
+NullLiteral.prototype = Object.create( Token.prototype );
+
+NullLiteral.prototype.constructor = NullLiteral;
 
 /**
  * @class Lexer~Punctuator
@@ -104,5 +117,18 @@ export function Punctuator( value ){
 Punctuator.prototype = Object.create( Token.prototype );
 
 Punctuator.prototype.constructor = Punctuator;
+
+/**
+ * @class Lexer~StringLiteral
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
+export function StringLiteral( value ){
+    Token.call( this, Grammar.StringLiteral, value );
+}
+
+StringLiteral.prototype = Object.create( Token.prototype );
+
+StringLiteral.prototype.constructor = StringLiteral;
 
 export { Token as default };

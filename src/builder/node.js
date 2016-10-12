@@ -6,6 +6,7 @@ import Syntax from './syntax';
 var nodeId = 0,
     literalTypes = 'boolean number string'.split( ' ' ),
     
+    PlaceholderOperator = '%',
     RangeOperator = '..';
 
 /**
@@ -366,8 +367,8 @@ Identifier.prototype.toJSON = function(){
 export function Literal( value, raw ){
     Expression.call( this, Syntax.Literal );
     
-    if( literalTypes.indexOf( typeof value ) === -1 ){
-        throw new TypeError( 'value must be a boolean, number, or string' );
+    if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
+        throw new TypeError( 'value must be a boolean, number, string, or null' );
     }
     
     /**
@@ -392,7 +393,68 @@ Literal.prototype.constructor = Literal;
 Literal.prototype.toJSON = function(){
     const json = Node.prototype.toJSON.call( this );
     
+    json.raw = this.raw;
     json.value = this.value;
+    
+    return json;
+};
+
+/**
+ * @function
+ * @returns {external:string} A string representation of the literal
+ */
+Literal.prototype.toString = function(){
+    return this.raw;
+};
+
+export function NullLiteral( raw ){
+    if( raw !== 'null' ){
+        throw new TypeError( 'raw is not a null literal' );
+    }
+    
+    Literal.call( this, null, raw );
+}
+
+NullLiteral.prototype = Object.create( Literal.prototype );
+
+NullLiteral.prototype.constructor = NullLiteral;
+
+export function NumericLiteral( raw ){
+    var value = parseFloat( raw );
+    
+    if( isNaN( value ) ){
+        throw new TypeError( 'raw is not a numeric literal' );
+    }
+    
+    Literal.call( this, value, raw );
+}
+
+NumericLiteral.prototype = Object.create( Literal.prototype );
+
+NumericLiteral.prototype.constructor = NumericLiteral;
+
+export function PlaceholderExpression( key ){
+    if( !( key instanceof Literal ) && !( key instanceof Identifier ) ){
+        throw new TypeError( 'key must be a literal or identifier' );
+    }
+    
+    OperatorExpression.call( this, Syntax.PlaceholderExpression, PlaceholderOperator );
+    
+    this.key = key;
+}
+
+PlaceholderExpression.prototype = Object.create( OperatorExpression.prototype );
+
+PlaceholderExpression.prototype.constructor = PlaceholderExpression;
+
+PlaceholderExpression.prototype.toString = function(){
+    return this.operator + this.key;
+};
+
+PlaceholderExpression.prototype.toJSON = function(){
+    var json = OperatorExpression.prototype.toJSON.call( this );
+    
+    json.key = this.key;
     
     return json;
 };
@@ -508,8 +570,8 @@ SequenceExpression.prototype.toJSON = function(){
  * @param {Builder~Identifier} property
  */
 export function StaticMemberExpression( object, property ){
-    if( !( property instanceof Identifier ) ){
-        throw new TypeError( 'property must be an identifier when computed is false' );
+    if( !( property instanceof Identifier ) && !( property instanceof PlaceholderExpression ) ){
+        throw new TypeError( 'property must be an identifier or placeholder expression when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
@@ -522,3 +584,17 @@ export function StaticMemberExpression( object, property ){
 StaticMemberExpression.prototype = Object.create( MemberExpression.prototype );
 
 StaticMemberExpression.prototype.constructor = StaticMemberExpression;
+
+export function StringLiteral( raw ){
+    if( raw[ 0 ] !== '"' && raw[ 0 ] !== "'" ){
+        throw new TypeError( 'raw is not a string literal' );
+    }
+    
+    var value = raw.substring( 1, raw.length - 1 );
+    
+    Literal.call( this, value, raw );
+}
+
+StringLiteral.prototype = Object.create( Literal.prototype );
+
+StringLiteral.prototype.constructor = StringLiteral;

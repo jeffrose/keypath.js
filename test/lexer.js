@@ -34,39 +34,46 @@ describe( 'Lexer', function(){
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'NumericLiteral' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '123' );
         
         tokens = lexer.lex( '"abc"' );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'StringLiteral' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
         
         tokens = lexer.lex( "'abc'" );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 1 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'StringLiteral' );
         expect( tokens[ 0 ] ).to.have.property( 'value', "'abc'" );
+        
+        tokens = lexer.lex( "null" );
+        
+        expect( tokens ).to.be.an( 'array' );
+        expect( tokens ).to.have.lengthOf( 1 );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'NullLiteral' );
+        expect( tokens[ 0 ] ).to.have.property( 'value', "null" );
         
         tokens = lexer.lex( '"abc""def"' );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 2 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'StringLiteral' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
-        expect( tokens[ 1 ] ).to.have.property( 'type', 'Literal' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'StringLiteral' );
         expect( tokens[ 1 ] ).to.have.property( 'value', '"def"' );
         
         tokens = lexer.lex( '"abc"123' );
         
         expect( tokens ).to.be.an( 'array' );
         expect( tokens ).to.have.lengthOf( 2 );
-        expect( tokens[ 0 ] ).to.have.property( 'type', 'Literal' );
+        expect( tokens[ 0 ] ).to.have.property( 'type', 'StringLiteral' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '"abc"' );
-        expect( tokens[ 1 ] ).to.have.property( 'type', 'Literal' );
+        expect( tokens[ 1 ] ).to.have.property( 'type', 'NumericLiteral' );
         expect( tokens[ 1 ] ).to.have.property( 'value', '123' );
     } );
     

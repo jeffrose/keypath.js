@@ -60,6 +60,13 @@ describe( 'Builder', function(){
             expect( expression.type ).to.equal( 'Literal' );
             expect( expression.value ).to.equal( 123 );
             expect( expression.range ).to.deep.equal( [ 0, 3 ] );
+            
+            program = builder.build( 'null' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'Literal' );
+            expect( expression.value ).to.equal( null );
+            expect( expression.range ).to.deep.equal( [ 0, 4 ] );
         } );
         
         it( 'should build array expressions', function(){
@@ -182,6 +189,28 @@ describe( 'Builder', function(){
             expect( expression.property.type ).to.equal( 'Literal' );
             expect( expression.property.value ).to.equal( 456 );
             expect( expression.range ).to.deep.equal( [ 0, 13 ] );
+            
+            program = builder.build( 'foo["bar"]' ),
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            expect( expression.computed ).to.equal( true );
+            expect( expression.object.type ).to.equal( 'Identifier' );
+            expect( expression.object.name ).to.equal( 'foo' );
+            expect( expression.property.type ).to.equal( 'Literal' );
+            expect( expression.property.value ).to.equal( 'bar' );
+            expect( expression.range ).to.deep.equal( [ 0, 10 ] );
+            
+            program = builder.build( 'foo[bar]' ),
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            expect( expression.computed ).to.equal( true );
+            expect( expression.object.type ).to.equal( 'Identifier' );
+            expect( expression.object.name ).to.equal( 'foo' );
+            expect( expression.property.type ).to.equal( 'Identifier' );
+            expect( expression.property.name ).to.equal( 'bar' );
+            expect( expression.range ).to.deep.equal( [ 0, 8 ] );
         } );
         
         it( 'should parse sequence expressions', function(){
@@ -302,6 +331,50 @@ describe( 'Builder', function(){
             expect( expression.property.type ).to.equal( 'Identifier' );
             expect( expression.property.name ).to.equal( 'qux' );
             expect( expression.range ).to.deep.equal( [ 0, 16 ] );
+        } );
+        
+        it( 'should parse placeholders', function(){
+            program = builder.build( 'foo.%1' ),
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            expect( expression.computed ).to.equal( false );
+            expect( expression ).to.have.property( 'object' );
+            expect( expression ).to.have.property( 'property' );
+            expect( expression.object.type ).to.equal( 'Identifier' );
+            expect( expression.object.name ).to.equal( 'foo' );
+            expect( expression.property.type ).to.equal( 'PlaceholderExpression' );
+            expect( expression.property.key.type ).to.equal( 'Literal' );
+            expect( expression.property.key.value ).to.equal( 1 );
+            expect( expression.range ).to.deep.equal( [ 0, 6 ] );
+            
+            program = builder.build( 'foo.%bar' ),
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            expect( expression.computed ).to.equal( false );
+            expect( expression ).to.have.property( 'object' );
+            expect( expression ).to.have.property( 'property' );
+            expect( expression.object.type ).to.equal( 'Identifier' );
+            expect( expression.object.name ).to.equal( 'foo' );
+            expect( expression.property.type ).to.equal( 'PlaceholderExpression' );
+            expect( expression.property.key.type ).to.equal( 'Identifier' );
+            expect( expression.property.key.name ).to.equal( 'bar' );
+            expect( expression.range ).to.deep.equal( [ 0, 8 ] );
+            
+            program = builder.build( 'foo[%1]' ),
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            expect( expression.computed ).to.equal( true );
+            expect( expression ).to.have.property( 'object' );
+            expect( expression ).to.have.property( 'property' );
+            expect( expression.object.type ).to.equal( 'Identifier' );
+            expect( expression.object.name ).to.equal( 'foo' );
+            expect( expression.property.type ).to.equal( 'PlaceholderExpression' );
+            expect( expression.property.key.type ).to.equal( 'Literal' );
+            expect( expression.property.key.value ).to.equal( 1 );
+            expect( expression.range ).to.deep.equal( [ 0, 7 ] );
         } );
         
         it( 'should not consume non-existent tokens', function(){
