@@ -299,7 +299,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         prev = obj,
         curr = '',
         currLength = 0,
-        temp = {},
+        wordCopy = '',
         contextProp,
         idx = 0,
         context = obj,
@@ -405,64 +405,50 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                 }
             }
             else if (curr.w){
-                temp = {
-                    w: curr.w + '',
-                    exec: curr.exec,
-                    mods: {
-                        parent: curr.mods.parent,
-                        root: curr.mods.root,
-                        placeholder: curr.mods.placeholder,
-                        context: curr.mods.context
-                    }
-                };
+                wordCopy = curr.w + '';
                 // this word token has modifiers, modify current context
-                if (temp.mods.parent){
-                    context = valueStack[valueStackLength - 1 - temp.mods.parent];
+                if (curr.mods.parent){
+                    context = valueStack[valueStackLength - 1 - curr.mods.parent];
                     if (context === UNDEF) { return undefined; }
                 }
-                if (temp.mods.root){
+                if (curr.mods.root){
                     // Reset context and valueStack, start over at root in this context
                     context = valueStack[0];
                     valueStack = [context];
                     valueStackLength = 1;
                 }
-                if (temp.mods.placeholder){
-                    // TODO: Why are placeholders so slow?
-
-
-                    // placeInt = Number.parseInt(temp.w) - 1;
-                    // if (args[placeInt] === UNDEF){ return undefined; }
-                    if (args[temp.w - 1] === UNDEF){ return undefined; }
-                    // Force args[placeInt] to String, won't attempt to process
+                if (curr.mods.placeholder){
+                    placeInt = wordCopy - 1;
+                    if (args[placeInt] === UNDEF){ return undefined; }
+                    // Force args[placeInt] to String, won't atwordCopyt to process
                     // arg of type function, array, or plain object
-                    // temp.w = args[placeInt].toString();
-                    temp.w = args[temp.w - 1];
-                    delete(temp.mods.placeholder); // Once value has been replaced, don't want to re-process this entry
-                    delete(temp.mods.has);
+                    wordCopy = args[placeInt].toString();
+                    // wordCopy.mods.placeholder = 0; // Once value has been replaced, don't want to re-process this entry
+                    // wordCopy.mods.has = false;
                 }
                 
                 // "context" modifier ("@" by default) replaces current context with a value from
                 // the arguments.
-                if (temp.mods.context){
-                    placeInt = Number.parseInt(temp.w) - 1;
+                if (curr.mods.context){
+                    placeInt = wordCopy - 1;
                     if (args[placeInt] === UNDEF){ return undefined; }
-                    // Force args[placeInt] to String, won't attempt to process
+                    // Force args[placeInt] to String, won't atwordCopyt to process
                     // arg of type function, array, or plain object
                     ret = args[placeInt];
                 }
                 else {
                     // Repeat basic string property processing with word and modified context
-                    if (context[temp.w] !== UNDEF) {
-                        if (newValueHere){ context[temp.w] = newValue; }
-                        ret = context[temp.w];
+                    if (context[wordCopy] !== UNDEF) {
+                        if (newValueHere){ context[wordCopy] = newValue; }
+                        ret = context[wordCopy];
                     }
                     else if (typeof context === 'function'){
-                        ret = temp.w;
+                        ret = wordCopy;
                     }
-                    else if (wildcardRegEx.test(temp.w) >-1){
+                    else if (wildcardRegEx.test(wordCopy) >-1){
                         ret = [];
                         for (prop in context){
-                            if (context.hasOwnProperty(prop) && wildCardMatch(temp.w, prop)){
+                            if (context.hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
                                 if (newValueHere){ context[prop] = newValue; }
                                 ret.push(context[prop]);
                             }
@@ -478,16 +464,21 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                 ret = context[resolvePath(context, curr, newValue, args, valueStack.concat())];
             }
             else if (curr.exec === 'call'){
-                // TODO: handle params for function
-                callArgs = resolvePath(context, curr, newValue, args, valueStack.concat());
-                if (callArgs === UNDEF){
-                    ret = context.apply(valueStack[valueStackLength - 2]);
-                }
-                else if (Array.isArray(callArgs)){
-                    ret = context.apply(valueStack[valueStackLength - 2], callArgs);
+                // If function call has arguments, process those arguments as a new path
+                if (curr.t && curr.t.length){
+                    callArgs = resolvePath(context, curr, newValue, args, valueStack.concat());
+                    if (callArgs === UNDEF){
+                        ret = context.apply(valueStack[valueStackLength - 2]);
+                    }
+                    else if (Array.isArray(callArgs)){
+                        ret = context.apply(valueStack[valueStackLength - 2], callArgs);
+                    }
+                    else {
+                        ret = context.call(valueStack[valueStackLength - 2], callArgs);
+                    }
                 }
                 else {
-                    ret = context.call(valueStack[valueStackLength - 2], callArgs);
+                    ret = context.call(valueStack[valueStackLength - 2]);
                 }
             }
         }

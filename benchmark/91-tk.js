@@ -67,8 +67,14 @@ module.exports = {
         'simple path - 1 context prefix': function(){
             tk.get( data, 'accounts.1.<0.ary.2' );
         },
-        'function execution': function(){
+        'function execution - no fn args': function(){
             tk.get( data, 'accounts.1.checking.fn()' );
+        },
+        'function execution - one fn arg': function(){
+            tk.get( data, 'accounts.1.checking.fn(5)' );
+        },
+        'indirect property reference': function(){
+            tk.get( data, 'accounts.0.ary{<<1.indices.0}')
         }
     }
 };
