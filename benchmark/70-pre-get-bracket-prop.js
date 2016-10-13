@@ -21,26 +21,14 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     tkTokens = tk.getTokens( path );
 
 module.exports = {
-    name: 'Bracket Notation: Get properties',
+    name: 'Precompiled:Get:Bracket:Property',
     maxTime: 5,
     tests: {
         'KeyPathExp#get': function(){
             kpex.get( data );
         },
-        'kp': function(){
-            kp`["foo"]["bar"]["qux"]["baz"]`( data );
-        },
-        'tk#get': function(){
-            tk.get( data, path );
-        },
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens );
-        },
-        'keypather#get': function(){
-            keypather.get( data, path );
-        },
-        'lodash#get': function(){
-            loget( data, path );
-        },
+        }
     }
 };

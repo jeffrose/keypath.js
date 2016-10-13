@@ -427,11 +427,16 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     valueStackLength = 1;
                 }
                 if (temp.mods.placeholder){
-                    placeInt = Number.parseInt(temp.w) - 1;
-                    if (args[placeInt] === UNDEF){ return undefined; }
+                    // TODO: Why are placeholders so slow?
+
+
+                    // placeInt = Number.parseInt(temp.w) - 1;
+                    // if (args[placeInt] === UNDEF){ return undefined; }
+                    if (args[temp.w - 1] === UNDEF){ return undefined; }
                     // Force args[placeInt] to String, won't attempt to process
                     // arg of type function, array, or plain object
-                    temp.w = args[placeInt].toString();
+                    // temp.w = args[placeInt].toString();
+                    temp.w = args[temp.w - 1];
                     delete(temp.mods.placeholder); // Once value has been replaced, don't want to re-process this entry
                     delete(temp.mods.has);
                 }
