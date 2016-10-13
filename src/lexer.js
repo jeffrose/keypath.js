@@ -27,7 +27,7 @@ function isNumeric( char ){
  * @returns {external:boolean} Whether or not the character is a punctuator character
  */
 function isPunctuator( char ){
-    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === ',' || char === '%';
+    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === ',' || char === '%';
 }
 
 /**

@@ -139,17 +139,32 @@ describe( 'Interpreter', function(){
             expect( fn( data ) ).to.equal( 123 );
         } );
         
-        it( 'should interpret placeholder expressions', function(){
-            var data = { foo: { bar: 123, qux: 456, baz: 789 } },
+        it( 'should interpret eval expressions', function(){
+            var data = { foo: { bar: 123 }, qux: { baz: 'bar' } },
                 fn, result;
                 
+            fn = interpreter.compile( 'foo.{qux.baz}', false ),
+            result = fn( data );
+            
+            expect( result ).to.equal( 123 );
+        } );
+        
+        it( 'should interpret lookup expressions', function(){
+            var data = { foo: { bar: 123, qux: 456, baz: 789 } },
+                fn, result;
+             
             fn = interpreter.compile( '%1.%2', false ),
-            result = fn( data, null, [ 'foo', 'qux' ] );
+            result = fn( data, undefined, [ 'foo', 'qux' ] );
             
             expect( result ).to.equal( 456 );
             
             fn = interpreter.compile( '%f.%b', false ),
-            result = fn( data, null, { f: 'foo', b: 'bar' } );
+            result = fn( data, undefined, { f: 'foo', b: 'baz' } );
+            
+            expect( result ).to.equal( 789 );
+            
+            fn = interpreter.compile( 'foo.%{qux.baz}', false ),
+            result = fn( data, undefined, { qux: { baz: 'bar' } } );
             
             expect( result ).to.equal( 123 );
         } );

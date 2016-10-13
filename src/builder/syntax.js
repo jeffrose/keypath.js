@@ -6,6 +6,7 @@ var Syntax = new Null();
 
 Syntax.ArrayExpression       = 'ArrayExpression';
 Syntax.CallExpression        = 'CallExpression';
+Syntax.EvalExpression        = 'EvalExpression';
 Syntax.ExpressionStatement   = 'ExpressionStatement';
 Syntax.Identifier            = 'Identifier';
 Syntax.Literal               = 'Literal';

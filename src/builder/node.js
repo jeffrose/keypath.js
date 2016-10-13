@@ -55,8 +55,6 @@ Node.prototype.valueOf = function(){
     return this.id;
 };
 
-export { Node as default };
-
 /**
  * @class Builder~Expression
  * @extends Builder~Node
@@ -69,6 +67,54 @@ function Expression( expressionType ){
 Expression.prototype = Object.create( Node.prototype );
 
 Expression.prototype.constructor = Expression;
+
+/**
+ * @class Builder~Literal
+ * @extends Builder~Expression
+ * @param {external:string|external:number} value The value of the literal
+ */
+function Literal( value, raw ){
+    Expression.call( this, Syntax.Literal );
+    
+    if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
+        throw new TypeError( 'value must be a boolean, number, string, or null' );
+    }
+    
+    /**
+     * @member {external:string}
+     */
+    this.raw = raw;
+    
+    /**
+     * @member {external:string|external:number}
+     */
+    this.value = value;
+}
+
+Literal.prototype = Object.create( Expression.prototype );
+
+Literal.prototype.constructor = Literal;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the literal
+ */
+Literal.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.raw = this.raw;
+    json.value = this.value;
+    
+    return json;
+};
+
+/**
+ * @function
+ * @returns {external:string} A string representation of the literal
+ */
+Literal.prototype.toString = function(){
+    return this.raw;
+};
 
 /**
  * @class Builder~MemberExpression
@@ -289,6 +335,22 @@ ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype )
 
 ComputedMemberExpression.prototype.constructor = ComputedMemberExpression;
 
+export function EvalExpression( body ){
+    Expression.call( this, 'EvalExpression' );
+    
+    /*
+    if( !( expression instanceof Expression ) ){
+        throw new TypeError( 'argument must be an expression' );
+    }
+    */
+    
+    this.body = body;
+}
+
+EvalExpression.prototype = Object.create( Expression.prototype );
+
+EvalExpression.prototype.constructor = EvalExpression;
+
 /**
  * @class Builder~ExpressionStatement
  * @extends Builder~Statement
@@ -356,54 +418,6 @@ Identifier.prototype.toJSON = function(){
     return json;
 };
 
-/**
- * @class Builder~Literal
- * @extends Builder~Expression
- * @param {external:string|external:number} value The value of the literal
- */
-export function Literal( value, raw ){
-    Expression.call( this, Syntax.Literal );
-    
-    if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
-        throw new TypeError( 'value must be a boolean, number, string, or null' );
-    }
-    
-    /**
-     * @member {external:string}
-     */
-    this.raw = raw;
-    
-    /**
-     * @member {external:string|external:number}
-     */
-    this.value = value;
-}
-
-Literal.prototype = Object.create( Expression.prototype );
-
-Literal.prototype.constructor = Literal;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the literal
- */
-Literal.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.raw = this.raw;
-    json.value = this.value;
-    
-    return json;
-};
-
-/**
- * @function
- * @returns {external:string} A string representation of the literal
- */
-Literal.prototype.toString = function(){
-    return this.raw;
-};
-
 export function NullLiteral( raw ){
     if( raw !== 'null' ){
         throw new TypeError( 'raw is not a null literal' );
@@ -431,8 +445,8 @@ NumericLiteral.prototype = Object.create( Literal.prototype );
 NumericLiteral.prototype.constructor = NumericLiteral;
 
 export function LookupExpression( key ){
-    if( !( key instanceof Literal ) && !( key instanceof Identifier ) ){
-        throw new TypeError( 'key must be a literal or identifier' );
+    if( !( key instanceof Literal ) && !( key instanceof Identifier ) && !( key instanceof EvalExpression ) ){
+        throw new TypeError( 'key must be a literal, identifier, or eval expression' );
     }
     
     OperatorExpression.call( this, Syntax.LookupExpression, Syntax.LookupOperator );
@@ -567,8 +581,8 @@ SequenceExpression.prototype.toJSON = function(){
  * @param {Builder~Identifier} property
  */
 export function StaticMemberExpression( object, property ){
-    if( !( property instanceof Identifier ) && !( property instanceof LookupExpression ) ){
-        throw new TypeError( 'property must be an identifier or lookup expression when computed is false' );
+    if( !( property instanceof Identifier ) && !( property instanceof LookupExpression ) && !( property instanceof EvalExpression ) ){
+        throw new TypeError( 'property must be an identifier, eval expression, or lookup expression when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
@@ -595,3 +609,5 @@ export function StringLiteral( raw ){
 StringLiteral.prototype = Object.create( Literal.prototype );
 
 StringLiteral.prototype.constructor = StringLiteral;
+
+export { Node as default };

@@ -61,23 +61,23 @@ KeyPathExp.prototype.constructor = KeyPathExp;
 /**
  * @function
  */
-KeyPathExp.prototype.get = function( target ){
-    return this.getter( target );
+KeyPathExp.prototype.get = function( target, lookup ){
+    return this.getter( target, undefined, lookup );
 };
 
 /**
  * @function
  */
-KeyPathExp.prototype.has = function( target ){
-    var result =  this.getter( target );
+KeyPathExp.prototype.has = function( target, lookup ){
+    var result = this.getter( target, undefined, lookup );
     return typeof result !== 'undefined';
 };
 
 /**
  * @function
  */
-KeyPathExp.prototype.set = function( target, value ){
-    return this.setter( target, value );
+KeyPathExp.prototype.set = function( target, value, lookup ){
+    return this.setter( target, value, lookup );
 };
 
 /**

@@ -333,7 +333,30 @@ describe( 'Builder', function(){
             expect( expression.range ).to.deep.equal( [ 0, 16 ] );
         } );
         
-        it( 'should parse placeholders', function(){
+        it( 'should parse eval expressions', function(){
+            program = builder.build( '{foo.bar}' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'EvalExpression' );
+            
+            console.log( expression );
+            
+            program = builder.build( 'foo.{bar.qux}' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            
+            console.log( expression );
+            
+            program = builder.build( 'foo[{bar.qux}]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'MemberExpression' );
+            
+            console.log( expression );
+        } );
+        
+        it( 'should parse lookup expression', function(){
             program = builder.build( 'foo.%1' ),
             expression = program.body[ 0 ].expression;
             

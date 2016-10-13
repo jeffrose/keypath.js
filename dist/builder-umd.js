@@ -28,6 +28,7 @@ var Syntax = new Null();
 
 Syntax.ArrayExpression       = 'ArrayExpression';
 Syntax.CallExpression        = 'CallExpression';
+Syntax.EvalExpression        = 'EvalExpression';
 Syntax.ExpressionStatement   = 'ExpressionStatement';
 Syntax.Identifier            = 'Identifier';
 Syntax.Literal               = 'Literal';
@@ -103,6 +104,54 @@ function Expression( expressionType ){
 Expression.prototype = Object.create( Node.prototype );
 
 Expression.prototype.constructor = Expression;
+
+/**
+ * @class Builder~Literal
+ * @extends Builder~Expression
+ * @param {external:string|external:number} value The value of the literal
+ */
+function Literal( value, raw ){
+    Expression.call( this, Syntax.Literal );
+    
+    if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
+        throw new TypeError( 'value must be a boolean, number, string, or null' );
+    }
+    
+    /**
+     * @member {external:string}
+     */
+    this.raw = raw;
+    
+    /**
+     * @member {external:string|external:number}
+     */
+    this.value = value;
+}
+
+Literal.prototype = Object.create( Expression.prototype );
+
+Literal.prototype.constructor = Literal;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the literal
+ */
+Literal.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.raw = this.raw;
+    json.value = this.value;
+    
+    return json;
+};
+
+/**
+ * @function
+ * @returns {external:string} A string representation of the literal
+ */
+Literal.prototype.toString = function(){
+    return this.raw;
+};
 
 /**
  * @class Builder~MemberExpression
@@ -323,6 +372,22 @@ ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype )
 
 ComputedMemberExpression.prototype.constructor = ComputedMemberExpression;
 
+function EvalExpression( body ){
+    Expression.call( this, 'EvalExpression' );
+    
+    /*
+    if( !( expression instanceof Expression ) ){
+        throw new TypeError( 'argument must be an expression' );
+    }
+    */
+    
+    this.body = body;
+}
+
+EvalExpression.prototype = Object.create( Expression.prototype );
+
+EvalExpression.prototype.constructor = EvalExpression;
+
 /**
  * @class Builder~ExpressionStatement
  * @extends Builder~Statement
@@ -390,54 +455,6 @@ Identifier.prototype.toJSON = function(){
     return json;
 };
 
-/**
- * @class Builder~Literal
- * @extends Builder~Expression
- * @param {external:string|external:number} value The value of the literal
- */
-function Literal( value, raw ){
-    Expression.call( this, Syntax.Literal );
-    
-    if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
-        throw new TypeError( 'value must be a boolean, number, string, or null' );
-    }
-    
-    /**
-     * @member {external:string}
-     */
-    this.raw = raw;
-    
-    /**
-     * @member {external:string|external:number}
-     */
-    this.value = value;
-}
-
-Literal.prototype = Object.create( Expression.prototype );
-
-Literal.prototype.constructor = Literal;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the literal
- */
-Literal.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.raw = this.raw;
-    json.value = this.value;
-    
-    return json;
-};
-
-/**
- * @function
- * @returns {external:string} A string representation of the literal
- */
-Literal.prototype.toString = function(){
-    return this.raw;
-};
-
 function NullLiteral( raw ){
     if( raw !== 'null' ){
         throw new TypeError( 'raw is not a null literal' );
@@ -465,8 +482,8 @@ NumericLiteral.prototype = Object.create( Literal.prototype );
 NumericLiteral.prototype.constructor = NumericLiteral;
 
 function LookupExpression( key ){
-    if( !( key instanceof Literal ) && !( key instanceof Identifier ) ){
-        throw new TypeError( 'key must be a literal or identifier' );
+    if( !( key instanceof Literal ) && !( key instanceof Identifier ) && !( key instanceof EvalExpression ) ){
+        throw new TypeError( 'key must be a literal, identifier, or eval expression' );
     }
     
     OperatorExpression.call( this, Syntax.LookupExpression, Syntax.LookupOperator );
@@ -601,8 +618,8 @@ SequenceExpression.prototype.toJSON = function(){
  * @param {Builder~Identifier} property
  */
 function StaticMemberExpression( object, property ){
-    if( !( property instanceof Identifier ) && !( property instanceof LookupExpression ) ){
-        throw new TypeError( 'property must be an identifier or lookup expression when computed is false' );
+    if( !( property instanceof Identifier ) && !( property instanceof LookupExpression ) && !( property instanceof EvalExpression ) ){
+        throw new TypeError( 'property must be an identifier, eval expression, or lookup expression when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
@@ -768,17 +785,9 @@ Builder.prototype.expect = function( first, second, third, fourth ){
 Builder.prototype.expression = function(){
     var expression = null,
         list, next, token;
-        
+    
     if( next = this.peek() ){
         switch( next.type ){
-            case Grammar.Identifier:
-                expression = this.lookup();
-                next = this.peek();
-                // Implied member expression
-                if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
-                    expression = this.memberExpression( expression, false );
-                }
-                break;
             case Grammar.Punctuator:
                 if( this.expect( ']' ) ){
                     list = this.list( '[' );
@@ -791,20 +800,29 @@ Builder.prototype.expression = function(){
                             list[ 0 ] :
                             list;
                     }
+                    break;
+                } else if( next.value === '}' ){
+                    expression = this.lookup( next );
+                    next = this.peek();
                 }
-                break;
-            case Grammar.NumericLiteral:
-            case Grammar.StringLiteral:
-                expression = this.lookup();
-                next = this.peek();
                 break;
             case Grammar.NullLiteral:
                 expression = this.literal();
                 next = this.peek();
                 break;
+            // Grammar.Identifier
+            // Grammar.NumericLiteral
+            // Grammar.StringLiteral
             default:
-                this.throwError( 'Unexpected token' );
+                expression = this.lookup( next );
+                next = this.peek();
+                // Implied member expression. Should only happen at an Identifier.
+                if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
+                    expression = this.memberExpression( expression, false );
+                }
+                break;
         }
+
         while( ( token = this.expect( ')', '[', '.' ) ) ){
             if( token.value === ')' ){
                 expression = this.callExpression();
@@ -818,6 +836,25 @@ Builder.prototype.expression = function(){
         }
     }
     
+    return expression;
+};
+
+Builder.prototype.evalExpression = function( terminator ){
+    var end = this.column,
+        block = [],
+        expression, start;
+    //console.log( 'EVAL', terminator );
+    if( !this.peek( terminator ) ){
+        //console.log( '- EXPRESSIONS' );
+        do {
+            block.unshift( this.consume() );
+        } while( !this.peek( terminator ) );
+    }
+    start = this.column;
+    this.consume( terminator );
+    expression = new EvalExpression( block );
+    expression.range = [ start, end ];
+    //console.log( '- EVAL RESULT', expression );
     return expression;
 };
 
@@ -876,15 +913,15 @@ Builder.prototype.list = function( terminator ){
         if( ( isNumeric || next.value === '.' ) && this.peekAt( 1, '.' ) ){
             //console.log( '- RANGE EXPRESSION' );
             expression = isNumeric ?
-                this.lookup() :
+                this.lookup( next ) :
                 null;
             list = this.rangeExpression( expression );
         
-        // Examples: [1,2,3], ["abc","def"], [foo,bar]
+        // Examples: [1,2,3], ["abc","def"], [foo,bar], [{foo.bar}]
         } else {
             //console.log( '- ARRAY OF EXPRESSIONS' );
             do {
-                expression = this.lookup();
+                expression = this.lookup( next );
                 list.unshift( expression );
             } while( this.expect( ',' ) );
         } 
@@ -924,6 +961,49 @@ Builder.prototype.literal = function(){
     return node;
 };
 
+Builder.prototype.lookup = function( next ){
+    var expression;
+    //console.log( 'LOOKUP', next );
+    switch( next.type ){
+        case Grammar.Identifier:
+            expression = this.identifier();
+            break;
+        case Grammar.NumericLiteral:
+        case Grammar.StringLiteral:
+            expression = this.literal();
+            break;
+        case Grammar.Punctuator:
+            if( next.value === '}' ){
+                this.consume( '}' );
+                expression = this.evalExpression( '{' );
+                break;
+            }
+        default:
+            this.throwError( 'token cannot be a lookup' );
+    }
+    
+    next = this.peek();
+    
+    if( next && next.value === '%' ){
+        expression = this.lookupExpression( expression );
+    }
+    //console.log( '- LOOKUP RESULT', expression );
+    return expression;
+};
+
+Builder.prototype.lookupExpression = function( key ){
+    var end = key.range[ 1 ],
+        node, start;
+        
+    this.consume( '%' );
+    
+    start = this.column;
+    node = new LookupExpression( key );
+    node.range = [ start, end ];
+    
+    return node;
+};
+
 /**
  * @function
  * @param {Expression} property The expression assigned to the property of the member expression
@@ -931,6 +1011,7 @@ Builder.prototype.literal = function(){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
+    //console.log( 'MEMBER', property );
     var end = property.range[ 1 ] + ( computed ? 1 : 0 ),
         object = this.expression(),
         start = this.column,
@@ -1010,44 +1091,6 @@ Builder.prototype.program = function(){
             return node;
         }
     }
-};
-
-Builder.prototype.lookup = function(){
-    var next = this.peek(),
-        expression;
-    
-    switch( next.type ){
-        case Grammar.Identifier:
-            expression = this.identifier();
-            break;
-        case Grammar.NumericLiteral:
-        case Grammar.StringLiteral:
-            expression = this.literal();
-            break;
-        default:
-            this.throwError( 'token cannot be a lookup' );
-    }
-    
-    next = this.peek();
-    
-    if( next && next.value === '%' ){
-        expression = this.lookupExpression( expression );
-    }
-    
-    return expression;
-};
-
-Builder.prototype.lookupExpression = function( key ){
-    var end = key.range[ 1 ],
-        node, start;
-        
-    this.consume( '%' );
-    
-    start = this.column;
-    node = new LookupExpression( key );
-    node.range = [ start, end ];
-    
-    return node;
 };
 
 Builder.prototype.rangeExpression = function( right ){

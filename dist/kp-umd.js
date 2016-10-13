@@ -176,7 +176,7 @@ function isNumeric( char ){
  * @returns {external:boolean} Whether or not the character is a punctuator character
  */
 function isPunctuator( char ){
-    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === ',' || char === '%';
+    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === ',' || char === '%';
 }
 
 /**
@@ -355,6 +355,7 @@ var Syntax = new Null();
 
 Syntax.ArrayExpression       = 'ArrayExpression';
 Syntax.CallExpression        = 'CallExpression';
+Syntax.EvalExpression        = 'EvalExpression';
 Syntax.ExpressionStatement   = 'ExpressionStatement';
 Syntax.Identifier            = 'Identifier';
 Syntax.Literal               = 'Literal';
@@ -430,6 +431,54 @@ function Expression( expressionType ){
 Expression.prototype = Object.create( Node.prototype );
 
 Expression.prototype.constructor = Expression;
+
+/**
+ * @class Builder~Literal
+ * @extends Builder~Expression
+ * @param {external:string|external:number} value The value of the literal
+ */
+function Literal( value, raw ){
+    Expression.call( this, Syntax.Literal );
+    
+    if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
+        throw new TypeError( 'value must be a boolean, number, string, or null' );
+    }
+    
+    /**
+     * @member {external:string}
+     */
+    this.raw = raw;
+    
+    /**
+     * @member {external:string|external:number}
+     */
+    this.value = value;
+}
+
+Literal.prototype = Object.create( Expression.prototype );
+
+Literal.prototype.constructor = Literal;
+
+/**
+ * @function
+ * @returns {external:Object} A JSON representation of the literal
+ */
+Literal.prototype.toJSON = function(){
+    const json = Node.prototype.toJSON.call( this );
+    
+    json.raw = this.raw;
+    json.value = this.value;
+    
+    return json;
+};
+
+/**
+ * @function
+ * @returns {external:string} A string representation of the literal
+ */
+Literal.prototype.toString = function(){
+    return this.raw;
+};
 
 /**
  * @class Builder~MemberExpression
@@ -650,6 +699,22 @@ ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype )
 
 ComputedMemberExpression.prototype.constructor = ComputedMemberExpression;
 
+function EvalExpression( body ){
+    Expression.call( this, 'EvalExpression' );
+    
+    /*
+    if( !( expression instanceof Expression ) ){
+        throw new TypeError( 'argument must be an expression' );
+    }
+    */
+    
+    this.body = body;
+}
+
+EvalExpression.prototype = Object.create( Expression.prototype );
+
+EvalExpression.prototype.constructor = EvalExpression;
+
 /**
  * @class Builder~ExpressionStatement
  * @extends Builder~Statement
@@ -717,54 +782,6 @@ Identifier$1.prototype.toJSON = function(){
     return json;
 };
 
-/**
- * @class Builder~Literal
- * @extends Builder~Expression
- * @param {external:string|external:number} value The value of the literal
- */
-function Literal( value, raw ){
-    Expression.call( this, Syntax.Literal );
-    
-    if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
-        throw new TypeError( 'value must be a boolean, number, string, or null' );
-    }
-    
-    /**
-     * @member {external:string}
-     */
-    this.raw = raw;
-    
-    /**
-     * @member {external:string|external:number}
-     */
-    this.value = value;
-}
-
-Literal.prototype = Object.create( Expression.prototype );
-
-Literal.prototype.constructor = Literal;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the literal
- */
-Literal.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
-    
-    json.raw = this.raw;
-    json.value = this.value;
-    
-    return json;
-};
-
-/**
- * @function
- * @returns {external:string} A string representation of the literal
- */
-Literal.prototype.toString = function(){
-    return this.raw;
-};
-
 function NullLiteral$1( raw ){
     if( raw !== 'null' ){
         throw new TypeError( 'raw is not a null literal' );
@@ -792,8 +809,8 @@ NumericLiteral$1.prototype = Object.create( Literal.prototype );
 NumericLiteral$1.prototype.constructor = NumericLiteral$1;
 
 function LookupExpression( key ){
-    if( !( key instanceof Literal ) && !( key instanceof Identifier$1 ) ){
-        throw new TypeError( 'key must be a literal or identifier' );
+    if( !( key instanceof Literal ) && !( key instanceof Identifier$1 ) && !( key instanceof EvalExpression ) ){
+        throw new TypeError( 'key must be a literal, identifier, or eval expression' );
     }
     
     OperatorExpression.call( this, Syntax.LookupExpression, Syntax.LookupOperator );
@@ -928,8 +945,8 @@ SequenceExpression.prototype.toJSON = function(){
  * @param {Builder~Identifier} property
  */
 function StaticMemberExpression( object, property ){
-    if( !( property instanceof Identifier$1 ) && !( property instanceof LookupExpression ) ){
-        throw new TypeError( 'property must be an identifier or lookup expression when computed is false' );
+    if( !( property instanceof Identifier$1 ) && !( property instanceof LookupExpression ) && !( property instanceof EvalExpression ) ){
+        throw new TypeError( 'property must be an identifier, eval expression, or lookup expression when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
@@ -1095,17 +1112,9 @@ Builder.prototype.expect = function( first, second, third, fourth ){
 Builder.prototype.expression = function(){
     var expression = null,
         list, next, token;
-        
+    
     if( next = this.peek() ){
         switch( next.type ){
-            case Grammar.Identifier:
-                expression = this.lookup();
-                next = this.peek();
-                // Implied member expression
-                if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
-                    expression = this.memberExpression( expression, false );
-                }
-                break;
             case Grammar.Punctuator:
                 if( this.expect( ']' ) ){
                     list = this.list( '[' );
@@ -1118,20 +1127,29 @@ Builder.prototype.expression = function(){
                             list[ 0 ] :
                             list;
                     }
+                    break;
+                } else if( next.value === '}' ){
+                    expression = this.lookup( next );
+                    next = this.peek();
                 }
-                break;
-            case Grammar.NumericLiteral:
-            case Grammar.StringLiteral:
-                expression = this.lookup();
-                next = this.peek();
                 break;
             case Grammar.NullLiteral:
                 expression = this.literal();
                 next = this.peek();
                 break;
+            // Grammar.Identifier
+            // Grammar.NumericLiteral
+            // Grammar.StringLiteral
             default:
-                this.throwError( 'Unexpected token' );
+                expression = this.lookup( next );
+                next = this.peek();
+                // Implied member expression. Should only happen at an Identifier.
+                if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
+                    expression = this.memberExpression( expression, false );
+                }
+                break;
         }
+
         while( ( token = this.expect( ')', '[', '.' ) ) ){
             if( token.value === ')' ){
                 expression = this.callExpression();
@@ -1145,6 +1163,25 @@ Builder.prototype.expression = function(){
         }
     }
     
+    return expression;
+};
+
+Builder.prototype.evalExpression = function( terminator ){
+    var end = this.column,
+        block = [],
+        expression, start;
+    //console.log( 'EVAL', terminator );
+    if( !this.peek( terminator ) ){
+        //console.log( '- EXPRESSIONS' );
+        do {
+            block.unshift( this.consume() );
+        } while( !this.peek( terminator ) );
+    }
+    start = this.column;
+    this.consume( terminator );
+    expression = new EvalExpression( block );
+    expression.range = [ start, end ];
+    //console.log( '- EVAL RESULT', expression );
     return expression;
 };
 
@@ -1203,15 +1240,15 @@ Builder.prototype.list = function( terminator ){
         if( ( isNumeric || next.value === '.' ) && this.peekAt( 1, '.' ) ){
             //console.log( '- RANGE EXPRESSION' );
             expression = isNumeric ?
-                this.lookup() :
+                this.lookup( next ) :
                 null;
             list = this.rangeExpression( expression );
         
-        // Examples: [1,2,3], ["abc","def"], [foo,bar]
+        // Examples: [1,2,3], ["abc","def"], [foo,bar], [{foo.bar}]
         } else {
             //console.log( '- ARRAY OF EXPRESSIONS' );
             do {
-                expression = this.lookup();
+                expression = this.lookup( next );
                 list.unshift( expression );
             } while( this.expect( ',' ) );
         } 
@@ -1251,6 +1288,49 @@ Builder.prototype.literal = function(){
     return node;
 };
 
+Builder.prototype.lookup = function( next ){
+    var expression;
+    //console.log( 'LOOKUP', next );
+    switch( next.type ){
+        case Grammar.Identifier:
+            expression = this.identifier();
+            break;
+        case Grammar.NumericLiteral:
+        case Grammar.StringLiteral:
+            expression = this.literal();
+            break;
+        case Grammar.Punctuator:
+            if( next.value === '}' ){
+                this.consume( '}' );
+                expression = this.evalExpression( '{' );
+                break;
+            }
+        default:
+            this.throwError( 'token cannot be a lookup' );
+    }
+    
+    next = this.peek();
+    
+    if( next && next.value === '%' ){
+        expression = this.lookupExpression( expression );
+    }
+    //console.log( '- LOOKUP RESULT', expression );
+    return expression;
+};
+
+Builder.prototype.lookupExpression = function( key ){
+    var end = key.range[ 1 ],
+        node, start;
+        
+    this.consume( '%' );
+    
+    start = this.column;
+    node = new LookupExpression( key );
+    node.range = [ start, end ];
+    
+    return node;
+};
+
 /**
  * @function
  * @param {Expression} property The expression assigned to the property of the member expression
@@ -1258,6 +1338,7 @@ Builder.prototype.literal = function(){
  * @returns {MemberExpression} The member expression
  */
 Builder.prototype.memberExpression = function( property, computed ){
+    //console.log( 'MEMBER', property );
     var end = property.range[ 1 ] + ( computed ? 1 : 0 ),
         object = this.expression(),
         start = this.column,
@@ -1337,44 +1418,6 @@ Builder.prototype.program = function(){
             return node;
         }
     }
-};
-
-Builder.prototype.lookup = function(){
-    var next = this.peek(),
-        expression;
-    
-    switch( next.type ){
-        case Grammar.Identifier:
-            expression = this.identifier();
-            break;
-        case Grammar.NumericLiteral:
-        case Grammar.StringLiteral:
-            expression = this.literal();
-            break;
-        default:
-            this.throwError( 'token cannot be a lookup' );
-    }
-    
-    next = this.peek();
-    
-    if( next && next.value === '%' ){
-        expression = this.lookupExpression( expression );
-    }
-    
-    return expression;
-};
-
-Builder.prototype.lookupExpression = function( key ){
-    var end = key.range[ 1 ],
-        node, start;
-        
-    this.consume( '%' );
-    
-    start = this.column;
-    node = new LookupExpression( key );
-    node.range = [ start, end ];
-    
-    return node;
 };
 
 Builder.prototype.rangeExpression = function( right ){
@@ -1552,9 +1595,7 @@ Interpreter.prototype.compile = function( expression, create ){
             };
             break;
     }
-    
     //console.log( 'FN', fn.name );
-    
     return fn;
 };
 
@@ -1563,31 +1604,32 @@ Interpreter.prototype.compile = function( expression, create ){
  */
 Interpreter.prototype.recurse = function( node, context, assign ){
     var interpreter = this,
-        isRightMost = false,
+        isRightMost = node.range[ 1 ] === interpreter.eol,
+        isSetting = assign === setValue,
         
         args, fn, left, right;
     //console.log( 'Recursing on', node.type );
     switch( node.type ){
         
         case Syntax.ArrayExpression: {
-            isRightMost = node.range[ 1 ] === interpreter.eol;
-            
             if( Array.isArray( node.elements ) ){
                 args = interpreter.recurseList( node.elements, false, assign );
-                fn = function getArrayExpression( scope, value, lookup ){
+                fn = function getArrayExpressionWithElementList( scope, value, lookup ){
                     //console.log( 'Getting ARRAY EXPRESSION' );
-                    var result = [], name;
+                    var result = [],
+                        defaultValue = isRightMost ? value : {},
+                        name;
                     switch( args.length ){
                         case 0:
                             break;
                         case 1:
                             name = args[ 0 ]( scope, value, lookup );
-                            result[ 0 ] = assign( scope, name, isRightMost ? value : {} );
+                            result[ 0 ] = assign( scope, name, defaultValue );
                             break;
                         default:
                             forEach( args, function( arg, index ){
                                 name = arg( scope, value, lookup );
-                                result[ index ] = assign( scope, name, isRightMost ? value : {} );
+                                result[ index ] = assign( scope, name, defaultValue );
                             } );
                             break;
                     }
@@ -1598,19 +1640,20 @@ Interpreter.prototype.recurse = function( node, context, assign ){
                 };
             } else {
                 args = interpreter.recurse( node.elements, false, assign );
-                fn = function getArrayExpression( scope, value, lookup ){
+                fn = function getArrayExpressionWithRangeExpression( scope, value, lookup ){
                     //console.log( 'Getting ARRAY EXPRESSION' );
                     var result = [],
+                        defaultValue = isRightMost ? value : {},
                         names = args( scope, value, lookup );
                     switch( names.length ){
                         case 0:
                             break;
                         case 1:
-                            result[ 0 ] = assign( scope, names[ 0 ], isRightMost ? value : {} );
+                            result[ 0 ] = assign( scope, names[ 0 ], defaultValue );
                             break;
                         default:
                             forEach( names, function( name, index ){
-                                result[ index ] = assign( scope, name, isRightMost ? value : {} );
+                                result[ index ] = assign( scope, name, defaultValue );
                             } );
                             break;
                     }
@@ -1630,11 +1673,11 @@ Interpreter.prototype.recurse = function( node, context, assign ){
             
             return function getCallExpression( scope, value, lookup ){
                 //console.log( 'Getting CALL EXPRESSION' );
-                //console.log( '- RIGHT', right.name );
+                //console.log( '- CALL RIGHT', right.name );
                 var values = [],
                     rhs = right( scope, value, lookup ),
                     result;
-                //console.log( '- RHS', rhs );
+                //console.log( '- CALL RHS', rhs );
                 if( typeof rhs.value === 'function' ){
                     values = [];
                     switch( args.length ){
@@ -1650,7 +1693,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
                             break;
                     }
                     result = rhs.value.apply( rhs.context, values );
-                } else if( create && typeof rhs.value === 'undefined' ){
+                } else if( isSetting && typeof rhs.value === 'undefined' ){
                     throw new Error( 'cannot create call expressions' );
                 } else {
                     throw new TypeError( 'call expression must be a function' );
@@ -1662,15 +1705,29 @@ Interpreter.prototype.recurse = function( node, context, assign ){
             };
         }
         
-        case Syntax.Identifier: {
-            isRightMost = node.range[ 1 ] === interpreter.eol;
+        case Syntax.EvalExpression: {
+            args = interpreter.builder.build( node.body );
+            left = interpreter.recurse( args.body[ 0 ].expression, false, assign );
             
+            return function getEvalExpression( scope, value, lookup ){
+                //console.log( 'Getting EVAL' );
+                //console.log( '- EVAL LEFT', left.name );
+                var result = left( scope, value, lookup );
+                //console.log( '- EVAL RESULT', result );
+                return context ?
+                    { context: scope, name: undefined, value: result } :
+                    result;
+            };
+        }
+        
+        case Syntax.Identifier: {
             return function getIdentifier( scope, value, lookup ){
                 //console.log( 'Getting IDENTIFIER' );
                 var name = node.name,
+                    defaultValue = isRightMost ? value : {},
                     result;
                 if( typeof scope !== 'undefined' ){
-                    result = assign( scope, name, isRightMost ? value : {} );
+                    result = assign( scope, name, defaultValue );
                 }
                 //console.log( '- NAME', name );
                 //console.log( '- IDENTIFIER RESULT', result );
@@ -1693,18 +1750,19 @@ Interpreter.prototype.recurse = function( node, context, assign ){
         
         case Syntax.MemberExpression: {
             left = interpreter.recurse( node.object, false, assign );
-            isRightMost = node.property.range[ 1 ] + 1 === interpreter.eol;
             
             // Computed
             if( node.computed ){
                 right = interpreter.recurse( node.property, false, assign );
+                isRightMost = node.property.range[ 1 ] + 1 === interpreter.eol;
                 
                 if( node.property.type === Syntax.SequenceExpression ){
-                    fn = function getComputedMember( scope, value, lookup ){
+                    fn = function getComputedMemberWithSequenceExpression( scope, value, lookup ){
                         //console.log( 'Getting COMPUTED MEMBER' );
                         //console.log( '- COMPUTED LEFT', left.name );
                         //console.log( '- COMPUTED RIGHT', right.name );
                         var lhs = left( scope, value, lookup ),
+                            defaultValue = isRightMost ? value : {},
                             result = [],
                             rhs;
                         //console.log( '- COMPUTED LHS', lhs );
@@ -1713,7 +1771,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
                             //console.log( '- COMPUTED RHS', rhs );
                             if( Array.isArray( rhs ) ){
                                 forEach( rhs, function( item, index ){
-                                    result[ index ] = assign( lhs, item, isRightMost ? value : {} );
+                                    result[ index ] = assign( lhs, item, defaultValue );
                                 } );
                                 //console.log( '-- LIST|VALUE:LIST', result );
                             }
@@ -1725,25 +1783,26 @@ Interpreter.prototype.recurse = function( node, context, assign ){
                     };
                 } else {
                     if( node.object.type === Syntax.ArrayExpression ){
-                        fn = function getComputedMember( scope, value, lookup ){
+                        fn = function getComputedMemberWithArrayExpression( scope, value, lookup ){
                             //console.log( 'Getting COMPUTED MEMBER' );
                             //console.log( '- COMPUTED LEFT', left.name );
                             //console.log( '- COMPUTED RIGHT', right.name );
                             var lhs = left( scope, value, lookup ),
+                                defaultValue = isRightMost ? value : {},
                                 result, rhs;
                             //console.log( '- COMPUTED LHS', lhs );
                             if( Array.isArray( lhs ) ){
                                 rhs = right( scope, value, lookup );
                                 //console.log( '- COMPUTED RHS', rhs );
                                 if( typeof rhs === 'number' ){
-                                    result = assign( lhs, rhs, isRightMost ? value : {} );
+                                    result = assign( lhs, rhs, defaultValue );
                                 } else {
                                     if( lhs.length === 1 ){
-                                        result = assign( lhs[ 0 ], rhs, isRightMost ? value : {} );
+                                        result = assign( lhs[ 0 ], rhs, defaultValue );
                                     } else {
                                         result = [];
                                         forEach( lhs, function( item, index ){
-                                            result[ index ] = assign( item, rhs, isRightMost ? value : {} );
+                                            result[ index ] = assign( item, rhs, defaultValue );
                                         } );
                                     }
                                 }
@@ -1760,13 +1819,14 @@ Interpreter.prototype.recurse = function( node, context, assign ){
                             //console.log( '- COMPUTED LEFT', left.name );
                             //console.log( '- COMPUTED RIGHT', right.name );
                             var lhs = left( scope, value, lookup ),
+                                defaultValue = isRightMost ? value : {},
                                 result,
                                 rhs;
                             //console.log( '- COMPUTED LHS', lhs );
                             if( typeof lhs !== 'undefined' ){
                                 rhs = right( scope, value, lookup );
                                 //console.log( '- COMPUTED RHS', rhs );
-                                result = assign( lhs, rhs, isRightMost ? value : {} );
+                                result = assign( lhs, rhs, defaultValue );
                                 //console.log( '-- VALUE:VALUE', result );
                             }
                             //console.log( '- COMPUTED RESULT', result );
@@ -1790,23 +1850,24 @@ Interpreter.prototype.recurse = function( node, context, assign ){
                         rhs = typeof right === 'function' ?
                             right( scope, value, lookup ) :
                             right,
+                        defaultValue = isRightMost ? value : {},
                         result;
                     //console.log( '- NON-COMPUTED LHS', lhs );
                     //console.log( '- NON-COMPUTED RHS', rhs );
                     if( typeof lhs !== 'undefined' ){
                         if( typeof lhs === 'string' ){
-                            lhs = assign( scope, lhs, isRightMost ? value : {} );
+                            lhs = assign( scope, lhs, defaultValue );
                         }
                         if( !Array.isArray( lhs ) ){
-                            result = assign( lhs, rhs, isRightMost ? value : {} );
+                            result = assign( lhs, rhs, defaultValue );
                             //console.log( '-- VALUE:VALUE', result );
                         } else {
                             if( lhs.length === 1 ){
-                                result = assign( lhs[ 0 ], rhs, isRightMost ? value : {} );
+                                result = assign( lhs[ 0 ], rhs, defaultValue );
                             } else {
                                 result = [];
                                 forEach( lhs, function( item, index ){
-                                    result[ index ] = assign( item, rhs, isRightMost ? value : {} );
+                                    result[ index ] = assign( item, rhs, defaultValue );
                                 } );
                             }
                             //console.log( '-- LIST:VALUE', result );
@@ -1824,18 +1885,17 @@ Interpreter.prototype.recurse = function( node, context, assign ){
         
         case Syntax.LookupExpression: {
             left = interpreter.recurse( node.key, true, assign );
-            
             return function getLookupExpression( scope, value, lookup ){
-                //console.log( 'Getting PLACEHOLDER EXPRESSION' );
-                var lhs = left( scope, value, lookup ),
-                    key = typeof lhs.name !== 'undefined' ?
-                        // Identifier
-                        lhs.name :
-                        // Numeric Literal
-                        lhs.value - 1,
-                    result = lookup[ key ];
-                //console.log( '- PLACEHOLDER LHS', lhs );
-                //console.log( '- PLACEHOLDER EXPRESSION RESULT', result );
+                //console.log( 'Getting LOOKUP EXPRESSION' );
+                //console.log( '- LOOKUP LEFT', left.name );
+                var lhs = left( lookup, value, scope ),
+                    result;
+                //console.log( '- LOOKUP LHS', lhs );
+                result = typeof lhs.value === 'number' ?
+                    lookup[ lhs.value - 1 ] :
+                    lhs.value;
+                //console.log( '- LOOKUP LHS', lhs );
+                //console.log( '- LOOKUP EXPRESSION RESULT', result );
                 return context ?
                     { value: result } :
                     result;
@@ -1884,7 +1944,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
             
             if( Array.isArray( node.expressions ) ){
                 args = interpreter.recurseList( node.expressions, false, assign );
-                fn = function getSequenceExpression( scope, value, lookup ){
+                fn = function getSequenceExpressionWithExpressionList( scope, value, lookup ){
                     //console.log( 'Getting SEQUENCE EXPRESSION' );
                     var result = [];
                     forEach( args, function( arg, index ){
@@ -1897,7 +1957,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
                 };
             } else {
                 args = interpreter.recurse( node.expressions, false, assign );
-                fn = function getSequenceExpression( scope, value, lookup ){
+                fn = function getSequenceExpressionWithRangeExpression( scope, value, lookup ){
                     //console.log( 'Getting SEQUENCE EXPRESSION' );
                     var result = args( scope, value, lookup );
                     //console.log( '- SEQUENCE RESULT', result );
@@ -1984,23 +2044,23 @@ KeyPathExp.prototype.constructor = KeyPathExp;
 /**
  * @function
  */
-KeyPathExp.prototype.get = function( target ){
-    return this.getter( target );
+KeyPathExp.prototype.get = function( target, lookup ){
+    return this.getter( target, undefined, lookup );
 };
 
 /**
  * @function
  */
-KeyPathExp.prototype.has = function( target ){
-    var result =  this.getter( target );
+KeyPathExp.prototype.has = function( target, lookup ){
+    var result = this.getter( target, undefined, lookup );
     return typeof result !== 'undefined';
 };
 
 /**
  * @function
  */
-KeyPathExp.prototype.set = function( target, value ){
-    return this.setter( target, value );
+KeyPathExp.prototype.set = function( target, value, lookup ){
+    return this.setter( target, value, lookup );
 };
 
 /**
