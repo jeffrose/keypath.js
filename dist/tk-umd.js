@@ -424,6 +424,9 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     valueStackLength = 1;
                 }
                 if (temp.mods.placeholder){
+                    // TODO: Why are placeholders so slow?
+
+
                     // placeInt = Number.parseInt(temp.w) - 1;
                     // if (args[placeInt] === UNDEF){ return undefined; }
                     if (args[temp.w - 1] === UNDEF){ return undefined; }

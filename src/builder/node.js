@@ -4,10 +4,7 @@ import Null from '../null';
 import Syntax from './syntax';
 
 var nodeId = 0,
-    literalTypes = 'boolean number string'.split( ' ' ),
-    
-    PlaceholderOperator = '%',
-    RangeOperator = '..';
+    literalTypes = 'boolean number string'.split( ' ' );
 
 /**
  * @class Builder~Node
@@ -438,7 +435,7 @@ export function PlaceholderExpression( key ){
         throw new TypeError( 'key must be a literal or identifier' );
     }
     
-    OperatorExpression.call( this, Syntax.PlaceholderExpression, PlaceholderOperator );
+    OperatorExpression.call( this, Syntax.PlaceholderExpression, Syntax.PlaceholderOperator );
     
     this.key = key;
 }
@@ -466,7 +463,7 @@ PlaceholderExpression.prototype.toJSON = function(){
  * @param {Builder~Expression} right
  */
 export function RangeExpression( left, right ){
-    OperatorExpression.call( this, Syntax.RangeExpression, RangeOperator );
+    OperatorExpression.call( this, Syntax.RangeExpression, Syntax.RangeOperator );
     
     if( !( left instanceof Literal ) && left !== null ){
         throw new TypeError( 'left must be an instance of literal or null' );

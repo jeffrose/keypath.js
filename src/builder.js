@@ -157,32 +157,41 @@ Builder.prototype.expression = function(){
         list, next, token;
         
     if( next = this.peek() ){
-        if( this.expect( ']' ) ){
-            list = this.list( '[' );
-            if( this.tokens.length === 1 ){
-                expression = this.arrayExpression( list );
-            } else if( list.length > 1 ){
-                expression = this.sequenceExpression( list );
-            } else {
-                expression = Array.isArray( list ) ?
-                    list[ 0 ] :
-                    list;
-            }
-        } else if( next.type === Grammar.Identifier ){
-            expression = this.placeholder();
-            next = this.peek();
-            // Implied member expression
-            if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
-                expression = this.memberExpression( expression, false );
-            }
-        } else if( next.type === Grammar.NumericLiteral || next.type === Grammar.StringLiteral ){
-            expression = this.placeholder();
-            next = this.peek();
-        } else if( next.type === Grammar.NullLiteral ){
-            expression = this.literal();
-            next = this.peek();
+        switch( next.type ){
+            case Grammar.Identifier:
+                expression = this.placeholder();
+                next = this.peek();
+                // Implied member expression
+                if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
+                    expression = this.memberExpression( expression, false );
+                }
+                break;
+            case Grammar.Punctuator:
+                if( this.expect( ']' ) ){
+                    list = this.list( '[' );
+                    if( this.tokens.length === 1 ){
+                        expression = this.arrayExpression( list );
+                    } else if( list.length > 1 ){
+                        expression = this.sequenceExpression( list );
+                    } else {
+                        expression = Array.isArray( list ) ?
+                            list[ 0 ] :
+                            list;
+                    }
+                }
+                break;
+            case Grammar.NumericLiteral:
+            case Grammar.StringLiteral:
+                expression = this.placeholder();
+                next = this.peek();
+                break;
+            case Grammar.NullLiteral:
+                expression = this.literal();
+                next = this.peek();
+                break;
+            default:
+                this.throwError( 'Unexpected token' );
         }
-        
         while( ( token = this.expect( ')', '[', '.' ) ) ){
             if( token.value === ')' ){
                 expression = this.callExpression();

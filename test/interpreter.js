@@ -37,7 +37,7 @@ describe( 'Interpreter', function(){
             
             get = interpreter.compile( pattern, false );
             set = interpreter.compile( pattern, true );
-            set( object, 123 );
+            set( object, 123, [] );
             expect( get( object ) ).to.equal( 123 );
         } );
         
