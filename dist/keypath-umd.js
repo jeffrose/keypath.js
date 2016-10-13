@@ -359,8 +359,8 @@ Syntax.ExpressionStatement   = 'ExpressionStatement';
 Syntax.Identifier            = 'Identifier';
 Syntax.Literal               = 'Literal';
 Syntax.MemberExpression      = 'MemberExpression';
-Syntax.PlaceholderExpression = 'PlaceholderExpression';
-Syntax.PlaceholderOperator   = '%';
+Syntax.LookupExpression      = 'LookupExpression';
+Syntax.LookupOperator        = '%';
 Syntax.Program               = 'Program';
 Syntax.RangeExpression       = 'RangeExpression';
 Syntax.RangeOperator         = '..';
@@ -791,25 +791,25 @@ NumericLiteral$1.prototype = Object.create( Literal.prototype );
 
 NumericLiteral$1.prototype.constructor = NumericLiteral$1;
 
-function PlaceholderExpression( key ){
+function LookupExpression( key ){
     if( !( key instanceof Literal ) && !( key instanceof Identifier$1 ) ){
         throw new TypeError( 'key must be a literal or identifier' );
     }
     
-    OperatorExpression.call( this, Syntax.PlaceholderExpression, Syntax.PlaceholderOperator );
+    OperatorExpression.call( this, Syntax.LookupExpression, Syntax.LookupOperator );
     
     this.key = key;
 }
 
-PlaceholderExpression.prototype = Object.create( OperatorExpression.prototype );
+LookupExpression.prototype = Object.create( OperatorExpression.prototype );
 
-PlaceholderExpression.prototype.constructor = PlaceholderExpression;
+LookupExpression.prototype.constructor = LookupExpression;
 
-PlaceholderExpression.prototype.toString = function(){
+LookupExpression.prototype.toString = function(){
     return this.operator + this.key;
 };
 
-PlaceholderExpression.prototype.toJSON = function(){
+LookupExpression.prototype.toJSON = function(){
     var json = OperatorExpression.prototype.toJSON.call( this );
     
     json.key = this.key;
@@ -928,8 +928,8 @@ SequenceExpression.prototype.toJSON = function(){
  * @param {Builder~Identifier} property
  */
 function StaticMemberExpression( object, property ){
-    if( !( property instanceof Identifier$1 ) && !( property instanceof PlaceholderExpression ) ){
-        throw new TypeError( 'property must be an identifier or placeholder expression when computed is false' );
+    if( !( property instanceof Identifier$1 ) && !( property instanceof LookupExpression ) ){
+        throw new TypeError( 'property must be an identifier or lookup expression when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );
@@ -1099,7 +1099,7 @@ Builder.prototype.expression = function(){
     if( next = this.peek() ){
         switch( next.type ){
             case Grammar.Identifier:
-                expression = this.placeholder();
+                expression = this.lookup();
                 next = this.peek();
                 // Implied member expression
                 if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
@@ -1122,7 +1122,7 @@ Builder.prototype.expression = function(){
                 break;
             case Grammar.NumericLiteral:
             case Grammar.StringLiteral:
-                expression = this.placeholder();
+                expression = this.lookup();
                 next = this.peek();
                 break;
             case Grammar.NullLiteral:
@@ -1203,7 +1203,7 @@ Builder.prototype.list = function( terminator ){
         if( ( isNumeric || next.value === '.' ) && this.peekAt( 1, '.' ) ){
             //console.log( '- RANGE EXPRESSION' );
             expression = isNumeric ?
-                this.placeholder() :
+                this.lookup() :
                 null;
             list = this.rangeExpression( expression );
         
@@ -1211,7 +1211,7 @@ Builder.prototype.list = function( terminator ){
         } else {
             //console.log( '- ARRAY OF EXPRESSIONS' );
             do {
-                expression = this.placeholder();
+                expression = this.lookup();
                 list.unshift( expression );
             } while( this.expect( ',' ) );
         } 
@@ -1339,7 +1339,7 @@ Builder.prototype.program = function(){
     }
 };
 
-Builder.prototype.placeholder = function(){
+Builder.prototype.lookup = function(){
     var next = this.peek(),
         expression;
     
@@ -1352,26 +1352,26 @@ Builder.prototype.placeholder = function(){
             expression = this.literal();
             break;
         default:
-            this.throwError( 'token cannot be a placeholder' );
+            this.throwError( 'token cannot be a lookup' );
     }
     
     next = this.peek();
     
     if( next && next.value === '%' ){
-        expression = this.placeholderExpression( expression );
+        expression = this.lookupExpression( expression );
     }
     
     return expression;
 };
 
-Builder.prototype.placeholderExpression = function( key ){
+Builder.prototype.lookupExpression = function( key ){
     var end = key.range[ 1 ],
         node, start;
         
     this.consume( '%' );
     
     start = this.column;
-    node = new PlaceholderExpression( key );
+    node = new LookupExpression( key );
     node.range = [ start, end ];
     
     return node;
@@ -1822,10 +1822,10 @@ Interpreter.prototype.recurse = function( node, context, assign ){
             return fn;
         }
         
-        case Syntax.PlaceholderExpression: {
+        case Syntax.LookupExpression: {
             left = interpreter.recurse( node.key, true, assign );
             
-            return function getPlaceholderExpression( scope, value, lookup ){
+            return function getLookupExpression( scope, value, lookup ){
                 //console.log( 'Getting PLACEHOLDER EXPRESSION' );
                 var lhs = left( scope, value, lookup ),
                     key = typeof lhs.name !== 'undefined' ?

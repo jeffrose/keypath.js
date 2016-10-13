@@ -10,7 +10,7 @@ import {
     Identifier,
     NullLiteral,
     NumericLiteral,
-    PlaceholderExpression,
+    LookupExpression,
     Program,
     RangeExpression,
     SequenceExpression,
@@ -159,7 +159,7 @@ Builder.prototype.expression = function(){
     if( next = this.peek() ){
         switch( next.type ){
             case Grammar.Identifier:
-                expression = this.placeholder();
+                expression = this.lookup();
                 next = this.peek();
                 // Implied member expression
                 if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
@@ -182,7 +182,7 @@ Builder.prototype.expression = function(){
                 break;
             case Grammar.NumericLiteral:
             case Grammar.StringLiteral:
-                expression = this.placeholder();
+                expression = this.lookup();
                 next = this.peek();
                 break;
             case Grammar.NullLiteral:
@@ -263,7 +263,7 @@ Builder.prototype.list = function( terminator ){
         if( ( isNumeric || next.value === '.' ) && this.peekAt( 1, '.' ) ){
             //console.log( '- RANGE EXPRESSION' );
             expression = isNumeric ?
-                this.placeholder() :
+                this.lookup() :
                 null;
             list = this.rangeExpression( expression );
         
@@ -271,7 +271,7 @@ Builder.prototype.list = function( terminator ){
         } else {
             //console.log( '- ARRAY OF EXPRESSIONS' );
             do {
-                expression = this.placeholder();
+                expression = this.lookup();
                 list.unshift( expression );
             } while( this.expect( ',' ) );
         } 
@@ -399,7 +399,7 @@ Builder.prototype.program = function(){
     }
 };
 
-Builder.prototype.placeholder = function(){
+Builder.prototype.lookup = function(){
     var next = this.peek(),
         expression;
     
@@ -412,26 +412,26 @@ Builder.prototype.placeholder = function(){
             expression = this.literal();
             break;
         default:
-            this.throwError( 'token cannot be a placeholder' );
+            this.throwError( 'token cannot be a lookup' );
     }
     
     next = this.peek();
     
     if( next && next.value === '%' ){
-        expression = this.placeholderExpression( expression );
+        expression = this.lookupExpression( expression );
     }
     
     return expression;
 };
 
-Builder.prototype.placeholderExpression = function( key ){
+Builder.prototype.lookupExpression = function( key ){
     var end = key.range[ 1 ],
         node, start;
         
     this.consume( '%' );
     
     start = this.column;
-    node = new PlaceholderExpression( key );
+    node = new LookupExpression( key );
     node.range = [ start, end ];
     
     return node;

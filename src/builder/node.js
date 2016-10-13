@@ -430,25 +430,25 @@ NumericLiteral.prototype = Object.create( Literal.prototype );
 
 NumericLiteral.prototype.constructor = NumericLiteral;
 
-export function PlaceholderExpression( key ){
+export function LookupExpression( key ){
     if( !( key instanceof Literal ) && !( key instanceof Identifier ) ){
         throw new TypeError( 'key must be a literal or identifier' );
     }
     
-    OperatorExpression.call( this, Syntax.PlaceholderExpression, Syntax.PlaceholderOperator );
+    OperatorExpression.call( this, Syntax.LookupExpression, Syntax.LookupOperator );
     
     this.key = key;
 }
 
-PlaceholderExpression.prototype = Object.create( OperatorExpression.prototype );
+LookupExpression.prototype = Object.create( OperatorExpression.prototype );
 
-PlaceholderExpression.prototype.constructor = PlaceholderExpression;
+LookupExpression.prototype.constructor = LookupExpression;
 
-PlaceholderExpression.prototype.toString = function(){
+LookupExpression.prototype.toString = function(){
     return this.operator + this.key;
 };
 
-PlaceholderExpression.prototype.toJSON = function(){
+LookupExpression.prototype.toJSON = function(){
     var json = OperatorExpression.prototype.toJSON.call( this );
     
     json.key = this.key;
@@ -567,8 +567,8 @@ SequenceExpression.prototype.toJSON = function(){
  * @param {Builder~Identifier} property
  */
 export function StaticMemberExpression( object, property ){
-    if( !( property instanceof Identifier ) && !( property instanceof PlaceholderExpression ) ){
-        throw new TypeError( 'property must be an identifier or placeholder expression when computed is false' );
+    if( !( property instanceof Identifier ) && !( property instanceof LookupExpression ) ){
+        throw new TypeError( 'property must be an identifier or lookup expression when computed is false' );
     }
         
     MemberExpression.call( this, object, property, false );

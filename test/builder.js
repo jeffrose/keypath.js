@@ -343,7 +343,7 @@ describe( 'Builder', function(){
             expect( expression ).to.have.property( 'property' );
             expect( expression.object.type ).to.equal( 'Identifier' );
             expect( expression.object.name ).to.equal( 'foo' );
-            expect( expression.property.type ).to.equal( 'PlaceholderExpression' );
+            expect( expression.property.type ).to.equal( 'LookupExpression' );
             expect( expression.property.key.type ).to.equal( 'Literal' );
             expect( expression.property.key.value ).to.equal( 1 );
             expect( expression.range ).to.deep.equal( [ 0, 6 ] );
@@ -357,7 +357,7 @@ describe( 'Builder', function(){
             expect( expression ).to.have.property( 'property' );
             expect( expression.object.type ).to.equal( 'Identifier' );
             expect( expression.object.name ).to.equal( 'foo' );
-            expect( expression.property.type ).to.equal( 'PlaceholderExpression' );
+            expect( expression.property.type ).to.equal( 'LookupExpression' );
             expect( expression.property.key.type ).to.equal( 'Identifier' );
             expect( expression.property.key.name ).to.equal( 'bar' );
             expect( expression.range ).to.deep.equal( [ 0, 8 ] );
@@ -371,7 +371,7 @@ describe( 'Builder', function(){
             expect( expression ).to.have.property( 'property' );
             expect( expression.object.type ).to.equal( 'Identifier' );
             expect( expression.object.name ).to.equal( 'foo' );
-            expect( expression.property.type ).to.equal( 'PlaceholderExpression' );
+            expect( expression.property.type ).to.equal( 'LookupExpression' );
             expect( expression.property.key.type ).to.equal( 'Literal' );
             expect( expression.property.key.value ).to.equal( 1 );
             expect( expression.range ).to.deep.equal( [ 0, 7 ] );

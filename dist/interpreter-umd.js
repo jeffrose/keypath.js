@@ -54,8 +54,8 @@ Syntax.ExpressionStatement   = 'ExpressionStatement';
 Syntax.Identifier            = 'Identifier';
 Syntax.Literal               = 'Literal';
 Syntax.MemberExpression      = 'MemberExpression';
-Syntax.PlaceholderExpression = 'PlaceholderExpression';
-Syntax.PlaceholderOperator   = '%';
+Syntax.LookupExpression      = 'LookupExpression';
+Syntax.LookupOperator        = '%';
 Syntax.Program               = 'Program';
 Syntax.RangeExpression       = 'RangeExpression';
 Syntax.RangeOperator         = '..';
@@ -432,10 +432,10 @@ Interpreter.prototype.recurse = function( node, context, assign ){
             return fn;
         }
         
-        case Syntax.PlaceholderExpression: {
+        case Syntax.LookupExpression: {
             left = interpreter.recurse( node.key, true, assign );
             
-            return function getPlaceholderExpression( scope, value, lookup ){
+            return function getLookupExpression( scope, value, lookup ){
                 //console.log( 'Getting PLACEHOLDER EXPRESSION' );
                 var lhs = left( scope, value, lookup ),
                     key = typeof lhs.name !== 'undefined' ?
