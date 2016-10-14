@@ -6,7 +6,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
     
-    path = '["foo"]["bar"]["qux"]["baz"]',
+    path = 'foo.%2.qux.%1',
     data = {
         foo: {
             bar: {
@@ -18,20 +18,15 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     };
 
 module.exports = {
-    name: 'Runtime:Get:Bracket:Property',
+    name: 'Runtime:Get:Placeholder:Property',
     maxTime: 5,
     tests: {
-        'kp': function(){
-            kp`["foo"]["bar"]["qux"]["baz"]`( data );
-        },
+        // Is this supported at all?
+        // 'kp': function(){
+        //     kp`foo.%2.qux.%1`( data );
+        // },
         'tk#get': function(){
-            tk.get( data, path );
-        },
-        'keypather#get': function(){
-            keypather.get( data, path );
-        },
-        'lodash#get': function(){
-            loget( data, path );
+            tk.get( data, path, 'baz', 'bar' );
         }
     }
 };

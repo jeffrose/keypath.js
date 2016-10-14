@@ -33,6 +33,6 @@ module.exports = {
         },
         'lodash#set': function(){
             loset( data, path, 123 );
-        },
+        }
     }
 };
