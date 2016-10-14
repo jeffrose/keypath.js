@@ -29,7 +29,7 @@ module.exports = {
             tk.get( data, tkTokens );
         },
         'lodash#get': function(){
-            loget( data, path.split('.') );
+            loget( data, pathAry );
         }
     }
 };
