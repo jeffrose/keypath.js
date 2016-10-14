@@ -17,6 +17,9 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             ref: {
                 prop: 'bar'
             }
+        },
+        ref: {
+            prop: 'bar'
         }
     };
 
@@ -24,10 +27,9 @@ module.exports = {
     name: 'Runtime:Get:EvalProperty',
     maxTime: 5,
     tests: {
-        // This path does not seem to work. Help?
-        // 'kp': function(){
-        //     kp`foo.{ref.prop}.qux.baz`( data );
-        // },
+        'kp': function(){
+            kp`foo.{ref.prop}.qux.baz`( data );
+        },
         'tk#get': function(){
             tk.get( data, path );
         }

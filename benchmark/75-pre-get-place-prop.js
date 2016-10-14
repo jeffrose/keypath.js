@@ -6,7 +6,6 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
     
-    path = 'foo.%2.qux.%1',
     data = {
         foo: {
             bar: {
@@ -17,15 +16,15 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
         }
     },
 
-    kpex = new KeyPathExp( path ),
-    tkTokens = tk.getTokens( path );
-
+    kpex = new KeyPathExp( 'foo.%1.qux.%0' ),
+    tkTokens = tk.getTokens( 'foo.%2.qux.%1' );
+    
 module.exports = {
     name: 'Precompiled:Get:Placeholder:Property',
     maxTime: 5,
     tests: {
         'KeyPathExp#get': function(){
-            kpex.get( data, ['baz', 'bar'] );
+            kpex.get( data, [ 'baz', 'bar' ] );
         },
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens, 'baz', 'bar' );

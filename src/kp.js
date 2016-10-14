@@ -49,10 +49,10 @@ function kp( literals/*, ...values*/ ){
         cache[ keypath ] :
         cache[ keypath ] = new KeyPathExp( keypath );
     
-    return function( target, value ){
+    return function( target, value, lookup ){
         return arguments.length > 1 ?
-            kpex.set( target, value ) :
-            kpex.get( target );
+            kpex.set( target, value, lookup ) :
+            kpex.get( target, lookup );
     };
 }
 

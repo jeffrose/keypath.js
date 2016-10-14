@@ -17,6 +17,9 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             ref: {
                 prop: 'bar'
             }
+        },
+        ref: {
+            prop: 'bar'
         }
     },
     kpex = new KeyPathExp( path ),
@@ -26,10 +29,9 @@ module.exports = {
     name: 'Precompiled:Get:EvalProperty',
     maxTime: 5,
     tests: {
-        // This path does not seem to work. Help?
-        // 'KeyPathExp#get': function(){
-        //     kpex.get( data );
-        // },
+        'KeyPathExp#get': function(){
+            kpex.get( data );
+        },
         'tk#get': function(){
             tk.get( data, tkTokens );
         }
