@@ -17,7 +17,8 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
         }
     },
     kpex = new KeyPathExp( path ),
-    tkTokens = tk.getTokens( path );
+    tkTokens = tk.getTokens( path ),
+    pathAry = path.split('.');
 
 module.exports = {
     name: 'Precompiled:Get:Dot:Property',
@@ -28,6 +29,9 @@ module.exports = {
         },
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens );
+        },
+        'lodash#get': function(){
+            loget( data, pathAry );
         }
     }
 };

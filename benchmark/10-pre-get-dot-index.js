@@ -15,7 +15,8 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     ],
     // Enable once KeyPathExp supports this type of path
     // kpex = new KeyPathExp( path ),
-    tkTokens = tk.getTokens( path );
+    tkTokens = tk.getTokens( path ),
+    pathAry = path.split('.');
 
 module.exports = {
     name: 'Precompiled:Get:Dot:Index',
@@ -26,6 +27,9 @@ module.exports = {
         // },
         'tk#get': function(){
             tk.get( data, tkTokens );
+        },
+        'lodash#get': function(){
+            loget( data, path.split('.') );
         }
     }
 };
