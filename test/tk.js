@@ -160,11 +160,12 @@ describe( 'tk', function(){
             expect(tk.get(data, str).join(',')).to.equal(ary.sort().join(','));
         });
 
-        it( 'should let grouping separator create array of results', function(){
-            var str = 'accounts.0.ary.0,2';
+        it( 'should let collection separator create array of results', function(){
+            var str = 'accounts.0.ary.0,2,3';
             var ary = [];
             ary.push(data.accounts[0].ary[0]);
             ary.push(data.accounts[0].ary[2]);
+            ary.push(data.accounts[0].ary[3]);
             expect(tk.get(data, str)).to.be.an.array;
             expect(tk.get(data, str).length).to.equal(ary.length);
             expect(tk.get(data, str).join(',')).to.equal(ary.join(','));

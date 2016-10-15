@@ -5,80 +5,76 @@
 }(this, (function (exports) { 'use strict';
 
 // Parsing, tokeninzing, etc
+// Some constants for convenience
 var UNDEF = (function(u){return u;})();
 var WILDCARD = '*';
 
+// Object for storing cached tokenized paths.
+// Key = string path
+// Value = tokens
+var cache = {};
+
+// Default settings
 var useCache = true;
 var advanced = false;
-var force = false;
+var force = false;    // create intermediate properties during `set` operation
 
+    // Default prefix special characters
 var prefixes = {
-    '<': {
-        'exec': 'parent'
-    },
-    '~': {
-        'exec': 'root'
-    },
-    '%': {
-        'exec': 'placeholder'
-    },
-    '@': {
-        'exec': 'context'
-    }
-};
-var prefixList = Object.keys(prefixes);
-
+        '<': {
+            'exec': 'parent'
+        },
+        '~': {
+            'exec': 'root'
+        },
+        '%': {
+            'exec': 'placeholder'
+        },
+        '@': {
+            'exec': 'context'
+        }
+    };
 var separators = {
-    '.': {
-        'exec': 'property'
-        },
-    ',': {
-        'exec': 'collection'
-        }
-};
-var separatorList = Object.keys(separators);
-var propertySeparator = '.';
-
+        '.': {
+            'exec': 'property'
+            },
+        ',': {
+            'exec': 'collection'
+            }
+    };
 var containers = {
-    '[': {
-        'closer': ']',
-        'exec': 'property'
-        },
-    '\'': {
-        'closer': '\'',
-        'exec': 'quote'
-        },
-    '"': {
-        'closer': '"',
-        'exec': 'quote'
-        },
-    '(': {
-        'closer': ')',
-        'exec': 'call'
-        },
-    '{': {
-        'closer': '}',
-        'exec': 'evalProperty'
-        }
-};
+        '[': {
+            'closer': ']',
+            'exec': 'property'
+            },
+        '\'': {
+            'closer': '\'',
+            'exec': 'quote'
+            },
+        '"': {
+            'closer': '"',
+            'exec': 'quote'
+            },
+        '(': {
+            'closer': ')',
+            'exec': 'call'
+            },
+        '{': {
+            'closer': '}',
+            'exec': 'evalProperty'
+            }
+    };
+
+// Lists of special characters for use in regular expressions
+var prefixList = Object.keys(prefixes);
+var propertySeparator = '.';
+var separatorList = Object.keys(separators);
 var containerList = Object.keys(containers);
 var containerCloseList = containerList.map(function(key){ return containers[key].closer; });
 
-var wildCardMatch = function(template, str){
-    var pos = template.indexOf(WILDCARD),
-        parts = template.split(WILDCARD, 2),
-        match = true;
-    if (parts[0]){
-        match = match && str.substr(0, parts[0].length) === parts[0];
-    }
-    if (parts[1]){
-        match = match && str.substr(pos+1) === parts[1];
-    }
-    return match;
-};
-// Find all special characters except .
-var specials = '[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
-var specialRegEx = new RegExp(specials);
+// Find all special characters except property separator (. by default)
+var simplePathChars = '[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
+var simplePathRegEx = new RegExp(simplePathChars);
 
 // Find all special characters, including backslash
 var allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
@@ -86,17 +82,61 @@ var allSpecialsRegEx = new RegExp(allSpecials, 'g');
 
 // Find all escaped special characters
 var escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
+// Find all escaped non-special characters, i.e. unnecessary escapes
 var escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
 
 // Find wildcard character
 var wildcardRegEx = new RegExp('\\'+WILDCARD);
 
+/**
+ * Private Function
+ * Tests whether a wildcard templates matches a given string.
+ * ```javascript
+ * var str = 'aaabbbxxxcccddd';
+ * wildCardMatch('aaabbbxxxcccddd'); // true
+ * wildCardMatch('*', str); // true
+ * wildCardMatch('*', ''); // true
+ * wildCardMatch('a*', str); // true
+ * wildCardMatch('aa*ddd', str); // true
+ * wildCardMatch('*d', str); // true
+ * wildCardMatch('*a', str); // false
+ * wildCardMatch('a*z', str); // false
+ * ```
+ * @param  {String} template Wildcard pattern
+ * @param  {String} str      String to match against wildcard pattern
+ * @return {Boolean}          True if pattern matches string; False if not
+ */
+var wildCardMatch = function(template, str){
+    var pos = template.indexOf(WILDCARD),
+        parts = template.split(WILDCARD, 2),
+        match = true;
+    if (parts[0]){
+        // If no wildcard present, return simple string comparison
+        if (parts[0] === template){
+            return parts[0] === str;
+        }
+        else {
+            match = match && str.substr(0, parts[0].length) === parts[0];
+        }
+    }
+    if (parts[1]){
+        match = match && str.substr(-1*parts[1].length) === parts[1];
+    }
+    return match;
+};
+
+/**
+ * Private Function
+ * Inspect input value and determine whether it is an Object or not.
+ * Values of undefined and null will return "false", otherwise
+ * must be of type "object" or "function".
+ * @param  {Object}  val Thing to examine, may be of any type
+ * @return {Boolean}     True if thing is of type "object" or "function"
+ */
 var isObject = function(val) {
     if (typeof val === 'undefined' || val === null) { return false;}
     return ( (typeof val === 'function') || (typeof val === 'object') );
 };
-
-var cache = {};
 
 /*
  *  Scan input string from left to right, one character at a time. If a special character
@@ -107,17 +147,25 @@ var cache = {};
 
  *  recursively on string within container.
  */
+
+/**
+ * Private Function
+ * Scan input string from left to right, one character at a time. If a special character
+ * is found (one of "separators", "containers", or "prefixes"), either store the accumulated
+ * word as a token or else begin watching input for end of token (finding a closing character
+ * for a container or the end of a collection). If a container is found, capture the substring
+ * within the container and recursively call `tokenize` on that substring. Final output will
+ * be an array of tokens. A complex token (not a simple property or index) will be represented
+ * as an object carrying metadata for processing.
+ * @param  {String} str Path string
+ * @return {Array}     Array of tokens found in the input path
+ */
 var tokenize = function (str){
-    var path = '';
-    if (useCache && cache[str] !== UNDEF){ return cache[str]; }
-
-    // Strip out any unnecessary escaping to simplify processing below
-    path = str.replace(escapedNonSpecialsRegEx, '$&'.substr(1));
-
-    var tokens = [],
+    var path = '',
+        tokens = [],
         recur = [],
         mods = {},
-        pathLength = path.length,
+        pathLength = 0,
         word = '',
         hasWildcard = false,
         subpath = '',
@@ -129,107 +177,125 @@ var tokenize = function (str){
         depth = 0,
         escaped = 0;
 
+    if (useCache && cache[str] !== UNDEF){ return cache[str]; }
+
+    // Strip out any unnecessary escaping to simplify processing below
+    path = str.replace(escapedNonSpecialsRegEx, '$&'.substr(1));
+    pathLength = path.length;
+
     for (i = 0; i < pathLength; i++){
+        // Skip escape character (`\`) and set "escaped" to the index value
+        // of the character to be treated as a literal
         if (!escaped && path[i] === '\\'){
             // Next character is the escaped character
             escaped = i+1;
             i++;
         }
+        // If a wildcard character is found, mark this token as having a wildcard
         if (path[i] === WILDCARD) {
             hasWildcard = true;
         }
+        // If we have already processed a container opener, treat this subpath specially
         if (depth > 0){
-            // Scan for closer
-            // Be careful: quote container uses same character for opener and closer
+            // Is this character another opener from the same container? If so, add to
+            // the depth level so we can match the closers correctly. (Except for quotes
+            // which cannot be nested)
+            // Is this character the closer? If so, back out one level of depth.
+            // Be careful: quote container uses same character for opener and closer.
             !escaped && path[i] === opener && opener !== closer.closer && depth++;
             !escaped && path[i] === closer.closer && depth--;
 
+            // While still inside the container, just add to the subpath
             if (depth > 0){
                 subpath += path[i];
             }
-            // TODO: handle comma-separated elements when depth === 1, process as function arguments
+            // When we close off the container, time to process the subpath and add results to our tokens
             else {
+                // Handle subpath "[bar]" in foo.[bar],[baz] - we must process subpath and create a new collection
                 if (i+1 < pathLength && separators[path[i+1]] && separators[path[i+1]].exec === 'collection'){
                     recur = tokenize(subpath);
                     if (recur === UNDEF){ return undefined; }
-                    collection.push({'t':recur.concat(), 'exec': closer.exec});
+                    collection.push({'t':recur, 'exec': closer.exec});
                 }
+                // Handle subpath "[baz]" in foo.[bar],[baz] - we must process subpath and add to collection
                 else if (collection[0]){
                     recur = tokenize(subpath);
                     if (recur === UNDEF){ return undefined; }
-                    collection.push({'t':recur.concat(), 'exec': closer.exec});
+                    collection.push({'t':recur, 'exec': closer.exec});
                     tokens.push(collection);
                     collection = [];
                 }
+                // Simple property container is equivalent to dot-separated token. Just add this token to tokens.
                 else if (closer.exec === 'property'){
-                    // Simple property container means to take contents as literal property,
-                    // without processing special characters inside
-                    // if (subpath.length && containers[subpath[0]] && containers[subpath[0]].exec === 'quote' ){
-                    //     if (subpath[subpath.length-1] === containers[subpath[0]].closer){
-                    //         // pathip leading and trailing quote
-                    //         tokens.push(subpath.substr(1, subpath.length - 2));
-                    //     }
-                    //     else {
-                    //         // Mismatched quote inside [ ]
-                    //         return undefined;
-                    //     }
-                    // }
-                    // else {
-                        // tokens.push(subpath);
-                        recur = tokenize(subpath);
-                        if (recur === UNDEF){ return undefined; }
-                        tokens = tokens.concat(recur.concat());
-                    // }
+                    recur = tokenize(subpath);
+                    if (recur === UNDEF){ return undefined; }
+                    tokens = tokens.concat(recur);
                 }
+                // Quoted subpath is all taken literally without token evaluation. Just add subpath to tokens as-is.
                 else if (closer.exec === 'quote'){
                     tokens.push(subpath);
                 }
+                // Otherwise, create token object to hold tokenized subpath, add to tokens.
                 else {
                     recur = tokenize(subpath);
                     if (recur === UNDEF){ return undefined; }
-                    tokens.push({'t':recur.concat(), 'exec': closer.exec});
+                    tokens.push({'t':recur, 'exec': closer.exec});
                 }
-                subpath = '';
+                subpath = ''; // reset subpath
             }
         }
+        // If a prefix character is found, store it in `mods` for later reference.
+        // Must keep count due to `parent` prefix that can be used multiple times in one token.
         else if (!escaped && path[i] in prefixes && prefixes[path[i]].exec){
             mods.has = true;
             if (mods[prefixes[path[i]].exec]) { mods[prefixes[path[i]].exec]++; }
             else { mods[prefixes[path[i]].exec] = 1; }
         }
-        else if (!escaped && path[i] in separators && separators[path[i]].exec){
+        // If a separator is found, time to store the token we've been accumulating. If
+        // this token had a prefix, we store the token as an object with modifier data.
+        // If the separator is the collection separator, we must either create or add
+        // to a collection for this token. For simple separator, we either add the token
+        // to the token list or else add to the existing collection if it exists.
+        else if (!escaped && separators.hasOwnProperty(path[i]) && separators[path[i]].exec){
             separator = separators[path[i]];
             if (!word && (mods.has || hasWildcard)){
                 // found a separator, after seeing prefixes, but no token word -> invalid
                 return undefined;
             }
+            // This token will require special interpreter processing due to prefix or wildcard.
             if (word && (mods.has || hasWildcard)){
                 word = {'w': word, 'mods': mods};
                 mods = {};
             }
+            // word is a plain property or end of collection
             if (separator.exec === 'property'){
-                // word is a plain property or end of collection
+                // we are gathering a collection, so add last word to collection and then store
                 if (collection[0] !== UNDEF){
-                    // we are gathering a collection, so add last word to collection and then store
                     word && collection.push(word);
                     tokens.push(collection);
-                    collection = [];
+                    collection = []; // reset
                 }
+                // word is a plain property
                 else {
-                    // word is a plain property
                     word && tokens.push(word);
                 }
             }
+            // word is a collection
             else if (separator.exec === 'collection'){
-                // word is a collection
                 word && collection.push(word);
             }
-            word = '';
-            hasWildcard = false;
+            word = ''; // reset
+            hasWildcard = false; // reset
         }
+        // Found a container opening character. A container opening is equivalent to
+        // finding a separator, so "foo.bar" is equivalent to "foo[bar]", so apply similar
+        // process as separator above with respect to token we have accumulated so far.
+        // Except in case collections - path may have a collection of containers, so
+        // in "foo[bar],[baz]", the "[bar]" marks the end of token "foo", but "[baz]" is
+        // merely another entry in the collection, so we don't close off the collection token
+        // yet.
+        // Set depth value for further processing.
         else if (!escaped && containers.hasOwnProperty(path[i]) && containers[path[i]].exec){
-            //  && containers[path[i]].exec !== 'quote'
-            // found opener, initiate scan for closer
             closer = containers[path[i]];
             if (word && (mods.has || hasWildcard)){
                 word = {'w': word, 'mods': mods};
@@ -248,32 +314,34 @@ var tokenize = function (str){
             opener = path[i];
             depth++;
         }
+        // Otherwise, this is just another character to add to the current token
         else if (i < pathLength) {
-            // still accumulating property name
             word += path[i];
         }
+
+        // If current path index matches the escape index value, reset `escaped`
         if (i < pathLength && i === escaped){
             escaped = 0;
         }
     }
 
+    // Path ended in an escape character
     if (escaped){
-        // Path ended in an escape character
         return undefined;
     }
 
-    // add trailing word to tokens, if present
+    // Add trailing word to tokens, if present
     if (word && (mods.has || hasWildcard)){
         word = {'w': word, 'mods': mods};
         mods = {};
     }
+    // We are gathering a collection, so add last word to collection and then store
     if (collection[0] !== UNDEF){
-        // we are gathering a collection, so add last word to collection and then store
         word && collection.push(word);
         tokens.push(collection);
     }
+    // Word is a plain property
     else {
-        // word is a plain property
         word && tokens.push(word);
     }
 
@@ -306,7 +374,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         prop = '',
         callArgs;
 
-    if (typeof path === 'string' && !specialRegEx.test(path)){
+    if (typeof path === 'string' && !simplePathRegEx.test(path)){
         tk = path.split(propertySeparator);
         tkLength = tk.length;
         while (prev !== UNDEF && i < tkLength){
@@ -360,6 +428,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         curr = tk[idx];
         newValueHere = (change && (idx === tkLastIdx));
 
+        // Handle most common simple path scenario first
         if (typeof curr === 'string'){
             if (change){
                 if (newValueHere){
@@ -382,7 +451,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                 ret = [];
                 currLength = curr.length
                 for (i = 0; i < currLength; i++){
-                    contextProp = resolvePath(context, curr[i], newValue, args, valueStack.concat());
+                    contextProp = resolvePath(context, curr[i], newValue, args, valueStack.slice());
                     if (contextProp === UNDEF) { return undefined; }
 
                     if (newValueHere){
@@ -420,8 +489,6 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     // Force args[placeInt] to String, won't atwordCopyt to process
                     // arg of type function, array, or plain object
                     wordCopy = args[placeInt].toString();
-                    // wordCopy.mods.placeholder = 0; // Once value has been replaced, don't want to re-process this entry
-                    // wordCopy.mods.has = false;
                 }
                 
                 // "context" modifier ("@" by default) replaces current context with a value from
@@ -456,14 +523,14 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
             }
             else if (curr.exec === 'evalProperty'){
                 if (newValueHere){
-                    context[resolvePath(context, curr, newValue, args, valueStack.concat())] = newValue;
+                    context[resolvePath(context, curr, UNDEF, args, valueStack.slice())] = newValue;
                 }
-                ret = context[resolvePath(context, curr, newValue, args, valueStack.concat())];
+                ret = context[resolvePath(context, curr, UNDEF, args, valueStack.slice())];
             }
             else if (curr.exec === 'call'){
                 // If function call has arguments, process those arguments as a new path
                 if (curr.t && curr.t.length){
-                    callArgs = resolvePath(context, curr, newValue, args, valueStack.concat());
+                    callArgs = resolvePath(context, curr, UNDEF, args);
                     if (callArgs === UNDEF){
                         ret = context.apply(valueStack[valueStackLength - 2]);
                     }
@@ -608,8 +675,8 @@ var setOptions = function(options){
         force = !!options.force;
     }
     // Reset all special character sets and regular expressions
-    specials = ('[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
-    specialRegEx = new RegExp(specials);
+    simplePathChars = ('[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
+    simplePathRegEx = new RegExp(simplePathChars);
     allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
     allSpecialsRegEx = new RegExp(allSpecials, 'g');
     escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');

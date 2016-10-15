@@ -46,7 +46,8 @@ var tk = require( '../dist/tk-umd' ),
     };
 
 
-// tk.setOptions({cache:false});
+var ary = ['one', {two: true}, 3, 4, ['a', 'b']];
+var x = [];
 
 module.exports = {
     name: 'tk',
