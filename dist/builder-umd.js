@@ -816,7 +816,7 @@ Builder.prototype.expression = function(){
             default:
                 expression = this.lookup( next );
                 next = this.peek();
-                // Implied member expression. Should only happen at an Identifier.
+                // Implied member expression. Should only happen after an Identifier.
                 if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
                     expression = this.memberExpression( expression, false );
                 }

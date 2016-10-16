@@ -12,11 +12,20 @@
  * @param {ForEachCallback} callback
  */
 function forEach( list, callback ){
-    let index = 0,
+    /*
+    var index = 0,
         length = list.length,
         item;
     
     for( ; index < length; index++ ){
+        item = list[ index ];
+        callback( item, index );
+    }
+    */
+    var index = list.length,
+        item;
+    
+    while( index-- ){
         item = list[ index ];
         callback( item, index );
     }

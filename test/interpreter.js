@@ -41,7 +41,7 @@ describe( 'Interpreter', function(){
             expect( get( object ) ).to.equal( 123 );
         } );
         
-        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', 'foo[1]bar.qux' ].forEach( ( pattern ) => {
+        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', 'foo[1]bar.qux', 'foo[bar]' ].forEach( ( pattern ) => {
             it( `should interpret member expressions (${ pattern })`, function(){
                 var object = {},
                     get, set;
@@ -140,20 +140,26 @@ describe( 'Interpreter', function(){
         } );
         
         it( 'should interpret eval expressions', function(){
-            var data = { foo: { bar: 123 }, qux: { baz: 'bar' } },
+            var data1 = { foo: { bar: 123 }, qux: { baz: 'bar' } },
+                data2 = { foo: { bar: { fuz: 456 } }, qux: { baz: 'bar' } },
                 fn, result;
                 
             fn = interpreter.compile( 'foo.{qux.baz}', false ),
-            result = fn( data );
+            result = fn( data1 );
             
             expect( result ).to.equal( 123 );
+            
+            fn = interpreter.compile( 'foo.{qux.baz}.fuz', false ),
+            result = fn( data2 );
+            
+            expect( result ).to.equal( 456 );
         } );
         
         it( 'should interpret lookup expressions', function(){
             var data = { foo: { bar: 123, qux: 456, baz: 789 } },
                 fn, result;
              
-            fn = interpreter.compile( '%1.%2', false ),
+            fn = interpreter.compile( '%0.%1', false ),
             result = fn( data, undefined, [ 'foo', 'qux' ] );
             
             expect( result ).to.equal( 456 );
