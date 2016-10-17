@@ -10,6 +10,8 @@ var esprima = require( 'esprima' ),
     bPath = '["foo"]["bar"]["qux"]["baz"]',
     pPath = 'foo(123)(456)(789)';
     
+tk.setOptions({cache:false});
+    
 module.exports = {
     name: 'Lexing',
     maxTime: 5,
