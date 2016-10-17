@@ -37,36 +37,26 @@ describe( 'Builder', function(){
             expect( program.range ).to.deep.equal( [ 0, 12 ] );
         } );
         
-        it( 'should build identifiers', function(){
-            program = builder.build( 'foo' );
-            expression = program.body[ 0 ].expression;
-            
-            expect( expression.type ).to.equal( 'Identifier' );
-            expect( expression.name ).to.equal( 'foo' );
-            expect( expression.range ).to.deep.equal( [ 0, 3 ] );
+        'foo foo123'.split( ' ' ).forEach( ( pattern ) => {
+            it( `should build identifiers (${ pattern })`, function(){
+                program = builder.build( pattern );
+                expression = program.body[ 0 ].expression;
+                
+                expect( expression.type ).to.equal( 'Identifier' );
+                expect( expression.name ).to.equal( pattern );
+                expect( expression.range ).to.deep.equal( [ 0, pattern.length ] );
+            } );
         } );
         
-        it( 'should build literals', function(){
-            program = builder.build( '"foo"' );
-            expression = program.body[ 0 ].expression;
-            
-            expect( expression.type ).to.equal( 'Literal' );
-            expect( expression.value ).to.equal( 'foo' );
-            expect( expression.range ).to.deep.equal( [ 0, 5 ] );
-            
-            program = builder.build( '123' );
-            expression = program.body[ 0 ].expression;
-            
-            expect( expression.type ).to.equal( 'Literal' );
-            expect( expression.value ).to.equal( 123 );
-            expect( expression.range ).to.deep.equal( [ 0, 3 ] );
-            
-            program = builder.build( 'null' );
-            expression = program.body[ 0 ].expression;
-            
-            expect( expression.type ).to.equal( 'Literal' );
-            expect( expression.value ).to.equal( null );
-            expect( expression.range ).to.deep.equal( [ 0, 4 ] );
+        '"foo" 123 null'.split( ' ' ).forEach( ( pattern ) => {
+            it( `should build literals (${ pattern })`, function(){
+                program = builder.build( pattern );
+                expression = program.body[ 0 ].expression;
+                
+                expect( expression.type ).to.equal( 'Literal' );
+                expect( expression.raw ).to.equal( pattern );
+                expect( expression.range ).to.deep.equal( [ 0, pattern.length ] );
+            } );
         } );
         
         it( 'should build array expressions', function(){

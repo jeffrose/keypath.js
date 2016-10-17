@@ -31,18 +31,8 @@ var tokenId = 0;
  * @extends Null
  * @param {external:string} type The type of the token
  * @param {external:string} value The value of the token
- * @throws {external:TypeError} If `type` is not a string
- * @throws {external:TypeError} If `value` is not a string
  */
 function Token( type, value ){
-    if( typeof type !== 'string' ){
-        throw new TypeError( 'type must be a string' );
-    }
-    
-    if( typeof value !== 'string' ){
-        throw new TypeError( 'value must be a string' );
-    }
-    
     /**
      * @member {external:number} Lexer~Token#id
      */

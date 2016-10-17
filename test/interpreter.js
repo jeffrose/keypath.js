@@ -41,7 +41,7 @@ describe( 'Interpreter', function(){
             expect( get( object ) ).to.equal( 123 );
         } );
         
-        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', 'foo[1]bar.qux', 'foo[bar]' ].forEach( ( pattern ) => {
+        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', 'foo[1].bar.qux', 'foo[bar]' ].forEach( ( pattern ) => {
             it( `should interpret member expressions (${ pattern })`, function(){
                 var object = {},
                     get, set;
@@ -55,41 +55,41 @@ describe( 'Interpreter', function(){
         
         it( 'should interpret array expressions', function(){
             var data1 = {
-                    //foo: { qux: { baz: 1 } },
-                    //bar: { qux: { baz: 2 } }
+                    foo: { qux: { baz: 123 } },
+                    bar: { qux: { baz: 456 } }
                 },
                 data2 = [
-                    //{ qux: { baz: 1 } },
-                    //{ qux: { baz: 2 } },
-                    //{ qux: { baz: 3 } },
-                    //{ qux: { baz: 4 } }
+                    { qux: { baz: 12 } },
+                    { qux: { baz: 34 } },
+                    { qux: { baz: 56 } },
+                    { qux: { baz: 78 } }
                 ],
-                get, set, result;
+                empty, get, set, result;
             
             get = interpreter.compile( '["foo"]["qux"]["baz"]', false );
-            set = interpreter.compile( '["foo"]["qux"]["baz"]', true );
-            set( data1, 123 );
             result = get( data1 );
             expect( result ).to.equal( 123 );
-            data1 = {};
             result = undefined;
             
-            get = interpreter.compile( '["foo","bar"]qux.baz', false );
-            set = interpreter.compile( '["foo","bar"]qux.baz', true );
-            set( data1, 123 );
+            empty = {};
+            set = interpreter.compile( '["foo"]["qux"]["baz"]', true );
+            set( empty, 123 );
+            expect( data1.foo ).to.deep.equal( empty.foo );
+            
+            get = interpreter.compile( '["foo","bar"]["qux"]["baz"]', false );
             result = get( data1 );
             expect( result ).to.instanceOf( Array );
             expect( result[ 0 ] ).to.equal( 123 );
-            expect( result[ 1 ] ).to.equal( 123 );
+            expect( result[ 1 ] ).to.equal( 456 );
             result = undefined;
             
             get = interpreter.compile( '[0,3]["qux"].baz', false );
-            set = interpreter.compile( '[0,3]["qux"].baz', true );
-            set( data2, 123 );
+            //set = interpreter.compile( '[0,3]["qux"].baz', true );
+            //set( data2, 123 );
             result = get( data2 );
             expect( result ).to.instanceOf( Array );
-            expect( result[ 0 ] ).to.equal( 123 );
-            expect( result[ 1 ] ).to.equal( 123 );
+            expect( result[ 0 ] ).to.equal( 12 );
+            expect( result[ 1 ] ).to.equal( 78 );
             result = undefined;
         } );
         
@@ -97,35 +97,35 @@ describe( 'Interpreter', function(){
             var pattern1 = 'foo["baz","qux"]',
                 pattern2 = 'foo[0,3]bar',
                 data1 = {
-                    //foo: { baz: 1, qux: 2 }
+                    foo: { baz: 123, qux: 456 }
                 },
                 data2 = {
-                    //foo: [
-                        //{ bar: 1 },
-                        //{ bar: 2 },
-                        //{ bar: 3 },
-                        //{ bar: 4 }
-                    //]
+                    foo: [
+                        { bar: 12 },
+                        { bar: 34 },
+                        { bar: 56 },
+                        { bar: 78 }
+                    ]
                 },
                 get, set, result;
             
             get = interpreter.compile( pattern1, false );
-            set = interpreter.compile( pattern1, true );
-            set( data1, 123 );
+            //set = interpreter.compile( pattern1, true );
+            //set( data1, 123 );
             result = get( data1 );
             expect( result ).to.instanceOf( Array );
             expect( result[ 0 ] ).to.equal( 123 );
-            expect( result[ 1 ] ).to.equal( 123 );
-            result = undefined;
+            expect( result[ 1 ] ).to.equal( 456 );
+            //result = undefined;
             
             get = interpreter.compile( pattern2, false );
-            set = interpreter.compile( pattern2, true );
-            set( data2, 456 );
+            //set = interpreter.compile( pattern2, true );
+            //set( data2, 456 );
             result = get( data2 );
             expect( result ).to.instanceOf( Array );
-            expect( result[ 0 ] ).to.equal( 456 );
-            expect( result[ 1 ] ).to.equal( 456 );
-            result = undefined;
+            expect( result[ 0 ] ).to.equal( 12 );
+            expect( result[ 1 ] ).to.equal( 78 );
+            //result = undefined;
         } );
         
         it( 'should interpret call expressions', function(){
