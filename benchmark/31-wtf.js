@@ -23,23 +23,28 @@ var buildTokens = function(path){
         word = '',
         len = path.length,
         tokens = [];
-    while (i < path.length){
-        if ( /[.\[\]]/.test(path[i]) ){
-            if (word.length){
-                tokens.push(word);
-                word = '';
-            }
-        }
-        else {
-            // word = word + path[i];
-            word = [word, path[i]].join('');
-        }
-        i++;
-    }
-    if (word.length){
-        tokens.push(word);
-    }
-    
+        
+    // while (i < path.length){
+    //     if ( /[.\[\]]/.test(path[i]) ){
+    //         if (word.length){
+    //             tokens.push(word);
+    //             word = '';
+    //         }
+    //     }
+    //     else {
+    //         word = word + path[i];
+    //         // word = [word, path[i]].join('');
+    //     }
+    //     i++;
+    // }
+    // if (word.length){
+    //     tokens.push(word);
+    // }
+
+    path.split('.').forEach(function(word){
+        tokens.push(word.split('').join(''));
+        // tokens.push(word);
+    });  
     return tokens;
 };
 
