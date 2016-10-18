@@ -64,6 +64,12 @@ describe( 'Interpreter', function(){
                     { qux: { baz: 56 } },
                     { qux: { baz: 78 } }
                 ],
+                data3 = [
+                    [ [ 1 ], [ 2 ] ],// 0
+                    [ [ 3 ], [ 4 ] ],// 1
+                    [ [ 5 ], [ 6 ] ],// 2
+                    [ [ 7 ], [ 8 ] ] // 3
+                ],
                 empty, get, set, result;
             
             get = interpreter.compile( '["foo"]["qux"]["baz"]', false );
@@ -90,6 +96,14 @@ describe( 'Interpreter', function(){
             expect( result ).to.instanceOf( Array );
             expect( result[ 0 ] ).to.equal( 12 );
             expect( result[ 1 ] ).to.equal( 78 );
+            result = undefined;
+            
+            get = interpreter.compile( '[1,2][1][0]', false );
+            result = get( data3 );
+            console.log( result );
+            expect( result ).to.instanceOf( Array );
+            expect( result[ 0 ] ).to.equal( 4 );
+            expect( result[ 1 ] ).to.equal( 6 );
             result = undefined;
         } );
         

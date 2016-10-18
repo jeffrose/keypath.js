@@ -1503,21 +1503,27 @@ var cache$2 = new Null();
  * @returns {*} The value of the `name` in `scope`
  */
 function getValue( scope, name ){
-    //console.log( '-- GET VALUE', scope, name );
+    //console.log( '-- GET VALUE' );
+    //console.log( '--- SCOPE', scope );
+    //console.log( '--- NAME', name );
     var index = scope.length,
         result;
     
     switch( Array.isArray( scope ) && typeof name === 'string' && index ){
         case false:
+            //console.log( '--- FALSE', name );
             return scope[ name ];
         
         case 0:
+            //console.log( '--- 0', name );
             return;
         
         case 1:
+            //console.log( '--- 1', name );
             return scope[ 0 ][ name ];
         
         default:
+            //console.log( '--- DEFAULT', name );
             result = new Array( index );
             while( index-- ){
                 result[ index ] = scope[ index ][ name ];
@@ -1644,15 +1650,34 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign, isR
                     result;
             };
         } else {
-            list = interpreter.recurseList( elements, false, assign );
-            
+            //list = interpreter.recurseList( elements, false, assign );
+            index = elements.length;
+            list = new Array( index );
+            while( index-- ){
+                element = elements[ index ];
+                switch( element.type ){
+                    case Syntax.Identifier:
+                        item = element.name;
+                        break;
+                    case Syntax.Literal:
+                        item = element.value;
+                        break;
+                    default:
+                        item = interpreter.recurse( element, false, assign );
+                        isFunction = true;
+                        break;
+                }
+                list[ index ] = item;
+            }
             fn = function getArrayExpressionWithElementList( scope, value, lookup ){
                 //console.log( 'Getting ARRAY EXPRESSION' );
                 result = [];
                 defaultValue = isRightMost ? value : {};
                 index = list.length;
                 while( index-- ){
-                    name = list[ index ]( scope, value, lookup );
+                    name = isFunction ?
+                        list[ index ]( scope, value, lookup ) :
+                        list[ index ];
                     result[ index ] = assign( scope, name, defaultValue );
                 }
                 //console.log( '- ARRAY EXPRESSION RESULT', result );
@@ -1789,7 +1814,7 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
         isFunction = false,
         isRightMost = property.range[ 1 ] + 1 === interpreter.eol,
         left = interpreter.recurse( object, false, assign ),
-        defaultValue, fn, lhs, result, rhs, right;
+        defaultValue, fn, index, lhs, result, rhs, right;
     
     switch( property.type ){
         case Syntax.Identifier:
@@ -1808,8 +1833,8 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
     if( property.type === Syntax.SequenceExpression ){
         fn = function getComputedMemberExpressionWithSequenceProperty( scope, value, lookup ){
             //console.log( 'Getting COMPUTED MEMBER' );
-            //console.log( '- COMPUTED LEFT', left.name );
-            //console.log( '- COMPUTED RIGHT', right.name || right );
+            //console.log( `- ${ fn.name } LEFT `, left.name );
+            //console.log( `- ${ fn.name } RIGHT`, right.name || right );
             lhs = left( scope, value, lookup );
             defaultValue = isRightMost ? value : {};
             result = [];
@@ -1837,20 +1862,28 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
         if( object.type === Syntax.ArrayExpression ){
             fn = function getComputedMemberExpressionWithArrayObject( scope, value, lookup ){
                 //console.log( 'Getting COMPUTED MEMBER' );
-                //console.log( '- COMPUTED LEFT', left.name );
-                //console.log( '- COMPUTED RIGHT', right.name || right );
+                //console.log( `- ${ fn.name } LEFT `, left.name );
+                //console.log( `- ${ fn.name } RIGHT`, right.name || right );
                 lhs = left( scope, value, lookup );
                 defaultValue = isRightMost ? value : {};
-                //console.log( '- COMPUTED LHS', lhs );
+                //console.log( `- ${ fn.name } LHS`, lhs );
                 if( typeof lhs !== 'undefined' ){
                     if( isFunction ){
                         rhs = right( scope, value, lookup );
                     }
-                    //console.log( '- COMPUTED RHS', rhs );
-                    result = assign( lhs, rhs, defaultValue );
+                    //console.log( `- ${ fn.name } RHS`, rhs );
+                    if( Array.isArray( lhs ) ){
+                        index = lhs.length;
+                        result = new Array( index );
+                        while( index-- ){
+                            result[ index ] = assign( lhs[ index ], rhs, defaultValue );
+                        }
+                    } else {
+                        result = assign( lhs, rhs, defaultValue );
+                    }
                     //console.log( '-- LIST:VALUE', result );
                 }
-                //console.log( '- COMPUTED RESULT', result );
+                //console.log( `- ${ fn.name } RESULT`, result );
                 return context ?
                     { context: lhs, name: rhs, value: result } :
                     result;
@@ -1859,20 +1892,29 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
         } else {
             fn = function getComputedMemberExpression( scope, value, lookup ){
                 //console.log( 'Getting COMPUTED MEMBER' );
-                //console.log( '- COMPUTED LEFT', left.name );
-                //console.log( '- COMPUTED RIGHT', right.name || right );
+                //console.log( `- ${ fn.name } LEFT `, left.name );
+                //console.log( `- ${ fn.name } RIGHT`, right.name || right );
                 lhs = left( scope, value, lookup );
                 defaultValue = isRightMost ? value : {};
-                //console.log( '- COMPUTED LHS', lhs );
+                //console.log( `- ${ fn.name } LHS`, lhs );
                 if( typeof lhs !== 'undefined' ){
                     if( isFunction ){
                         rhs = right( scope, value, lookup );
                     }
-                    //console.log( '- COMPUTED RHS', rhs );
-                    result = assign( lhs, rhs, defaultValue );
+                    //console.log( `- ${ fn.name } RHS`, rhs );
+                    if( Array.isArray( lhs ) ){
+                        index = lhs.length;
+                        result = new Array( index );
+                        while( index-- ){
+                            result[ index ] = assign( lhs[ index ], rhs, defaultValue );
+                        }
+                    } else {
+                        result = assign( lhs, rhs, defaultValue );
+                    }
+                    //result = assign( lhs, rhs, defaultValue );
                     //console.log( '-- VALUE:VALUE', result );
                 }
-                //console.log( '- COMPUTED RESULT', result );
+                //console.log( `- ${ fn.name } RESULT`, result );
                 return context ?
                     { context: lhs, name: rhs, value: result } :
                     result;
