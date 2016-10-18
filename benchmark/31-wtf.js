@@ -31,7 +31,8 @@ var buildTokens = function(path){
             }
         }
         else {
-            word = word + path[i];
+            // word = word + path[i];
+            word = [word, path[i]].join('');
         }
         i++;
     }
