@@ -183,6 +183,12 @@ var tokenize = function (str){
     path = str.replace(escapedNonSpecialsRegEx, '$&'.substr(1));
     pathLength = path.length;
 
+    if (typeof str === 'string' && !simplePathRegEx.test(str)){
+        tokens = path.split(propertySeparator);
+        useCache && (cache[str] = tokens);
+        return tokens;
+    }
+
     for (i = 0; i < pathLength; i++){
         // Skip escape character (`\`) and set "escaped" to the index value
         // of the character to be treated as a literal
@@ -374,26 +380,26 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         prop = '',
         callArgs;
 
-    if (typeof path === 'string' && !simplePathRegEx.test(path)){
-        tk = path.split(propertySeparator);
-        tkLength = tk.length;
-        while (prev !== UNDEF && i < tkLength){
-            if (tk[i] === ''){ return undefined; }
-            else if (change){
-                if (i === tkLength - 1){
-                    prev[tk[i]] = newValue;
-                }
-                // For arrays, test current context against undefined to avoid parsing this segment as a number.
-                // For anything else, use hasOwnProperty.
-                else if (force && (prev.constructor === Array ? prev[tk[i]] !== UNDEF : !prev.hasOwnProperty(tk[i]))) {
-                    prev[tk[i]] = {};
-                }
-            }
-            prev = prev[tk[i]];
-            i++;
-        }
-        return prev;
-    }
+    // if (typeof path === 'string' && !simplePathRegEx.test(path)){
+    //     tk = path.split(propertySeparator);
+    //     tkLength = tk.length;
+    //     while (prev !== UNDEF && i < tkLength){
+    //         if (tk[i] === ''){ return undefined; }
+    //         else if (change){
+    //             if (i === tkLength - 1){
+    //                 prev[tk[i]] = newValue;
+    //             }
+    //             // For arrays, test current context against undefined to avoid parsing this segment as a number.
+    //             // For anything else, use hasOwnProperty.
+    //             else if (force && (prev.constructor === Array ? prev[tk[i]] !== UNDEF : !prev.hasOwnProperty(tk[i]))) {
+    //                 prev[tk[i]] = {};
+    //             }
+    //         }
+    //         prev = prev[tk[i]];
+    //         i++;
+    //     }
+    //     return prev;
+    // }
 
 
     // Either a full token set was provided or else the path includes
@@ -555,6 +561,53 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
     return context;
 };
 
+var quickResolveString = function(obj, path, newValue){
+    var change = newValue !== UNDEF,
+        tk = [],
+        i = 0,
+        tkLength = 0;
+
+    tk = path.split(propertySeparator);
+    tkLength = tk.length;
+    while (obj !== UNDEF && i < tkLength){
+        if (tk[i] === ''){ return undefined; }
+        else if (change){
+            if (i === tkLength - 1){
+                obj[tk[i]] = newValue;
+            }
+            // For arrays, test current context against undefined to avoid parsing this segment as a number.
+            // For anything else, use hasOwnProperty.
+            else if (force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+                obj[tk[i]] = {};
+            }
+        }
+        obj = obj[tk[i++]];
+    }
+    return obj;
+};
+
+var quickResolveArray = function(obj, tk, newValue){
+    var change = newValue !== UNDEF,
+        i = 0,
+        tkLength = tk.length;
+
+    while (obj != null && i < tkLength){
+        if (tk[i] === ''){ return undefined; }
+        else if (change){
+            if (i === tkLength - 1){
+                obj[tk[i]] = newValue;
+            }
+            // For arrays, test current context against undefined to avoid parsing this segment as a number.
+            // For anything else, use hasOwnProperty.
+            else if (force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+                obj[tk[i]] = {};
+            }
+        }
+        obj = obj[tk[i++]];
+    }
+    return obj;
+};
+
 var scanForValue = function(obj, val, savePath, path){
     var i, len, prop, more;
 
@@ -601,7 +654,23 @@ var escape = function(path){
 var get = function (obj, path){
     var i = 0,
         len = arguments.length,
-        args = len > 2 ? new Array(len - 2) : [];
+        args;
+    if (typeof path === 'string' && !simplePathRegEx.test(path)){
+        return quickResolveString(obj, path);
+    }
+    else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
+        for (i = path.t.length - 1; i >= 0; i--){
+            if (typeof path.t[i] !== 'string'){
+                args = [];
+                if (len > 2){
+                    for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
+                }
+                return resolvePath(obj, path, undefined, args);
+            }
+        }
+        return quickResolveArray(obj, path.t);
+    }
+    args = [];
     if (len > 2){
         for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
     }

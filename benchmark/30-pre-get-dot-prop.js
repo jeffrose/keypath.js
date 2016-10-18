@@ -18,7 +18,8 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     },
     kpex = new KeyPathExp( path ),
     tkTokens = tk.getTokens( path ),
-    pathAry = path.split('.');
+    pathAry = path.split('.'),
+    slow = tk.getTokens('foo[bar].qux.baz');
 
 module.exports = {
     name: 'Precompiled:Get:Dot:Property',
@@ -32,6 +33,9 @@ module.exports = {
         },
         'lodash#get': function(){
             loget( data, pathAry );
+        },
+        'lodash#get-slow': function(){
+            loget( data, slow.t );
         }
     }
 };
