@@ -10,7 +10,7 @@ var noop = function(){},
     cache = new Null();
 
 /**
- * @function Interceptor~getValue
+ * @function Interpreter~getValue
  * @param {external:Object} scope
  * @param {external:string} name
  * @returns {*} The value of the `name` in `scope`
@@ -46,7 +46,7 @@ function getValue( scope, name ){
 }
 
 /**
- * @function Interceptor~setValue
+ * @function Interpreter~setValue
  * @param {external:Object} scope
  * @param {external:string} name
  * @param {*} value
@@ -89,7 +89,7 @@ function setValue( scope, name, value ){
 }
 
 /**
- * @function Interceptor~returnZero
+ * @function Interpreter~returnZero
  * @returns {external:number} zero
  */
 function returnZero(){
@@ -160,25 +160,23 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign, isR
                     result;
             };
         } else {
-            //list = interpreter.recurseList( elements, false, assign );
             index = elements.length;
             list = new Array( index );
+            result = new Array( index );
             while( index-- ){
                 element = elements[ index ];
                 switch( element.type ){
                     case Syntax.Literal:
-                        item = element.value;
+                        list[ index ] = element.value;
                         break;
                     default:
-                        item = interpreter.recurse( element, false, assign );
+                        list[ index ] = interpreter.recurse( element, false, assign );
                         isFunction = true;
                         break;
                 }
-                list[ index ] = item;
             }
             fn = function getArrayExpressionWithElementList( scope, value, lookup ){
                 //console.log( 'Getting ARRAY EXPRESSION' );
-                result = [];
                 defaultValue = isRightMost ? value : {};
                 index = list.length;
                 while( index-- ){
@@ -613,6 +611,25 @@ Interpreter.prototype.recurse = function( node, context, assign ){
     }
 };
 
+/**
+ * @function
+ */
+Interpreter.prototype.recurseFast = function( node, context, assign ){
+    var isRightMost = node.range[ 1 ] === this.eol;
+    //console.log( 'Recursing on', node.type );
+    switch( node.type ){
+        
+        case Syntax.Identifier: {
+            return this.identifier( node.name, context, assign, isRightMost );
+        }
+        
+        case Syntax.MemberExpression: {
+            return this.staticMemberExpression( node.object, node.property, context, assign );
+        }
+        
+    }
+};
+
 Interpreter.prototype.recurseList = function( nodes, context, assign ){
     var interpreter = this,
         result = [];
@@ -681,12 +698,17 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
     
     if( object.type === Syntax.Identifier ){
         left = interpreter.identifier( object.name, false, assign );
+    } else if( property === Syntax.LookupExpression ){
+        left = interpreter.lookupExpression( object, false, assign );
     } else {
         left = interpreter.recurse( object, false, assign );
     }
     
     if( property.type === Syntax.Identifier ){
         rhs = right = property.name;
+    } else if( property === Syntax.LookupExpression ){
+        right = interpreter.lookupExpression( property, false, assign );
+        isFunction = true;
     } else {
         right = interpreter.recurse( property, false, assign );
         isFunction = true;
