@@ -3,14 +3,12 @@
 var kp = require( '../dist/kp-umd' ),
     tk = require( '../dist/tk-umd' ),
     
-    path = '["foo","bar"]["qux"]["baz"]',
+    path = '["foo"]["bar","qux"]["baz"]',
     data = {
         foo: {
-            qux: {
+            bar: {
                 baz: 123
-            }
-        },
-        bar: {
+            },
             qux: {
                 baz: 456
             }
@@ -18,13 +16,13 @@ var kp = require( '../dist/kp-umd' ),
     },
 
     tkTokens = tk.getTokens( path );
-
+    
 module.exports = {
-    name: 'Run:Get:Bracket:Property:Array',
+    name: 'Run:Get:Bracket:Property:Sequence',
     maxTime: 5,
     tests: {
         'kp': function(){
-            kp`["foo","bar"]["qux"]["baz"]`( data );
+            kp`["foo"]["bar","qux"]["baz"]`( data );
         }/*, Is this supported?
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens );

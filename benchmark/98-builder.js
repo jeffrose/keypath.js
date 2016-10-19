@@ -11,6 +11,8 @@ var esprima = require( 'esprima' ),
     
     tokens = lexer.lex( path );
 
+console.log( esprima.parse( path ) );
+
 module.exports = {
     name: 'Building',
     maxTime: 5,

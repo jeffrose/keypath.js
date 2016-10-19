@@ -1,30 +1,29 @@
 'use strict';
 
-var kp = require( '../dist/kp-umd' ),
+var KeyPathExp = require( '../dist/keypath-umd' ),
     tk = require( '../dist/tk-umd' ),
     
-    path = '["foo","bar"]["qux"]["baz"]',
+    path = '["foo"]["bar","qux"]["baz"]',
     data = {
         foo: {
-            qux: {
+            bar: {
                 baz: 123
-            }
-        },
-        bar: {
+            },
             qux: {
                 baz: 456
             }
         }
     },
 
+    kpex = new KeyPathExp( path ),
     tkTokens = tk.getTokens( path );
 
 module.exports = {
-    name: 'Run:Get:Bracket:Property:Array',
+    name: 'Precompiled:Get:Bracket:Property:Sequence',
     maxTime: 5,
     tests: {
-        'kp': function(){
-            kp`["foo","bar"]["qux"]["baz"]`( data );
+        'KeyPathExp#get': function(){
+            kpex.get( data );
         }/*, Is this supported?
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens );
