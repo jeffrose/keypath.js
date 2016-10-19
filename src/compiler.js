@@ -1,7 +1,7 @@
 'use strict';
 
-import { default as forEach } from './forEach';
-import { default as Null } from './null';
+import forEach from './for-each';
+import Null from './null';
 
 const noop = function(){};
 

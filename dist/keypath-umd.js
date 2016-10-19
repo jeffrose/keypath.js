@@ -19,10 +19,10 @@ Null.prototype.constructor =  Null;
 var Grammar = new Null();
 
 Grammar.Identifier      = 'Identifier';
-Grammar.NumericLiteral  = 'NumericLiteral';
-Grammar.NullLiteral     = 'NullLiteral';
+Grammar.NumericLiteral  = 'Numeric';
+Grammar.NullLiteral     = 'Null';
 Grammar.Punctuator      = 'Punctuator';
-Grammar.StringLiteral   = 'StringLiteral';
+Grammar.StringLiteral   = 'String';
 
 var tokenId = 0;
 
@@ -45,11 +45,6 @@ function Token( type, value ){
      * @member {external:string} Lexer~Token#value
      */
     this.value = value;
-    /**
-     * The length of the token value
-     * @member {external:number} Lexer~Token#length
-     */
-    this.length = value.length;
 }
 
 Token.prototype = new Null();
@@ -345,17 +340,18 @@ var Syntax = new Null();
 
 Syntax.ArrayExpression       = 'ArrayExpression';
 Syntax.CallExpression        = 'CallExpression';
-Syntax.EvalExpression        = 'EvalExpression';
 Syntax.ExpressionStatement   = 'ExpressionStatement';
 Syntax.Identifier            = 'Identifier';
 Syntax.Literal               = 'Literal';
 Syntax.MemberExpression      = 'MemberExpression';
+Syntax.Program               = 'Program';
+Syntax.SequenceExpression    = 'SequenceExpression';
+
+Syntax.EvalExpression        = 'EvalExpression';
 Syntax.LookupExpression      = 'LookupExpression';
 Syntax.LookupOperator        = '%';
-Syntax.Program               = 'Program';
 Syntax.RangeExpression       = 'RangeExpression';
 Syntax.RangeOperator         = '..';
-Syntax.SequenceExpression    = 'SequenceExpression';
 
 var nodeId = 0;
 var literalTypes = 'boolean number string'.split( ' ' );
@@ -368,7 +364,7 @@ var literalTypes = 'boolean number string'.split( ' ' );
 function Node( type ){
     
     if( typeof type !== 'string' ){
-        throw new TypeError( 'type must be a string' );
+        this.throwError( 'type must be a string', TypeError );
     }
     
     /**
@@ -385,12 +381,17 @@ Node.prototype = new Null();
 
 Node.prototype.constructor = Node;
 
+Node.prototype.throwError = function( message, ErrorClass ){
+    typeof ErrorClass === 'undefined' && ( ErrorClass = Error );
+    throw new ErrorClass( message );
+};
+
 /**
  * @function
  * @returns {external:Object} A JSON representation of the node
  */
 Node.prototype.toJSON = function(){
-    const json = new Null();
+    var json = new Null();
     
     json.type = this.type;
     
@@ -431,7 +432,7 @@ function Literal( value, raw ){
     Expression.call( this, Syntax.Literal );
     
     if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
-        throw new TypeError( 'value must be a boolean, number, string, or null' );
+        this.throwError( 'value must be a boolean, number, string, or null', TypeError );
     }
     
     /**
@@ -454,7 +455,7 @@ Literal.prototype.constructor = Literal;
  * @returns {external:Object} A JSON representation of the literal
  */
 Literal.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.raw = this.raw;
     json.value = this.value;
@@ -531,7 +532,7 @@ OperatorExpression.prototype.toJSON = function(){
  * @returns {external:Object} A JSON representation of the member expression
  */
 MemberExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.object   = this.object.toJSON();
     json.property = this.property.toJSON();
@@ -556,6 +557,7 @@ function Program( body ){
      * @member {external:Array<Builder~Statement>}
      */
     this.body = body || [];
+    this.sourceType = 'script';
 }
 
 Program.prototype = Object.create( Node.prototype );
@@ -567,9 +569,10 @@ Program.prototype.constructor = Program;
  * @returns {external:Object} A JSON representation of the program
  */
 Program.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.body = this.body.map( ( node ) => node.toJSON() );
+    json.sourceType = this.sourceType;
     
     return json;
 };
@@ -614,7 +617,7 @@ ArrayExpression.prototype.constructor = ArrayExpression;
  * @returns {external:Object} A JSON representation of the array expression
  */
 ArrayExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     if( Array.isArray( this.elements ) ){
         json.elements = this.elements.map( function( element ){
@@ -659,7 +662,7 @@ CallExpression.prototype.constructor = CallExpression;
  * @returns {external:Object} A JSON representation of the call expression
  */
 CallExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.callee    = this.callee.toJSON();
     json.arguments = this.arguments.map( ( node ) => node.toJSON() );
@@ -731,7 +734,7 @@ ExpressionStatement.prototype.constructor = ExpressionStatement;
  * @returns {external:Object} A JSON representation of the expression statement
  */
 ExpressionStatement.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.expression = this.expression.toJSON();
     
@@ -765,7 +768,7 @@ Identifier$1.prototype.constructor = Identifier$1;
  * @returns {external:Object} A JSON representation of the identifier
  */
 Identifier$1.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.name = this.name;
     
@@ -915,7 +918,7 @@ SequenceExpression.prototype.constructor = SequenceExpression;
  * @returns {external:Object} A JSON representation of the sequence expression
  */
 SequenceExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     if( Array.isArray( this.expressions ) ){
         json.expressions = this.expressions.map( function( expression ){
@@ -1088,7 +1091,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     
     if( token ){
         this.tokens.pop();
-        this.column -= token.length;
+        this.column -= token.value.length;
         return token;
     }
     
@@ -1625,9 +1628,6 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign, isR
             element = elements[ 0 ];
             
             switch( element.type ){
-                case Syntax.Identifier:
-                    name = item = element.name;
-                    break;
                 case Syntax.Literal:
                     name = item = element.value;
                     break;
@@ -1656,9 +1656,6 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign, isR
             while( index-- ){
                 element = elements[ index ];
                 switch( element.type ){
-                    case Syntax.Identifier:
-                        item = element.name;
-                        break;
                     case Syntax.Literal:
                         item = element.value;
                         break;
@@ -1816,10 +1813,16 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
         left = interpreter.recurse( object, false, assign ),
         defaultValue, fn, index, lhs, result, rhs, right;
     
-    switch( property.type ){
+    switch( object.type ){
         case Syntax.Identifier:
-            rhs = right = property.name;
+            left = interpreter.identifier( object.name, false, assign );
             break;
+        default:
+            left = interpreter.recurse( object, false, assign );
+            break;
+    }
+    
+    switch( property.type ){
         case Syntax.Literal:
             rhs = right = property.value;
             break;
@@ -1980,7 +1983,8 @@ Interpreter.prototype.lookupExpression = function( key, context, assign ){
     
     switch( key.type ){
         case Syntax.Identifier:
-            lhs.value = left = key.name;
+            left = interpreter.identifier( key.name, true, assign );
+            isFunction = true;
             break;
         case Syntax.Literal:
             lhs.value = left = key.value;
@@ -2112,17 +2116,30 @@ Interpreter.prototype.recurseList = function( nodes, context, assign ){
 
 Interpreter.prototype.sequenceExpression = function( expressions, context, assign ){
     var interpreter = this,
-        fn, index, list, result;
+        isFunction = false,
+        expression, fn, index, list, result;
     // Expression List
     if( Array.isArray( expressions ) ){
-        list = interpreter.recurseList( expressions, false, assign );
+        index = expressions.length;
+        list = new Array( index );
+        result = new Array( index );
+        while( index-- ){
+            expression = expressions[ index ];
+            if( expression.type === Syntax.Literal ){
+                result[ index ] = list[ index ] = expression.value;
+            } else {
+                list[ index ] = interpreter.recurse( expression, false, assign );
+                isFunction = true;
+            }
+        }
         
         fn = function getSequenceExpressionWithExpressionList( scope, value, lookup ){
             //console.log( 'Getting SEQUENCE EXPRESSION' );
-            result = [];
-            index = list.length;
-            while( index-- ){
-                result[ index ] = list[ index ]( scope );
+            if( isFunction ){
+                index = list.length;
+                while( index-- ){
+                    result[ index ] = list[ index ]( scope, value, lookup );
+                }
             }
             //console.log( '- SEQUENCE RESULT', result );
             return context ?
@@ -2148,45 +2165,29 @@ Interpreter.prototype.sequenceExpression = function( expressions, context, assig
 
 Interpreter.prototype.staticMemberExpression = function( object, property, context, assign ){
     var interpreter = this,
-        isLeftFunction = false,
-        isRightFunction = false,
+        isFunction = false,
         isRightMost = property.range[ 1 ] === interpreter.eol,
         defaultValue, left, lhs, rhs, result, right;
     
-    switch( object.type ){
-        case Syntax.Identifier:
-            lhs = left = object.name;
-            break;
-        case Syntax.Literal:
-            lhs = left = object.value;
-            break;
-        default:
-            left = interpreter.recurse( object, false, assign );
-            isLeftFunction = true;
-            break;
+    if( object.type === Syntax.Identifier ){
+        left = interpreter.identifier( object.name, false, assign );
+    } else {
+        left = interpreter.recurse( object, false, assign );
     }
     
-    switch( property.type ){
-        case Syntax.Identifier:
-            rhs = right = property.name;
-            break;
-        case Syntax.Literal:
-            rhs = right = property.value;
-            break;
-        default:
-            right = interpreter.recurse( property, false, assign );
-            isRightFunction = true;
-            break;
+    if( property.type === Syntax.Identifier ){
+        rhs = right = property.name;
+    } else {
+        right = interpreter.recurse( property, false, assign );
+        isFunction = true;
     }
     
     return function getStaticMemberExpression( scope, value, lookup ){
         //console.log( 'Getting NON-COMPUTED MEMBER' );
         //console.log( '- NON-COMPUTED LEFT', left.name );
         //console.log( '- NON-COMPUTED RIGHT', right.name || right );
-        if( isLeftFunction ){
-            lhs = left( scope, value, lookup );
-        }
-        if( isRightFunction ){
+        lhs = left( scope, value, lookup );
+        if( isFunction ){
             rhs = right( scope, value, lookup );
         }
         defaultValue = isRightMost ? value : {};

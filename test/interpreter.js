@@ -41,7 +41,7 @@ describe( 'Interpreter', function(){
             expect( get( object ) ).to.equal( 123 );
         } );
         
-        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', 'foo[1].bar.qux', 'foo[bar]' ].forEach( ( pattern ) => {
+        [ 'foo.bar.qux.baz', 'foo["bar"]["qux"]["baz"]', 'foo[1].bar.qux' ].forEach( ( pattern ) => {
             it( `should interpret member expressions (${ pattern })`, function(){
                 var object = {},
                     get, set;
@@ -100,7 +100,6 @@ describe( 'Interpreter', function(){
             
             get = interpreter.compile( '[1,2][1][0]', false );
             result = get( data3 );
-            console.log( result );
             expect( result ).to.instanceOf( Array );
             expect( result[ 0 ] ).to.equal( 4 );
             expect( result[ 1 ] ).to.equal( 6 );

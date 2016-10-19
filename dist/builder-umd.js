@@ -19,26 +19,27 @@ Null.prototype.constructor =  Null;
 var Grammar = new Null();
 
 Grammar.Identifier      = 'Identifier';
-Grammar.NumericLiteral  = 'NumericLiteral';
-Grammar.NullLiteral     = 'NullLiteral';
+Grammar.NumericLiteral  = 'Numeric';
+Grammar.NullLiteral     = 'Null';
 Grammar.Punctuator      = 'Punctuator';
-Grammar.StringLiteral   = 'StringLiteral';
+Grammar.StringLiteral   = 'String';
 
 var Syntax = new Null();
 
 Syntax.ArrayExpression       = 'ArrayExpression';
 Syntax.CallExpression        = 'CallExpression';
-Syntax.EvalExpression        = 'EvalExpression';
 Syntax.ExpressionStatement   = 'ExpressionStatement';
 Syntax.Identifier            = 'Identifier';
 Syntax.Literal               = 'Literal';
 Syntax.MemberExpression      = 'MemberExpression';
+Syntax.Program               = 'Program';
+Syntax.SequenceExpression    = 'SequenceExpression';
+
+Syntax.EvalExpression        = 'EvalExpression';
 Syntax.LookupExpression      = 'LookupExpression';
 Syntax.LookupOperator        = '%';
-Syntax.Program               = 'Program';
 Syntax.RangeExpression       = 'RangeExpression';
 Syntax.RangeOperator         = '..';
-Syntax.SequenceExpression    = 'SequenceExpression';
 
 var nodeId = 0;
 var literalTypes = 'boolean number string'.split( ' ' );
@@ -51,7 +52,7 @@ var literalTypes = 'boolean number string'.split( ' ' );
 function Node( type ){
     
     if( typeof type !== 'string' ){
-        throw new TypeError( 'type must be a string' );
+        this.throwError( 'type must be a string', TypeError );
     }
     
     /**
@@ -68,12 +69,17 @@ Node.prototype = new Null();
 
 Node.prototype.constructor = Node;
 
+Node.prototype.throwError = function( message, ErrorClass ){
+    typeof ErrorClass === 'undefined' && ( ErrorClass = Error );
+    throw new ErrorClass( message );
+};
+
 /**
  * @function
  * @returns {external:Object} A JSON representation of the node
  */
 Node.prototype.toJSON = function(){
-    const json = new Null();
+    var json = new Null();
     
     json.type = this.type;
     
@@ -114,7 +120,7 @@ function Literal( value, raw ){
     Expression.call( this, Syntax.Literal );
     
     if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
-        throw new TypeError( 'value must be a boolean, number, string, or null' );
+        this.throwError( 'value must be a boolean, number, string, or null', TypeError );
     }
     
     /**
@@ -137,7 +143,7 @@ Literal.prototype.constructor = Literal;
  * @returns {external:Object} A JSON representation of the literal
  */
 Literal.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.raw = this.raw;
     json.value = this.value;
@@ -214,7 +220,7 @@ OperatorExpression.prototype.toJSON = function(){
  * @returns {external:Object} A JSON representation of the member expression
  */
 MemberExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.object   = this.object.toJSON();
     json.property = this.property.toJSON();
@@ -239,6 +245,7 @@ function Program( body ){
      * @member {external:Array<Builder~Statement>}
      */
     this.body = body || [];
+    this.sourceType = 'script';
 }
 
 Program.prototype = Object.create( Node.prototype );
@@ -250,9 +257,10 @@ Program.prototype.constructor = Program;
  * @returns {external:Object} A JSON representation of the program
  */
 Program.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.body = this.body.map( ( node ) => node.toJSON() );
+    json.sourceType = this.sourceType;
     
     return json;
 };
@@ -297,7 +305,7 @@ ArrayExpression.prototype.constructor = ArrayExpression;
  * @returns {external:Object} A JSON representation of the array expression
  */
 ArrayExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     if( Array.isArray( this.elements ) ){
         json.elements = this.elements.map( function( element ){
@@ -342,7 +350,7 @@ CallExpression.prototype.constructor = CallExpression;
  * @returns {external:Object} A JSON representation of the call expression
  */
 CallExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.callee    = this.callee.toJSON();
     json.arguments = this.arguments.map( ( node ) => node.toJSON() );
@@ -414,7 +422,7 @@ ExpressionStatement.prototype.constructor = ExpressionStatement;
  * @returns {external:Object} A JSON representation of the expression statement
  */
 ExpressionStatement.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.expression = this.expression.toJSON();
     
@@ -448,7 +456,7 @@ Identifier.prototype.constructor = Identifier;
  * @returns {external:Object} A JSON representation of the identifier
  */
 Identifier.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     json.name = this.name;
     
@@ -598,7 +606,7 @@ SequenceExpression.prototype.constructor = SequenceExpression;
  * @returns {external:Object} A JSON representation of the sequence expression
  */
 SequenceExpression.prototype.toJSON = function(){
-    const json = Node.prototype.toJSON.call( this );
+    var json = Node.prototype.toJSON.call( this );
     
     if( Array.isArray( this.expressions ) ){
         json.expressions = this.expressions.map( function( expression ){
@@ -771,7 +779,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     
     if( token ){
         this.tokens.pop();
-        this.column -= token.length;
+        this.column -= token.value.length;
         return token;
     }
     

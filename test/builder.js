@@ -78,6 +78,18 @@ describe( 'Builder', function(){
             expect( expression.elements[ 0 ].value ).to.equal( 123 );
             expect( expression.range ).to.deep.equal( [ 0, 5 ] );
             
+            program = builder.build( '[123,456]' );
+            expression = program.body[ 0 ].expression;
+            
+            expect( expression.type ).to.equal( 'ArrayExpression' );
+            expect( expression ).to.have.property( 'elements' );
+            expect( expression.elements.length ).to.equal( 2 );
+            expect( expression.elements[ 0 ].type ).to.equal( 'Literal' );
+            expect( expression.elements[ 0 ].value ).to.equal( 123 );
+            expect( expression.elements[ 1 ].type ).to.equal( 'Literal' );
+            expect( expression.elements[ 1 ].value ).to.equal( 456 );
+            expect( expression.range ).to.deep.equal( [ 0, 9 ] );
+            
             program = builder.build( '["foo"]' );
             expression = program.body[ 0 ].expression;
             

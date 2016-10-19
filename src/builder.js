@@ -1,22 +1,8 @@
 'use strict';
 
 import Null from './null';
-import Grammar from './lexer/grammar';
-import {
-    ArrayExpression,
-    CallExpression,
-    ComputedMemberExpression,
-    EvalExpression,
-    ExpressionStatement,
-    Identifier,
-    NullLiteral,
-    NumericLiteral,
-    LookupExpression,
-    Program,
-    RangeExpression,
-    SequenceExpression,
-    StaticMemberExpression,
-    StringLiteral } from './builder/node';
+import Grammar from './grammar';
+import * as Node from './node';
 
 /**
  * @class Builder
@@ -38,7 +24,7 @@ Builder.prototype.arrayExpression = function( list ){
         
     this.consume( '[' );
     
-    node = new ArrayExpression( list );
+    node = new Node.ArrayExpression( list );
     node.range = [ this.column, end ];
     //console.log( '- RANGE', node.range );
     return node;
@@ -101,7 +87,7 @@ Builder.prototype.callExpression = function(){
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
     //console.log( '- ARGUMENTS', args, args.length );
-    node = new CallExpression( callee, args );
+    node = new Node.CallExpression( callee, args );
     node.range = [ start, end ];
     
     return node;
@@ -142,7 +128,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
     
     if( token ){
         this.tokens.pop();
-        this.column -= token.length;
+        this.column -= token.value.length;
         return token;
     }
     
@@ -223,7 +209,7 @@ Builder.prototype.evalExpression = function( terminator ){
     }
     start = this.column;
     this.consume( terminator );
-    expression = new EvalExpression( block );
+    expression = new Node.EvalExpression( block );
     expression.range = [ start, end ];
     //console.log( '- EVAL RESULT', expression );
     return expression;
@@ -239,7 +225,7 @@ Builder.prototype.expressionStatement = function(){
         start = this.column,
         expressionStatement;
     //console.log( 'EXPRESSION STATEMENT WITH', node );
-    expressionStatement = new ExpressionStatement( node );
+    expressionStatement = new Node.ExpressionStatement( node );
     expressionStatement.range = [ start, end ];
     
     return expressionStatement;
@@ -260,7 +246,7 @@ Builder.prototype.identifier = function(){
         this.throwError( 'Identifier expected' );
     }
     
-    node = new Identifier( token.value );
+    node = new Node.Identifier( token.value );
     node.range = [ start, end ];
     
     return node;
@@ -315,13 +301,13 @@ Builder.prototype.literal = function(){
     
     switch( token.type ){
         case Grammar.NumericLiteral:
-            node = new NumericLiteral( raw );
+            node = new Node.NumericLiteral( raw );
             break;
         case Grammar.StringLiteral:
-            node = new StringLiteral( raw );
+            node = new Node.StringLiteral( raw );
             break;
         case Grammar.NullLiteral:
-            node = new NullLiteral( raw );
+            node = new Node.NullLiteral( raw );
             break;
         default:
             this.throwError( 'Literal expected' );
@@ -369,7 +355,7 @@ Builder.prototype.lookupExpression = function( key ){
     this.consume( '%' );
     
     start = this.column;
-    node = new LookupExpression( key );
+    node = new Node.LookupExpression( key );
     node.range = [ start, end ];
     
     return node;
@@ -392,8 +378,8 @@ Builder.prototype.memberExpression = function( property, computed ){
     //console.log( '- PROPERTY', property );
     //console.log( '- COMPUTED', computed );
     node = computed ?
-        new ComputedMemberExpression( object, property ) :
-        new StaticMemberExpression( object, property );
+        new Node.ComputedMemberExpression( object, property ) :
+        new Node.StaticMemberExpression( object, property );
     
     node.range = [ start, end ];
     
@@ -457,7 +443,7 @@ Builder.prototype.program = function(){
         if( this.tokens.length ){
             body.unshift( this.expressionStatement() );
         } else {
-            node = new Program( body );
+            node = new Node.Program( body );
             node.range = [ this.column, end ];
             return node;
         }
@@ -475,7 +461,7 @@ Builder.prototype.rangeExpression = function( right ){
         left = this.literal() :
         null;
     
-    node = new RangeExpression( left, right );
+    node = new Node.RangeExpression( left, right );
     node.range = [ this.column, end ];
     
     return node;
@@ -486,11 +472,11 @@ Builder.prototype.sequenceExpression = function( list ){
     
     if( Array.isArray( list ) ){
         end = list[ list.length - 1 ].range[ 1 ];
-    } else if( list instanceof RangeExpression ){
+    } else if( list instanceof Node.RangeExpression ){
         end = list.range[ 1 ];
     }
     
-    node = new SequenceExpression( list );
+    node = new Node.SequenceExpression( list );
     node.range = [ this.column, end ];
     
     return node;

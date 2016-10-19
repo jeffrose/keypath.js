@@ -1,9 +1,9 @@
 'use strict';
 
-import forEach from './forEach';
-import hasOwnProperty from './hasOwnProperty';
+import forEach from './for-each';
+import hasOwnProperty from './has-own-property';
 import Null from './null';
-import Syntax from './builder/syntax';
+import Syntax from './syntax';
 
 var noop = function(){},
 
@@ -138,9 +138,6 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign, isR
             element = elements[ 0 ];
             
             switch( element.type ){
-                case Syntax.Identifier:
-                    name = item = element.name;
-                    break;
                 case Syntax.Literal:
                     name = item = element.value;
                     break;
@@ -169,9 +166,6 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign, isR
             while( index-- ){
                 element = elements[ index ];
                 switch( element.type ){
-                    case Syntax.Identifier:
-                        item = element.name;
-                        break;
                     case Syntax.Literal:
                         item = element.value;
                         break;
@@ -329,10 +323,16 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
         left = interpreter.recurse( object, false, assign ),
         defaultValue, fn, index, lhs, result, rhs, right;
     
-    switch( property.type ){
+    switch( object.type ){
         case Syntax.Identifier:
-            rhs = right = property.name;
+            left = interpreter.identifier( object.name, false, assign );
             break;
+        default:
+            left = interpreter.recurse( object, false, assign );
+            break;
+    }
+    
+    switch( property.type ){
         case Syntax.Literal:
             rhs = right = property.value;
             break;
@@ -493,7 +493,8 @@ Interpreter.prototype.lookupExpression = function( key, context, assign ){
     
     switch( key.type ){
         case Syntax.Identifier:
-            lhs.value = left = key.name;
+            left = interpreter.identifier( key.name, true, assign );
+            isFunction = true;
             break;
         case Syntax.Literal:
             lhs.value = left = key.value;
@@ -625,17 +626,30 @@ Interpreter.prototype.recurseList = function( nodes, context, assign ){
 
 Interpreter.prototype.sequenceExpression = function( expressions, context, assign ){
     var interpreter = this,
-        fn, index, list, result;
+        isFunction = false,
+        expression, fn, index, list, result;
     // Expression List
     if( Array.isArray( expressions ) ){
-        list = interpreter.recurseList( expressions, false, assign );
+        index = expressions.length;
+        list = new Array( index );
+        result = new Array( index );
+        while( index-- ){
+            expression = expressions[ index ];
+            if( expression.type === Syntax.Literal ){
+                result[ index ] = list[ index ] = expression.value;
+            } else {
+                list[ index ] = interpreter.recurse( expression, false, assign );
+                isFunction = true;
+            }
+        }
         
         fn = function getSequenceExpressionWithExpressionList( scope, value, lookup ){
             //console.log( 'Getting SEQUENCE EXPRESSION' );
-            result = [];
-            index = list.length;
-            while( index-- ){
-                result[ index ] = list[ index ]( scope );
+            if( isFunction ){
+                index = list.length;
+                while( index-- ){
+                    result[ index ] = list[ index ]( scope, value, lookup );
+                }
             }
             //console.log( '- SEQUENCE RESULT', result );
             return context ?
@@ -661,45 +675,29 @@ Interpreter.prototype.sequenceExpression = function( expressions, context, assig
 
 Interpreter.prototype.staticMemberExpression = function( object, property, context, assign ){
     var interpreter = this,
-        isLeftFunction = false,
-        isRightFunction = false,
+        isFunction = false,
         isRightMost = property.range[ 1 ] === interpreter.eol,
         defaultValue, left, lhs, rhs, result, right;
     
-    switch( object.type ){
-        case Syntax.Identifier:
-            lhs = left = object.name;
-            break;
-        case Syntax.Literal:
-            lhs = left = object.value;
-            break;
-        default:
-            left = interpreter.recurse( object, false, assign );
-            isLeftFunction = true;
-            break;
+    if( object.type === Syntax.Identifier ){
+        left = interpreter.identifier( object.name, false, assign );
+    } else {
+        left = interpreter.recurse( object, false, assign );
     }
     
-    switch( property.type ){
-        case Syntax.Identifier:
-            rhs = right = property.name;
-            break;
-        case Syntax.Literal:
-            rhs = right = property.value;
-            break;
-        default:
-            right = interpreter.recurse( property, false, assign );
-            isRightFunction = true;
-            break;
+    if( property.type === Syntax.Identifier ){
+        rhs = right = property.name;
+    } else {
+        right = interpreter.recurse( property, false, assign );
+        isFunction = true;
     }
     
     return function getStaticMemberExpression( scope, value, lookup ){
         //console.log( 'Getting NON-COMPUTED MEMBER' );
         //console.log( '- NON-COMPUTED LEFT', left.name );
         //console.log( '- NON-COMPUTED RIGHT', right.name || right );
-        if( isLeftFunction ){
-            lhs = left( scope, value, lookup );
-        }
-        if( isRightFunction ){
+        lhs = left( scope, value, lookup );
+        if( isFunction ){
             rhs = right( scope, value, lookup );
         }
         defaultValue = isRightMost ? value : {};

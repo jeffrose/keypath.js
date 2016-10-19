@@ -19,10 +19,10 @@ Null.prototype.constructor =  Null;
 var Grammar = new Null();
 
 Grammar.Identifier      = 'Identifier';
-Grammar.NumericLiteral  = 'NumericLiteral';
-Grammar.NullLiteral     = 'NullLiteral';
+Grammar.NumericLiteral  = 'Numeric';
+Grammar.NullLiteral     = 'Null';
 Grammar.Punctuator      = 'Punctuator';
-Grammar.StringLiteral   = 'StringLiteral';
+Grammar.StringLiteral   = 'String';
 
 var tokenId = 0;
 
@@ -45,11 +45,6 @@ function Token( type, value ){
      * @member {external:string} Lexer~Token#value
      */
     this.value = value;
-    /**
-     * The length of the token value
-     * @member {external:number} Lexer~Token#length
-     */
-    this.length = value.length;
 }
 
 Token.prototype = new Null();

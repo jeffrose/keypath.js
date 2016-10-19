@@ -1,7 +1,7 @@
 'use strict';
 
 import Grammar from './grammar';
-import Null from '../null';
+import Null from './null';
 
 var tokenId = 0;
 
@@ -24,11 +24,6 @@ function Token( type, value ){
      * @member {external:string} Lexer~Token#value
      */
     this.value = value;
-    /**
-     * The length of the token value
-     * @member {external:number} Lexer~Token#length
-     */
-    this.length = value.length;
 }
 
 Token.prototype = new Null();
@@ -120,5 +115,3 @@ export function StringLiteral( value ){
 StringLiteral.prototype = Object.create( Token.prototype );
 
 StringLiteral.prototype.constructor = StringLiteral;
-
-export { Token as default };

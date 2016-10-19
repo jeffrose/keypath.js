@@ -4,7 +4,7 @@ import Null from './null';
 import Lexer from './lexer';
 import Builder from './builder';
 import Interpreter from './interpreter';
-import hasOwnProperty from './hasOwnProperty';
+import hasOwnProperty from './has-own-property';
 
 var lexer = new Lexer(),
     builder = new Builder( lexer ),
