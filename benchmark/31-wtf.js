@@ -24,23 +24,6 @@ var buildTokens = function(path){
         len = path.length,
         tokens = [];
         
-    // while (i < path.length){
-    //     if ( /[.\[\]]/.test(path[i]) ){
-    //         if (word.length){
-    //             tokens.push(word);
-    //             word = '';
-    //         }
-    //     }
-    //     else {
-    //         word = word + path[i];
-    //         // word = [word, path[i]].join('');
-    //     }
-    //     i++;
-    // }
-    // if (word.length){
-    //     tokens.push(word);
-    // }
-
     path.split('.').forEach(function(word){
         tokens.push(word.split('').join(''));
         // tokens.push(word);
@@ -59,13 +42,8 @@ var simpleGet = function(obj, tokens){
 
 var builtTokens = buildTokens(dotPath);
 
-console.log('dotTokens:', dotTokens.t);
-console.log('dotSplit:', dotSplit);
-console.log('bracketTokens:', bracketTokens.t);
-console.log('builtTokens:', builtTokens);
-
 module.exports = {
-    name: 'WTF',
+    name: 'WTF - Chrome V8 string.split optimization',
     maxTime: 5,
     tests: {
         'tk#dotSplit': function(){
