@@ -49,11 +49,11 @@ var containers = {
             },
         '\'': {
             'closer': '\'',
-            'exec': 'quote'
+            'exec': 'singlequote'
             },
         '"': {
             'closer': '"',
-            'exec': 'quote'
+            'exec': 'doublequote'
             },
         '(': {
             'closer': ')',
@@ -66,27 +66,52 @@ var containers = {
     };
 
 // Lists of special characters for use in regular expressions
-var prefixList = Object.keys(prefixes);
-var propertySeparator = '.';
-var separatorList = Object.keys(separators);
-var containerList = Object.keys(containers);
-var containerCloseList = containerList.map(function(key){ return containers[key].closer; });
+var prefixList;
+var propertySeparator;
+var separatorList;
+var containerList;
+var containerCloseList;
 
 // Find all special characters except property separator (. by default)
-var simplePathChars = '[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace(/\\?\./, '') + ']';
-var simplePathRegEx = new RegExp(simplePathChars);
+var simplePathChars;
+var simplePathRegEx;
 
 // Find all special characters, including backslash
-var allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
-var allSpecialsRegEx = new RegExp(allSpecials, 'g');
+var allSpecials;
+var allSpecialsRegEx;
 
 // Find all escaped special characters
-var escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
+var escapedSpecialsRegEx;
 // Find all escaped non-special characters, i.e. unnecessary escapes
-var escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
+var escapedNonSpecialsRegEx;
 
 // Find wildcard character
-var wildcardRegEx = new RegExp('\\'+WILDCARD);
+var wildcardRegEx;
+
+var updateRegEx = function(){
+    // Lists of special characters for use in regular expressions
+    prefixList = Object.keys(prefixes);
+    propertySeparator = find(separators, 'property').substr(0,1);
+    separatorList = Object.keys(separators);
+    containerList = Object.keys(containers);
+    containerCloseList = containerList.map(function(key){ return containers[key].closer; });
+    
+    // Find all special characters except property separator (. by default)
+    simplePathChars = '[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace('\\'+propertySeparator, '') + ']';
+    simplePathRegEx = new RegExp(simplePathChars);
+    
+    // Find all special characters, including backslash
+    allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
+    allSpecialsRegEx = new RegExp(allSpecials, 'g');
+    
+    // Find all escaped special characters
+    escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
+    // Find all escaped non-special characters, i.e. unnecessary escapes
+    escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
+    
+    // Find wildcard character
+    wildcardRegEx = new RegExp('\\'+WILDCARD);
+};
 
 /**
  * Private Function
@@ -133,20 +158,29 @@ var wildCardMatch = function(template, str){
  * @param  {Object}  val Thing to examine, may be of any type
  * @return {Boolean}     True if thing is of type "object" or "function"
  */
-var isObject = function(val) {
+var isObject = function(val){
     if (typeof val === 'undefined' || val === null) { return false;}
     return ( (typeof val === 'function') || (typeof val === 'object') );
 };
 
-/*
- *  Scan input string from left to right, one character at a time. If a special character
- *  is found (one of "separators" or "containers"), either store the accumulated word as
- *  a token or else begin watching input for end of token (finding a closing character for
- *  a container or the end of a collection). If a con
- tainer is found, call tokenize
-
- *  recursively on string within container.
+/**
+ * Private Function
+ * Convert various values to true boolean `true` or `false`.
+ * For non-string values, the native javascript idea of "true" will apply.
+ * For string values, the words "true", "yes", and "on" will all return `true`.
+ * All other strings return `false`. The string match is non-case-sensitive.
  */
+var truthify = function(val){
+    var v;
+    if (typeof val !== 'string'){
+        return val && true; // Use native javascript notion of "truthy"
+    }
+    v = val.toUpperCase();
+    if (v === 'TRUE' || v === 'YES' || v === 'ON'){
+        return true;
+    }
+    return false;
+};
 
 /**
  * Private Function
@@ -238,7 +272,7 @@ var tokenize = function (str){
                     tokens = tokens.concat(recur);
                 }
                 // Quoted subpath is all taken literally without token evaluation. Just add subpath to tokens as-is.
-                else if (closer.exec === 'quote'){
+                else if (closer.exec === 'singlequote' || closer.exec === 'doublequote'){
                     tokens.push(subpath);
                 }
                 // Otherwise, create token object to hold tokenized subpath, add to tokens.
@@ -716,7 +750,6 @@ var setOptions = function(options){
                 prefixes[p] = options.prefixes[p];
             }
         }
-        prefixList = Object.keys(prefixes);
     }
     if (options.separators){
         for (var s in options.separators){
@@ -727,7 +760,6 @@ var setOptions = function(options){
                 }
             }
         }
-        separatorList = Object.keys(separators);
     }
     if (options.containers){
         for (var c in options.containers){
@@ -735,7 +767,6 @@ var setOptions = function(options){
                 containers[c] = options.containers[c];
             }
         }
-        containerList = Object.keys(containers);
     }
     if (typeof options.cache !== 'undefined'){
         useCache = !!options.cache;
@@ -746,13 +777,194 @@ var setOptions = function(options){
     if (typeof options.force !== 'undefined'){
         force = !!options.force;
     }
-    // Reset all special character sets and regular expressions
-    simplePathChars = ('[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\') + ']').replace('\\'+propertySeparator, '');
-    simplePathRegEx = new RegExp(simplePathChars);
-    allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
-    allSpecialsRegEx = new RegExp(allSpecials, 'g');
-    escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
+    updateRegEx();
 };
+
+var setCache = function(val){
+    useCache = truthify(val);
+};
+var setCacheOn = function(){
+    useCache = true;
+};
+var setCacheOff = function(){
+    useCache = false;
+};
+
+var setForce = function(val){
+    force = truthify(val);
+};
+var setForceOn = function(){
+    force = true;
+};
+var setForceOff = function(){
+    force = false;
+};
+
+var updateOptionChar = function(optionGroup, charType, val, closer){
+    var path = find(optionGroup, charType);
+    var oldVal = path.substr(0,1);
+
+    delete optionGroup[oldVal];
+    optionGroup[val] = {exec: charType};
+    if (closer){ optionGroup[val].closer = closer; }
+    updateRegEx();
+};
+
+var setSeparatorProperty = function(val){
+    if (typeof val === 'string' && val.length === 1){
+        if (val !== WILDCARD && (!separators[val] || separators[val].exec === 'property') && !(prefixes[val] || containers[val])){
+            updateOptionChar(separators, 'property', val);
+        }
+        else {
+            throw new Error('setSeparatorProperty - value already in use');
+        }
+    }
+    else {
+        throw new Error('setSeparatorProperty - invalid value');
+    }
+};
+
+var setSeparatorCollection = function(val){
+    if (typeof val === 'string' && val.length === 1){
+        if (val !== WILDCARD && (!separators[val] || separators[val].exec === 'collection') && !(prefixes[val] || containers[val])){
+            updateOptionChar(separators, 'collection', val);
+        }
+        else {
+            throw new Error('setSeparatorCollection - value already in use');
+        }
+    }
+    else {
+        throw new Error('setSeparatorCollection - invalid value');
+    }
+};
+
+var setPrefixParent = function(val){
+    if (typeof val === 'string' && val.length === 1){
+        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'parent') && !(separators[val] || containers[val])){
+            updateOptionChar(prefixes, 'parent', val);
+        }
+        else {
+            throw new Error('setPrefixParent - value already in use');
+        }
+    }
+    else {
+        throw new Error('setPrefixParent - invalid value');
+    }
+};
+
+var setPrefixRoot = function(val){
+    if (typeof val === 'string' && val.length === 1){
+        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'root') && !(separators[val] || containers[val])){
+            updateOptionChar(prefixes, 'root', val);
+        }
+        else {
+            throw new Error('setPrefixRoot - value already in use');
+        }
+    }
+    else {
+        throw new Error('setPrefixRoot - invalid value');
+    }
+};
+
+var setPrefixPlaceholder = function(val){
+    if (typeof val === 'string' && val.length === 1){
+        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'placeholder') && !(separators[val] || containers[val])){
+            updateOptionChar(prefixes, 'placeholder', val);
+        }
+        else {
+            throw new Error('setPrefixPlaceholder - value already in use');
+        }
+    }
+    else {
+        throw new Error('setPrefixPlaceholder - invalid value');
+    }
+};
+
+var setPrefixContext = function(val){
+    if (typeof val === 'string' && val.length === 1){
+        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'context') && !(separators[val] || containers[val])){
+            updateOptionChar(prefixes, 'context', val);
+        }
+        else {
+            throw new Error('setPrefixContext - value already in use');
+        }
+    }
+    else {
+        throw new Error('setPrefixContext - invalid value');
+    }
+};
+
+var setContainerProperty = function(val, closer){
+    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
+        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'property') && !(separators[val] || prefixes[val])){
+            updateOptionChar(containers, 'property', val, closer);
+        }
+        else {
+            throw new Error('setContainerProperty - value already in use');
+        }
+    }
+    else {
+        throw new Error('setContainerProperty - invalid value');
+    }
+};
+
+var setContainerSinglequote = function(val, closer){
+    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
+        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'singlequote') && !(separators[val] || prefixes[val])){
+            updateOptionChar(containers, 'singlequote', val, closer);
+        }
+        else {
+            throw new Error('setContainerSinglequote - value already in use');
+        }
+    }
+    else {
+        throw new Error('setContainerSinglequote - invalid value');
+    }
+};
+
+var setContainerDoublequote = function(val, closer){
+    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
+        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'doublequote') && !(separators[val] || prefixes[val])){
+            updateOptionChar(containers, 'doublequote', val, closer);
+        }
+        else {
+            throw new Error('setContainerDoublequote - value already in use');
+        }
+    }
+    else {
+        throw new Error('setContainerDoublequote - invalid value');
+    }
+};
+
+var setContainerCall = function(val, closer){
+    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
+        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'call') && !(separators[val] || prefixes[val])){
+            updateOptionChar(containers, 'call', val, closer);
+        }
+        else {
+            throw new Error('setContainerCall - value already in use');
+        }
+    }
+    else {
+        throw new Error('setContainerCall - invalid value');
+    }
+};
+
+var setContainerEvalProperty = function(val, closer){
+    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
+        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'evalProperty') && !(separators[val] || prefixes[val])){
+            updateOptionChar(containers, 'evalProperty', val, closer);
+        }
+        else {
+            throw new Error('setContainerEvalProperty - value already in use');
+        }
+    }
+    else {
+        throw new Error('setContainerProperty - invalid value');
+    }
+};
+
+updateRegEx();
 
 exports.getTokens = getTokens;
 exports.isValid = isValid;
@@ -761,6 +973,23 @@ exports.get = get;
 exports.set = set;
 exports.find = find;
 exports.setOptions = setOptions;
+exports.setCache = setCache;
+exports.setCacheOn = setCacheOn;
+exports.setCacheOff = setCacheOff;
+exports.setForce = setForce;
+exports.setForceOn = setForceOn;
+exports.setForceOff = setForceOff;
+exports.setSeparatorProperty = setSeparatorProperty;
+exports.setSeparatorCollection = setSeparatorCollection;
+exports.setPrefixParent = setPrefixParent;
+exports.setPrefixRoot = setPrefixRoot;
+exports.setPrefixPlaceholder = setPrefixPlaceholder;
+exports.setPrefixContext = setPrefixContext;
+exports.setContainerProperty = setContainerProperty;
+exports.setContainerSinglequote = setContainerSinglequote;
+exports.setContainerDoublequote = setContainerDoublequote;
+exports.setContainerCall = setContainerCall;
+exports.setContainerEvalProperty = setContainerEvalProperty;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

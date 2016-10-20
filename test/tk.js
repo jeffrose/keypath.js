@@ -556,7 +556,7 @@ describe( 'tk', function(){
         });
     });
     
-    describe('setOptions', function () {
+    xdescribe('setOptions', function () {
         afterEach(function () {
             tk.setOptions({
                 'cache': true,
@@ -892,6 +892,19 @@ describe( 'tk', function(){
     // });
 
     // describe( 'debug', function(){
+    //     beforeEach(function(){
+    //       tk.setOptions({cache:false});
+    //     });
+    //     afterEach(function(){
+    //         tk.setOptions({cache:true});
+    //     });
+    //     it('should allow the property separator to be changed', function(){
+    //         tk.setSeparatorProperty('#');
+    //         console.log(tk.getTokens('a.b.c'));
+    //         console.log(tk.getTokens('a#b#c'));
+    //         expect(tk.getTokens('a.b.c').t.length).to.equal(1);
+    //         expect(tk.getTokens('a#b#c').t.length).to.equal(3);
+    //     });
     // });
 
 } );
