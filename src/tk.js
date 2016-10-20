@@ -607,7 +607,7 @@ var quickResolveArray = function(obj, tk, newValue){
 };
 
 var scanForValue = function(obj, val, savePath, path){
-    var i, len, prop, more;
+    var i, len, more, keys;
 
     path = path ? path : '';
 
@@ -623,9 +623,12 @@ var scanForValue = function(obj, val, savePath, path){
         return true; // keep looking
     }
     else if (isObject(obj)) {
-        for (prop in obj){
-            if (obj.hasOwnProperty(prop)){
-                more = scanForValue(obj[prop], val, savePath, path + '.' + prop);
+        keys = Object.keys(obj);
+        len = keys.length;
+        if (len > 1){ keys = keys.sort(); } // Force order of object keys to produce repeatable results
+        for (i = 0; i < len; i++){
+            if (obj.hasOwnProperty(keys[i])){
+                more = scanForValue(obj[keys[i]], val, savePath, path + '.' + keys[i]);
                 if (!more){ return; }
             }
         }
