@@ -215,6 +215,7 @@ Sets new operator characters for path interpretation. Can also be used to govern
 ```javascript
 {
     cache: true,
+    force: false,
     separators: {
         '.': {
             'exec': 'property'
@@ -244,13 +245,13 @@ Sets new operator characters for path interpretation. Can also be used to govern
             },
         '\'': {
             'closer': '\'',
-            'exec': 'quote'
+            'exec': 'singlequote'
             },
         '"': {
             'closer': '"',
-            'exec': 'quote'
+            'exec': 'doublequote'
             },
-            '(': {
+        '(': {
             'closer': ')',
             'exec': 'call'
             },

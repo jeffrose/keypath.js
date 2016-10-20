@@ -10,58 +10,13 @@ var WILDCARD = '*';
 // Value = tokens
 var cache = {};
 
-// Default settings
-var useCache = true,  // cache tokenized paths for repeated use
-    advanced = false, // not yet implemented
-    force = false;    // create intermediate properties during `set` operation
+var useCache, // cache tokenized paths for repeated use
+    advanced, // not yet implemented
+    force;    // create intermediate properties during `set` operation
 
-    // Default prefix special characters
-var prefixes = {
-        '<': {
-            'exec': 'parent'
-        },
-        '~': {
-            'exec': 'root'
-        },
-        '%': {
-            'exec': 'placeholder'
-        },
-        '@': {
-            'exec': 'context'
-        }
-    },
-    // Default separator special characters
-    separators = {
-        '.': {
-            'exec': 'property'
-            },
-        ',': {
-            'exec': 'collection'
-            }
-    },
-    // Default container special characters
-    containers = {
-        '[': {
-            'closer': ']',
-            'exec': 'property'
-            },
-        '\'': {
-            'closer': '\'',
-            'exec': 'singlequote'
-            },
-        '"': {
-            'closer': '"',
-            'exec': 'doublequote'
-            },
-        '(': {
-            'closer': ')',
-            'exec': 'call'
-            },
-        '{': {
-            'closer': '}',
-            'exec': 'evalProperty'
-            }
-    };
+var prefixes,
+    separators,
+    containers;
 
 // Lists of special characters for use in regular expressions
 var prefixList,
@@ -109,6 +64,62 @@ var updateRegEx = function(){
     
     // Find wildcard character
     wildcardRegEx = new RegExp('\\'+WILDCARD);
+};
+
+var setDefaultOptions = function(){
+    // Default settings
+    useCache = true;  // cache tokenized paths for repeated use
+    advanced = false; // not yet implemented
+    force = false;    // create intermediate properties during `set` operation
+
+    // Default prefix special characters
+    prefixes = {
+        '<': {
+            'exec': 'parent'
+        },
+        '~': {
+            'exec': 'root'
+        },
+        '%': {
+            'exec': 'placeholder'
+        },
+        '@': {
+            'exec': 'context'
+        }
+    };
+    // Default separator special characters
+    separators = {
+        '.': {
+            'exec': 'property'
+            },
+        ',': {
+            'exec': 'collection'
+            }
+    };
+    // Default container special characters
+    containers = {
+        '[': {
+            'closer': ']',
+            'exec': 'property'
+            },
+        '\'': {
+            'closer': '\'',
+            'exec': 'singlequote'
+            },
+        '"': {
+            'closer': '"',
+            'exec': 'doublequote'
+            },
+        '(': {
+            'closer': ')',
+            'exec': 'call'
+            },
+        '{': {
+            'closer': '}',
+            'exec': 'evalProperty'
+            }
+    };
+    updateRegEx();
 };
 
 /**
@@ -743,28 +754,13 @@ export var find = function(obj, val, oneOrMany){
 
 export var setOptions = function(options){
     if (options.prefixes){
-        for (var p in options.prefixes){
-            if (options.prefixes.hasOwnProperty(p)){
-                prefixes[p] = options.prefixes[p];
-            }
-        }
+        prefixes = options.prefixes;
     }
     if (options.separators){
-        for (var s in options.separators){
-            if (options.separators.hasOwnProperty(s)){
-                separators[s] = options.separators[s];
-                if (separators[s].exec === 'property'){
-                    propertySeparator = s;
-                }
-            }
-        }
+        separators = options.separators;
     }
     if (options.containers){
-        for (var c in options.containers){
-            if (options.containers.hasOwnProperty(c)){
-                containers[c] = options.containers[c];
-            }
-        }
+        containers = options.containers;
     }
     if (typeof options.cache !== 'undefined'){
         useCache = !!options.cache;
@@ -962,5 +958,8 @@ export var setContainerEvalProperty = function(val, closer){
     }
 };
 
-updateRegEx();
+export var resetOptions = function(){
+    setDefaultOptions();
+};
 
+setDefaultOptions();

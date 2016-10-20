@@ -61,7 +61,7 @@ describe( 'tk', function(){
     });
 
 
-    // xdescribe( 'disable', function(){
+    describe( 'disable', function(){
     describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -556,57 +556,44 @@ describe( 'tk', function(){
         });
     });
     
-    xdescribe('setOptions', function () {
-        afterEach(function () {
+    describe('setOptions and resetOptions', function(){
+        it('requires setCache true/false to work for testing', function(){
+            var path = 'x.y.z';
+            var tokens1 = tk.getTokens(path);
+            var tokens2 = tk.getTokens(path);
+            expect(tokens1.t === tokens2.t).to.be.true;
+            tk.setCacheOff();
+            var tokens3 = tk.getTokens(path);
+            expect(tokens1.t === tokens3.t).to.be.false;
+            tk.setCacheOn();
+            var tokens4 = tk.getTokens(path);
+            expect(tokens1.t === tokens4.t).to.be.true;
+        });
+        it('requires setOptions and resetOptions for future unit tests', function(){
+            tk.setCacheOff();
+            expect(tk.getTokens('a.b.c').t.length).to.equal(3);
             tk.setOptions({
-                'cache': true,
-                'force': false,
-                'prefixes': {
-                    '<': {
-                        'exec': 'parent'
-                    },
-                    '~': {
-                        'exec': 'root'
-                    },
-                    '%': {
-                        'exec': 'placeholder'
-                    },
-                    '@': {
-                        'exec': 'context'
-                    }
-                },
                 'separators': {
-                    '.': {
+                    '#': {
                         'exec': 'property'
-                    },
-                    ',': {
-                        'exec': 'collection'
-                    }
-                },
-                'containers': {
-                    '(': {
-                        'closer': ')',
-                        'exec': 'call'
-                    },
-                    '[': {
-                        'closer': ']',
-                        'exec': 'property'
-                    },
-                    '\'': {
-                        'closer': '\'',
-                        'exec': 'quote'
-                    },
-                    '"': {
-                        'closer': '"',
-                        'exec': 'quote'
-                    },
-                    '{': {
-                        'closer': '}',
-                        'exec': 'evalProperty'
                     }
                 }
             });
+            expect(tk.getTokens('a.b.c').t.length).to.equal(1);
+            expect(tk.getTokens('a#b#c').t.length).to.equal(3);
+            
+            tk.resetOptions();
+            expect(tk.getTokens('a.b.c').t.length).to.equal(3);
+            expect(tk.getTokens('a#b#c').t.length).to.equal(1);
+            tk.setCacheOn();
         });
+    });
+    
+    describe('setOptions', function () {
+        afterEach(function () {
+            tk.resetOptions();
+        });
+        
         it('should allow special characters to be re-defined', function () {
             tk.setOptions({
                 'cache': true,
@@ -664,7 +651,7 @@ describe( 'tk', function(){
     
     describe('setOptions:force', function(){
        afterEach(function(){
-          tk.setOptions({force:false});
+          tk.resetOptions();
        });
        
        it('should create intermediate properties if they don\'t exist', function(){
@@ -682,6 +669,50 @@ describe( 'tk', function(){
             expect(tk.get(data, str)).to.equal(newVal);
             expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
             expect(result).to.be.true;
+       });
+       
+       it('should work with setForceOn()', function(){
+            var str = 'accounts.1.newPropA.newPropB';
+            var newVal = 'new';
+            var result;
+            tk.setForceOn();
+            result = tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.equal(newVal);
+            expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
+            expect(result).to.be.true;
+            
+            str = 'accounts.1["new.PropA"]newPropB';
+            result = tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.equal(newVal);
+            expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
+            expect(result).to.be.true;
+       });
+       
+       it('should work with setForce(true)', function(){
+            var str = 'accounts.1.newPropA.newPropB';
+            var newVal = 'new';
+            var result;
+            tk.setForce(true);
+            result = tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.equal(newVal);
+            expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
+            expect(result).to.be.true;
+            
+            str = 'accounts.1["new.PropA"]newPropB';
+            result = tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.equal(newVal);
+            expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
+            expect(result).to.be.true;
+       });
+       
+       it('should NOT create intermediate properties if force is off', function(){
+            var str = 'accounts.1.newPropA.newPropB';
+            var newVal = 'new';
+            var result;
+            tk.setForceOff();
+            result = tk.set(data, str, newVal);
+            expect(tk.get(data, str)).to.be.undefined;
+            expect(result).to.be.false;
        });
        
     });
@@ -889,22 +920,52 @@ describe( 'tk', function(){
         });
 
     });
-    // });
+    });
 
-    // describe( 'debug', function(){
-    //     beforeEach(function(){
-    //       tk.setOptions({cache:false});
-    //     });
-    //     afterEach(function(){
-    //         tk.setOptions({cache:true});
-    //     });
-    //     it('should allow the property separator to be changed', function(){
-    //         tk.setSeparatorProperty('#');
-    //         console.log(tk.getTokens('a.b.c'));
-    //         console.log(tk.getTokens('a#b#c'));
-    //         expect(tk.getTokens('a.b.c').t.length).to.equal(1);
-    //         expect(tk.getTokens('a#b#c').t.length).to.equal(3);
-    //     });
-    // });
+    xdescribe( 'debug', function(){
+        it('requires setCache true/false to work for testing', function(){
+            var path = 'x.y.z';
+            var tokens1 = tk.getTokens(path);
+            var tokens2 = tk.getTokens(path);
+            expect(tokens1.t === tokens2.t).to.be.true;
+            tk.setCacheOff();
+            var tokens3 = tk.getTokens(path);
+            expect(tokens1.t === tokens3.t).to.be.false;
+            tk.setCacheOn();
+            var tokens4 = tk.getTokens(path);
+            expect(tokens1.t === tokens4.t).to.be.true;
+        });
+        // beforeEach(function(){
+        //     tk.setCache(false);
+        // });
+        // afterEach(function(){
+        //     tk.setCache(true);
+        // });
+        // it('should allow options to be changed and then reset to defaults, required for future unit tests', function(){
+        //     tk.setCache(false);
+        //     expect(tk.getTokens('a.b.c').t.length).to.equal(3);
+        //     tk.setOptions({
+        //         'separators': {
+        //             '#': {
+        //                 'exec': 'property'
+        //             }
+        //         }
+        //     });
+        //     expect(tk.getTokens('a.b.c').t.length).to.equal(1);
+        //     expect(tk.getTokens('a#b#c').t.length).to.equal(3);
+            
+        //     tk.resetOptions();
+        //     expect(tk.getTokens('a.b.c').t.length).to.equal(3);
+        //     expect(tk.getTokens('a#b#c').t.length).to.equal(1);
+        
+        // });
+        // it('should allow the property separator to be changed', function(){
+        //     tk.setSeparatorProperty('#');
+        //     console.log(tk.getTokens('a.b.c'));
+        //     console.log(tk.getTokens('a#b#c'));
+        //     expect(tk.getTokens('a.b.c').t.length).to.equal(1);
+        //     expect(tk.getTokens('a#b#c').t.length).to.equal(3);
+        // });
+    });
 
 } );
