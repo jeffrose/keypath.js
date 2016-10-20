@@ -1,11 +1,14 @@
 'use strict';
 
-var chai        = require( 'chai' ),
-    Builder     = require( '../dist/builder-umd' ),
-    Interpreter = require( '../dist/interpreter-umd' ),
-    Lexer       = require( '../dist/lexer-umd' ),
+var chai             = require( 'chai' ),
+    chai_as_promised = require( 'chai-as-promised' ),
+    Builder          = require( '../dist/builder-umd' ),
+    Interpreter      = require( '../dist/interpreter-umd' ),
+    Lexer            = require( '../dist/lexer-umd' ),
 
-    expect      = chai.expect;
+    expect           = chai.expect;
+
+chai.use( chai_as_promised );
 
 describe( 'Interpreter', function(){
     
@@ -170,6 +173,13 @@ describe( 'Interpreter', function(){
         
         it( 'should interpret lookup expressions', function(){
             var data = { foo: { bar: 123, qux: 456, baz: 789 } },
+                data2 = { foo: function(){
+                    return new Promise( function( resolve, reject ){
+                        setTimeout( function(){
+                            resolve( 999 );
+                        }, 5 );
+                    } );
+                } },
                 fn, result;
              
             fn = interpreter.compile( '%0.%1', false ),
@@ -185,7 +195,12 @@ describe( 'Interpreter', function(){
             fn = interpreter.compile( 'foo.%{qux.baz}', false ),
             result = fn( data, undefined, { qux: { baz: 'bar' } } );
             
-            expect( result ).to.equal( 123 );
+            fn = interpreter.compile( 'foo().then(%success)', false ),
+            result = fn( data2, undefined, { success: function( data ){
+                return data;
+            } } );
+            
+            expect( result ).to.eventually.equal( 999 );
         } );
         
         it( 'should interpret range expressions', function(){
