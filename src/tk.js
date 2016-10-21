@@ -69,7 +69,7 @@ var updateRegEx = function(){
 var setDefaultOptions = function(){
     // Default settings
     useCache = true;  // cache tokenized paths for repeated use
-    advanced = false; // not yet implemented
+    // advanced = false; // not yet implemented
     force = false;    // create intermediate properties during `set` operation
 
     // Default prefix special characters
@@ -765,9 +765,9 @@ export var setOptions = function(options){
     if (typeof options.cache !== 'undefined'){
         useCache = !!options.cache;
     }
-    if (typeof options.advanced !== 'undefined'){
-        advanced = !!options.advanced;
-    }
+    // if (typeof options.advanced !== 'undefined'){
+    //     advanced = !!options.advanced;
+    // }
     if (typeof options.force !== 'undefined'){
         force = !!options.force;
     }

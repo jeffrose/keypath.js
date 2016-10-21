@@ -535,8 +535,8 @@ describe( 'tk', function(){
         });
     });
 
-    describe('isValid', function () {
-        it('should correctly identify valid and invalid paths', function () {
+    describe('isValid', function(){
+        it('should correctly identify valid and invalid paths', function(){
             expect(tk.isValid('accounts.1.test2')).to.be.true;
             expect(tk.isValid('accounts.{1.test2')).to.be.false;
             expect(tk.isValid('accounts(.test2')).to.be.false;
@@ -549,15 +549,15 @@ describe( 'tk', function(){
         });
     });
 
-    describe('escape', function () {
-        it('should escape special characters', function () {
+    describe('escape', function(){
+        it('should escape special characters', function(){
             expect(tk.escape('accounts.1.test2')).to.equal('accounts\\.1\\.test2');
             expect(tk.escape('accounts{{a()},{b.c,d}}')).to.equal('accounts\\{\\{a\\(\\)\\}\\,\\{b\\.c\\,d\\}\\}');
         });
     });
     
     describe('setOptions and resetOptions', function(){
-        it('requires setCache true/false to work for testing', function(){
+        it('requires setCacheOn/Off to work for testing', function(){
             var path = 'x.y.z';
             var tokens1 = tk.getTokens(path);
             var tokens2 = tk.getTokens(path);
@@ -566,6 +566,18 @@ describe( 'tk', function(){
             var tokens3 = tk.getTokens(path);
             expect(tokens1.t === tokens3.t).to.be.false;
             tk.setCacheOn();
+            var tokens4 = tk.getTokens(path);
+            expect(tokens1.t === tokens4.t).to.be.true;
+        });
+        it('requires setCache(true/false) to work for testing', function(){
+            var path = 'x.y.z';
+            var tokens1 = tk.getTokens(path);
+            var tokens2 = tk.getTokens(path);
+            expect(tokens1.t === tokens2.t).to.be.true;
+            tk.setCache('off');
+            var tokens3 = tk.getTokens(path);
+            expect(tokens1.t === tokens3.t).to.be.false;
+            tk.setCache('yes');
             var tokens4 = tk.getTokens(path);
             expect(tokens1.t === tokens4.t).to.be.true;
         });
@@ -589,8 +601,8 @@ describe( 'tk', function(){
         });
     });
     
-    describe('setOptions', function () {
-        afterEach(function () {
+    describe('setOptions', function(){
+        afterEach(function(){
             tk.resetOptions();
         });
         
@@ -649,72 +661,295 @@ describe( 'tk', function(){
         });
     });
     
-    describe('setOptions:force', function(){
-       afterEach(function(){
-          tk.resetOptions();
-       });
-       
-       it('should create intermediate properties if they don\'t exist', function(){
-            var str = 'accounts.1.newPropA.newPropB';
-            var newVal = 'new';
-            var result;
-            tk.setOptions({force:true});
-            result = tk.set(data, str, newVal);
-            expect(tk.get(data, str)).to.equal(newVal);
-            expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
-            expect(result).to.be.true;
+    describe('options', function(){
+        beforeEach(function(){
+           tk.setCacheOff(); 
+        });
+        afterEach(function(){
+            tk.resetOptions();
+        });
+
+        describe('force', function(){
+           it('should create intermediate properties if they don\'t exist', function(){
+                var str = 'accounts.1.newPropA.newPropB';
+                var newVal = 'new';
+                var result;
+                tk.setOptions({force:true});
+                result = tk.set(data, str, newVal);
+                expect(tk.get(data, str)).to.equal(newVal);
+                expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
+                expect(result).to.be.true;
+                
+                str = 'accounts.1["new.PropA"]newPropB';
+                result = tk.set(data, str, newVal);
+                expect(tk.get(data, str)).to.equal(newVal);
+                expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
+                expect(result).to.be.true;
+           });
+           
+           it('should work with setForceOn()', function(){
+                var str = 'accounts.1.newPropA.newPropB';
+                var newVal = 'new';
+                var result;
+                tk.setForceOn();
+                result = tk.set(data, str, newVal);
+                expect(tk.get(data, str)).to.equal(newVal);
+                expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
+                expect(result).to.be.true;
+                
+                str = 'accounts.1["new.PropA"]newPropB';
+                result = tk.set(data, str, newVal);
+                expect(tk.get(data, str)).to.equal(newVal);
+                expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
+                expect(result).to.be.true;
+           });
+           
+           it('should work with setForce(true)', function(){
+                var str = 'accounts.1.newPropA.newPropB';
+                var newVal = 'new';
+                var result;
+                tk.setForce(true);
+                result = tk.set(data, str, newVal);
+                expect(tk.get(data, str)).to.equal(newVal);
+                expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
+                expect(result).to.be.true;
+                
+                str = 'accounts.1["new.PropA"]newPropB';
+                result = tk.set(data, str, newVal);
+                expect(tk.get(data, str)).to.equal(newVal);
+                expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
+                expect(result).to.be.true;
+           });
+           
+           it('should NOT create intermediate properties if force is off', function(){
+                var str = 'accounts.1.newPropA.newPropB';
+                var newVal = 'new';
+                var result;
+                tk.setForceOff();
+                result = tk.set(data, str, newVal);
+                expect(tk.get(data, str)).to.be.undefined;
+                expect(result).to.be.false;
+           });
+           
+        });
+        
+        describe('separators', function(){
+            it('should allow all separators to be changed at once', function(){
+                tk.setOptions({
+                    separators: {
+                        '#': { exec: 'property' }
+                    }
+                });
+                expect(tk.getTokens('a.b.c').t.length).to.equal(1);
+                expect(tk.getTokens('a#b#c').t.length).to.equal(3);
+                expect(tk.getTokens('a,b,c').t.length).to.equal(1);
+            });
             
-            str = 'accounts.1["new.PropA"]newPropB';
-            result = tk.set(data, str, newVal);
-            expect(tk.get(data, str)).to.equal(newVal);
-            expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
-            expect(result).to.be.true;
-       });
-       
-       it('should work with setForceOn()', function(){
-            var str = 'accounts.1.newPropA.newPropB';
-            var newVal = 'new';
-            var result;
-            tk.setForceOn();
-            result = tk.set(data, str, newVal);
-            expect(tk.get(data, str)).to.equal(newVal);
-            expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
-            expect(result).to.be.true;
+            it('should modify individual separators with setSeparatorProperty', function(){
+                tk.setSeparatorProperty('#');
+                expect(tk.getTokens('a.b.c').t.length).to.equal(1);
+                expect(tk.getTokens('a#b#c').t.length).to.equal(3);
+                expect(tk.getTokens('a,b,c').t.length).to.equal(1);
+                expect(tk.getTokens('a,b,c').t[0].length).to.equal(3);
+            });
             
-            str = 'accounts.1["new.PropA"]newPropB';
-            result = tk.set(data, str, newVal);
-            expect(tk.get(data, str)).to.equal(newVal);
-            expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
-            expect(result).to.be.true;
-       });
-       
-       it('should work with setForce(true)', function(){
-            var str = 'accounts.1.newPropA.newPropB';
-            var newVal = 'new';
-            var result;
-            tk.setForce(true);
-            result = tk.set(data, str, newVal);
-            expect(tk.get(data, str)).to.equal(newVal);
-            expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
-            expect(result).to.be.true;
+            it('should modify individual separators with setSeparatorCollection', function(){
+                tk.setSeparatorCollection('#');
+                expect(tk.getTokens('a.b.c').t.length).to.equal(3);
+                expect(tk.getTokens('a#b#c').t.length).to.equal(1);
+                expect(tk.getTokens('a#b#c').t[0]).to.be.an.array;
+                expect(tk.getTokens('a#b#c').t[0].length).to.equal(3);
+                expect(tk.getTokens('a,b,c').t.length).to.equal(1);
+                expect(tk.getTokens('a,b,c').t[0]).to.be.a.string;
+            });
+        });
+        
+        describe('prefixes', function(){
+            it('should allow all prefixes to be changed at once', function(){
+                tk.setOptions({
+                    prefixes: {
+                        '#': { exec: 'root' }
+                    }
+                });
+                expect(tk.get(data, 'accounts.1.checking.~propA')).to.be.undefined;
+                expect(tk.get(data, 'accounts.1.checking.#propA')).to.equal(data.propA);
+                expect(tk.get(data, 'accounts.1.checking.<test1')).to.be.undefined;
+                expect(tk.get(data, 'accounts.1.checking.%propA')).to.be.undefined;
+            });
             
-            str = 'accounts.1["new.PropA"]newPropB';
-            result = tk.set(data, str, newVal);
-            expect(tk.get(data, str)).to.equal(newVal);
-            expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
-            expect(result).to.be.true;
-       });
-       
-       it('should NOT create intermediate properties if force is off', function(){
-            var str = 'accounts.1.newPropA.newPropB';
-            var newVal = 'new';
-            var result;
-            tk.setForceOff();
-            result = tk.set(data, str, newVal);
-            expect(tk.get(data, str)).to.be.undefined;
-            expect(result).to.be.false;
-       });
-       
+            it('should modify individual prefixes with setPrefixParent', function(){
+                tk.setPrefixParent('#');
+                expect(tk.get(data, 'accounts.1.checking.~propA')).to.equal(data.propA);
+                expect(tk.get(data, 'accounts.1.checking.#test1')).to.equal(data.accounts[1].test1);
+                expect(tk.get(data, 'accounts.1.checking.<test1')).to.be.undefined;
+            });
+            
+            it('should modify individual prefixes with setPrefixRoot', function(){
+                tk.setPrefixRoot('#');
+                expect(tk.get(data, 'accounts.1.checking.~propA')).to.be.undefined;
+                expect(tk.get(data, 'accounts.1.checking.#propA')).to.equal(data.propA);
+                expect(tk.get(data, 'accounts.1.checking.<test1')).to.equal(data.accounts[1].test1);
+            });
+            
+            it('should modify individual prefixes with setPrefixPlaceholder', function(){
+                tk.setPrefixPlaceholder('#');
+                expect(tk.get(data, 'accounts.1.%1.id', 'checking')).to.be.undefined;
+                expect(tk.get(data, 'accounts.1.#1.id', 'checking')).to.equal(data.accounts[1].checking.id);
+                expect(tk.get(data, 'accounts.1.checking.<test1')).to.equal(data.accounts[1].test1);
+            });
+            
+            it('should modify individual prefixes with setPrefixContext', function(){
+                tk.setPrefixContext('#');
+                expect(tk.get(data, 'accounts.1.@1.0', 'checking')).to.be.undefined;
+                expect(tk.get(data, 'accounts.1.#1.0', 'checking')).to.equal('c');
+                expect(tk.get(data, 'accounts.1.%1.id', 'checking')).to.equal(data.accounts[1].checking.id);
+                expect(tk.get(data, 'accounts.1.checking.<test1')).to.equal(data.accounts[1].test1);
+            });
+            
+        });
+        
+        describe('containers', function(){
+            it('should allow all containers to be changed at once', function(){
+                tk.setOptions({
+                    containers: {
+                        '|': {
+                            exec: 'property',
+                            closer: '|'
+                        }
+                    }
+                });
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
+            });
+            
+            it('should modify individual containers with setContainerProperty', function(){
+                tk.setContainerProperty('|', '|');
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
+            });
+            
+            it('should modify individual containers with setContainerEvalProperty', function(){
+                tk.setContainerEvalProperty('|', '|');
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(data.accounts[1].checking.id);
+                expect(tk.get(data, '{accounts.1.test1}')).to.be.undefined;
+                expect(tk.get(data, '|accounts.1.test1|')).to.equal(data[data.accounts[1].test1]);
+            });
+            
+            it('should modify individual containers with setContainerSinglequote', function(){
+                tk.setContainerSinglequote('|', '|');
+                expect(tk.get(data, 'accounts.\'1\'.checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
+                expect(tk.get(data, 'accounts."1".checking.id')).to.equal(data.accounts[1].checking.id);
+            });
+            
+            it('should modify individual containers with setContainerDoublequote', function(){
+                tk.setContainerDoublequote('|', '|');
+                expect(tk.get(data, 'accounts."1".checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
+                expect(tk.get(data, 'accounts.\'1\'.checking.id')).to.equal(data.accounts[1].checking.id);
+            });
+            
+            it('should modify individual containers with setContainerCall', function(){
+                tk.setContainerCall('|', '|');
+                expect(tk.get(data, 'accounts.0.ary.sort().0')).to.be.undefined;
+                expect(tk.get(data, 'accounts.0.ary.sort||.0')).to.equal(data.accounts[0].ary.sort()[0]);
+                expect(tk.get(data, 'accounts."1".checking.id')).to.equal(data.accounts[1].checking.id);
+            });
+            
+        });
+        
+        describe('errors', function(){
+            it('should throw error when new character is missing', function(){
+                expect(function(){tk.setSeparatorProperty();}).to.throw(/invalid value/);
+                expect(function(){tk.setSeparatorProperty('');}).to.throw(/invalid value/);
+                expect(function(){tk.setSeparatorProperty('..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setSeparatorCollection();}).to.throw(/invalid value/);
+                expect(function(){tk.setSeparatorCollection('');}).to.throw(/invalid value/);
+                expect(function(){tk.setSeparatorCollection('..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setPrefixParent();}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixParent('');}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixParent('..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setPrefixRoot();}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixRoot('');}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixRoot('..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setPrefixPlaceholder();}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixPlaceholder('');}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixPlaceholder('..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setPrefixContext();}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixContext('');}).to.throw(/invalid value/);
+                expect(function(){tk.setPrefixContext('..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setContainerProperty();}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerProperty('','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerProperty('|','');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerProperty('..','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerProperty('|','..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setContainerSinglequote();}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerSinglequote('','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerSinglequote('|','');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerSinglequote('..','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerSinglequote('|','..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setContainerDoublequote();}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerDoublequote('','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerDoublequote('|','');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerDoublequote('..','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerDoublequote('|','..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setContainerCall();}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerCall('','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerCall('|','');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerCall('..','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerCall('|','..');}).to.throw(/invalid value/);
+                
+                expect(function(){tk.setContainerEvalProperty();}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerEvalProperty('','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerEvalProperty('|','');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerEvalProperty('..','|');}).to.throw(/invalid value/);
+                expect(function(){tk.setContainerEvalProperty('|','..');}).to.throw(/invalid value/);
+            });
+            
+            it('should throw error when is in use for another purpose', function(){
+                expect(function(){tk.setSeparatorProperty(',');}).to.throw(/value already in use/);
+                expect(function(){tk.setSeparatorProperty('*');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setSeparatorCollection('.');}).to.throw(/value already in use/);
+                expect(function(){tk.setSeparatorCollection('*');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setPrefixParent('.');}).to.throw(/value already in use/);
+                expect(function(){tk.setPrefixParent('*');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setPrefixRoot('.');}).to.throw(/value already in use/);
+                expect(function(){tk.setPrefixRoot('*');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setPrefixPlaceholder('.');}).to.throw(/value already in use/);
+                expect(function(){tk.setPrefixPlaceholder('*');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setPrefixContext('.');}).to.throw(/value already in use/);
+                expect(function(){tk.setPrefixContext('*');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setContainerProperty('.','|');}).to.throw(/value already in use/);
+                expect(function(){tk.setContainerProperty('*','|');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setContainerSinglequote('.','|');}).to.throw(/value already in use/);
+                expect(function(){tk.setContainerSinglequote('*','|');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setContainerDoublequote('.','|');}).to.throw(/value already in use/);
+                expect(function(){tk.setContainerDoublequote('*','|');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setContainerCall('.','|');}).to.throw(/value already in use/);
+                expect(function(){tk.setContainerCall('*','|');}).to.throw(/value already in use/);
+
+                expect(function(){tk.setContainerEvalProperty('.','|');}).to.throw(/value already in use/);
+                expect(function(){tk.setContainerEvalProperty('*','|');}).to.throw(/value already in use/);
+            });
+        });
     });
 
     describe('clock', function(){
