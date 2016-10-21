@@ -729,12 +729,41 @@ var get = function (obj, path){
 var set = function(obj, path, val){
     var i = 0,
         len = arguments.length,
-        args = len > 3 ? new Array(len - 3) : [],
-        ref;
-    if (len > 3){
-        for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
+        args,
+        ref,
+        done = false;
+        
+        // args = len > 3 ? new Array(len - 3) : [],
+    if (typeof path === 'string' && !simplePathRegEx.test(path)){
+        ref = quickResolveString(obj, path, val);
+        done = true;
     }
-    ref = resolvePath(obj, path, val, args);
+    else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
+        for (i = path.t.length - 1; i >= 0; i--){
+            // Short circuit as soon as we find a copmlex token
+            if (!done && typeof path.t[i] !== 'string'){
+                args = [];
+                if (len > 3){
+                    for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
+                }
+                ref = resolvePath(obj, path, val, args);
+                done = true;
+            }
+        }
+        // We had a token array of simple tokens
+        if (!done){
+            ref = quickResolveArray(obj, path.t, val);
+        }
+    }
+    // Path was (probably) a string and it contained complex path characters
+    else {
+        if (len > 3){
+            args = [];
+            for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
+        }
+        ref = resolvePath(obj, path, val, args);
+    }
+    
     if (Array.isArray(ref)){
         return ref.indexOf(undefined) === -1;
     }

@@ -471,6 +471,21 @@ describe( 'tk', function(){
             var newVal = 'new';
             tk.set(data, str, newVal, key);
             expect(tk.get(data, str, key)).to.equal(newVal);
+            expect(data.accounts[1].checking.id).to.equal(newVal);
+        } );
+
+        it( 'should process pre-processed tokens for both simple and complex paths', function(){
+            var tokens1 = {t:['accounts','1','checking','id']};
+            var newVal = 'new';
+            tk.set(data, tokens1, newVal);
+            expect(tk.get(data, tokens1)).to.equal(newVal);
+            expect(data.accounts[1].checking.id).to.equal(newVal);
+            var key = 'checking';
+            var tokens2 = {"t":["accounts","1",{"w":"1","mods":{"has":true,"placeholder":1}},"id"]};
+            var newVal2 = 'new2';
+            tk.set(data, tokens2, newVal2, key);
+            expect(tk.get(data, tokens2, key)).to.equal(newVal2);
+            expect(data.accounts[1].checking.id).to.equal(newVal2);
         } );
     });
 
@@ -671,15 +686,24 @@ describe( 'tk', function(){
                 var newVal = 'new';
                 var result;
                 tk.setOptions({force:true});
+                
                 result = tk.set(data, str, newVal);
                 expect(tk.get(data, str)).to.equal(newVal);
                 expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
                 expect(result).to.be.true;
                 
-                str = 'accounts.1["new.PropA"]newPropB';
-                result = tk.set(data, str, newVal);
-                expect(tk.get(data, str)).to.equal(newVal);
-                expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
+                str = 'accounts.1["new.PropC"]newPropD';
+                var newVal2 = 'new2';
+                result = tk.set(data, str, newVal2);
+                expect(tk.get(data, str)).to.equal(newVal2);
+                expect(data.accounts[1]['new.PropC'].newPropD).to.equal(newVal2);
+                expect(result).to.be.true;
+                
+                var tokens = {t:['accounts','1','newPropE','newPropF']};
+                var newVal3 = 'new3';
+                result = tk.set(data, tokens, newVal3);
+                expect(tk.get(data, tokens)).to.equal(newVal3);
+                expect(data.accounts[1].newPropE.newPropF).to.equal(newVal3);
                 expect(result).to.be.true;
            });
            
