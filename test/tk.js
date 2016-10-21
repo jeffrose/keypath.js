@@ -61,7 +61,7 @@ describe( 'tk', function(){
     });
 
 
-    describe( 'disable', function(){
+    // xdescribe( 'disable', function(){
     describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -540,11 +540,7 @@ describe( 'tk', function(){
             expect(tk.isValid('accounts.1.test2')).to.be.true;
             expect(tk.isValid('accounts.{1.test2')).to.be.false;
             expect(tk.isValid('accounts(.test2')).to.be.false;
-            console.log('isValid:', tk.isValid('accounts{{a()},{b.c,d}}'));
-            console.log('tokens:', tk.getTokens('accounts{{a()},{b.c,d}}'));
             expect(tk.isValid('accounts{{a()},{b.c,d}}')).to.be.true;
-            console.log('isValid:', tk.isValid('accounts{{a(),{b.c,d}}'));
-            console.log('tokens:', tk.getTokens('accounts{{a(),{b.c,d}}'));
             expect(tk.isValid('accounts{{a(),{b.c,d}}')).to.be.false;
         });
     });
@@ -1155,52 +1151,9 @@ describe( 'tk', function(){
         });
 
     });
-    });
+    // });
 
-    xdescribe( 'debug', function(){
-        it('requires setCache true/false to work for testing', function(){
-            var path = 'x.y.z';
-            var tokens1 = tk.getTokens(path);
-            var tokens2 = tk.getTokens(path);
-            expect(tokens1.t === tokens2.t).to.be.true;
-            tk.setCacheOff();
-            var tokens3 = tk.getTokens(path);
-            expect(tokens1.t === tokens3.t).to.be.false;
-            tk.setCacheOn();
-            var tokens4 = tk.getTokens(path);
-            expect(tokens1.t === tokens4.t).to.be.true;
-        });
-        // beforeEach(function(){
-        //     tk.setCache(false);
-        // });
-        // afterEach(function(){
-        //     tk.setCache(true);
-        // });
-        // it('should allow options to be changed and then reset to defaults, required for future unit tests', function(){
-        //     tk.setCache(false);
-        //     expect(tk.getTokens('a.b.c').t.length).to.equal(3);
-        //     tk.setOptions({
-        //         'separators': {
-        //             '#': {
-        //                 'exec': 'property'
-        //             }
-        //         }
-        //     });
-        //     expect(tk.getTokens('a.b.c').t.length).to.equal(1);
-        //     expect(tk.getTokens('a#b#c').t.length).to.equal(3);
-            
-        //     tk.resetOptions();
-        //     expect(tk.getTokens('a.b.c').t.length).to.equal(3);
-        //     expect(tk.getTokens('a#b#c').t.length).to.equal(1);
-        
-        // });
-        // it('should allow the property separator to be changed', function(){
-        //     tk.setSeparatorProperty('#');
-        //     console.log(tk.getTokens('a.b.c'));
-        //     console.log(tk.getTokens('a#b#c'));
-        //     expect(tk.getTokens('a.b.c').t.length).to.equal(1);
-        //     expect(tk.getTokens('a#b#c').t.length).to.equal(3);
-        // });
-    });
+    // describe( 'debug', function(){
+    // });
 
 } );
