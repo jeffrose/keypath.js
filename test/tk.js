@@ -753,6 +753,117 @@ describe( 'tk', function(){
            
         });
         
+        describe('simple', function(){
+           it('"true" should still process simple dot-separated string paths', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                tk.setOptions({simple:true});
+                
+                expect(tk.get(data, str)).to.equal(val);
+           });
+           
+           it('"true" should disable use of other special characters', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setOptions({simple:true});
+                
+                expect(tk.get(data, 'accounts.1.checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should work with setSimpleOn()', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimpleOn();
+                
+                expect(tk.get(data, 'accounts.1.checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should be able to declare a different separator with setSimpleOn(separator)', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimpleOn(',');
+                
+                expect(tk.get(data, 'accounts,1,checking,id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should work with setSimple(true)', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimple(true);
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should be able to declare a different separator with setSimple(true, separator)', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimple(true, ',');
+                
+                expect(tk.get(data, 'accounts,1,checking,id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('"false" should restore full suite of path features', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimpleOn();
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+                
+                tk.setSimpleOff();
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimple(true);
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+                
+                tk.setSimple(false);
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setOptions({simple:true});
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+                
+                tk.setOptions({simple:false});
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+           });
+        });
+        
         describe('separators', function(){
             it('should allow all separators to be changed at once', function(){
                 tk.setOptions({

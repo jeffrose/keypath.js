@@ -11,7 +11,7 @@ var WILDCARD = '*';
 var cache = {};
 
 var useCache, // cache tokenized paths for repeated use
-    advanced, // not yet implemented
+    simple, // not yet implemented
     force;    // create intermediate properties during `set` operation
 
 var prefixes,
@@ -69,7 +69,7 @@ var updateRegEx = function(){
 var setDefaultOptions = function(){
     // Default settings
     useCache = true;  // cache tokenized paths for repeated use
-    // advanced = false; // not yet implemented
+    simple = false;   // only support dot-separated paths, no other special characters
     force = false;    // create intermediate properties during `set` operation
 
     // Default prefix special characters
@@ -423,31 +423,6 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         prop = '',
         callArgs;
 
-    // if (typeof path === 'string' && !simplePathRegEx.test(path)){
-    //     tk = path.split(propertySeparator);
-    //     tkLength = tk.length;
-    //     while (prev !== UNDEF && i < tkLength){
-    //         if (tk[i] === ''){ return undefined; }
-    //         else if (change){
-    //             if (i === tkLength - 1){
-    //                 prev[tk[i]] = newValue;
-    //             }
-    //             // For arrays, test current context against undefined to avoid parsing this segment as a number.
-    //             // For anything else, use hasOwnProperty.
-    //             else if (force && (prev.constructor === Array ? prev[tk[i]] !== UNDEF : !prev.hasOwnProperty(tk[i]))) {
-    //                 prev[tk[i]] = {};
-    //             }
-    //         }
-    //         prev = prev[tk[i]];
-    //         i++;
-    //     }
-    //     return prev;
-    // }
-
-
-    // Either a full token set was provided or else the path includes
-    // some special characters and must be evaluated more carefully.
-    // tk = typeof path === 'string' ? tokenize(path) : path.t ? path.t : [path];
     if (typeof path === 'string'){
         if (useCache && cache[path]) { tk = cache[path]; }
         else {
@@ -629,7 +604,7 @@ var quickResolveString = function(obj, path, newValue){
     return obj;
 };
 
-var quickResolveArray = function(obj, tk, newValue){
+var quickResolveTokenArray = function(obj, tk, newValue){
     var change = newValue !== UNDEF,
         i = 0,
         tkLength = tk.length;
@@ -714,7 +689,7 @@ export var get = function (obj, path){
                 return resolvePath(obj, path, undefined, args);
             }
         }
-        return quickResolveArray(obj, path.t);
+        return quickResolveTokenArray(obj, path.t);
     }
     args = [];
     if (len > 2){
@@ -749,7 +724,7 @@ export var set = function(obj, path, val){
         }
         // We had a token array of simple tokens
         if (!done){
-            ref = quickResolveArray(obj, path.t, val);
+            ref = quickResolveTokenArray(obj, path.t, val);
         }
     }
     // Path was (probably) a string and it contained complex path characters
@@ -781,6 +756,16 @@ export var find = function(obj, val, oneOrMany){
     return retVal[0] ? retVal : undefined;
 };
 
+var updateOptionChar = function(optionGroup, charType, val, closer){
+    var path = find(optionGroup, charType);
+    var oldVal = path.substr(0,1);
+
+    delete optionGroup[oldVal];
+    optionGroup[val] = {exec: charType};
+    if (closer){ optionGroup[val].closer = closer; }
+    updateRegEx();
+};
+
 export var setOptions = function(options){
     if (options.prefixes){
         prefixes = options.prefixes;
@@ -794,13 +779,37 @@ export var setOptions = function(options){
     if (typeof options.cache !== 'undefined'){
         useCache = !!options.cache;
     }
-    // if (typeof options.advanced !== 'undefined'){
-    //     advanced = !!options.advanced;
-    // }
+    if (typeof options.simple !== 'undefined'){
+        var tempCache = cache; // preserve these two options after "setDefaultOptions"
+        var tempForce = force;
+        
+        simple = !!options.simple;
+        if (simple){
+            setSimpleOptions();
+        }
+        else {
+            setDefaultOptions();
+            cache = tempCache;
+            force = tempForce;
+        }
+    }
     if (typeof options.force !== 'undefined'){
         force = !!options.force;
     }
     updateRegEx();
+};
+
+var setSimpleOptions = function(sep){
+    var sepOpts = {};
+    if (!(typeof sep === 'string' && sep.length === 1)){
+        sep = '.';
+    }
+    sepOpts[sep] = {exec: 'property'};
+    setOptions({
+        prefixes: {},
+        containers: {},
+        separators: sepOpts
+    });
 };
 
 export var setCache = function(val){
@@ -823,14 +832,32 @@ export var setForceOff = function(){
     force = false;
 };
 
-var updateOptionChar = function(optionGroup, charType, val, closer){
-    var path = find(optionGroup, charType);
-    var oldVal = path.substr(0,1);
-
-    delete optionGroup[oldVal];
-    optionGroup[val] = {exec: charType};
-    if (closer){ optionGroup[val].closer = closer; }
+export var setSimple = function(val, sep){
+    var tempCache = cache; // preserve these two options after "setDefaultOptions"
+    var tempForce = force;
+    simple = truthify(val);
+    if (simple){
+        setSimpleOptions(sep);
+        updateRegEx();
+    }
+    else {
+        setDefaultOptions();
+        cache = tempCache;
+        force = tempForce;
+    }
+};
+export var setSimpleOn = function(sep){
+    simple = true;
+    setSimpleOptions(sep);
     updateRegEx();
+};
+export var setSimpleOff = function(){
+    var tempCache = cache; // preserve these two options after "setDefaultOptions"
+    var tempForce = force;
+    simple = false;
+    setDefaultOptions();
+    cache = tempCache;
+    force = tempForce;
 };
 
 export var setSeparatorProperty = function(val){
