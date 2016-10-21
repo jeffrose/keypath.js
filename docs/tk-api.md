@@ -158,9 +158,9 @@ var result1 = tk.set(obj, path, newVal);
 var result2 = tk.set(obj, path, newVal, arg1, arg2,..., argN);
 ```
 
-Any property specified in a keypath may be set to a new value. The set function returns the newValue if the set was successful, `undefined` if not. By default, only the final property in the keypath may be set - any intermediate properties must be defined and valid or `set` will fail. The final property does not need to exist prior to `set`, it will be created if necessary. This behavior is equivalent to setting an object property in plain javascript code.
+Any property specified in a keypath may be set to a new value. The set function returns `true` if the set was successful, `false` if not. By default, only the final property in the keypath may be set - any intermediate properties must be defined and valid or `set` will fail. The final property does not need to exist prior to `set`, it will be created if necessary. This behavior is equivalent to setting an object property in plain javascript code.
 
-This behavior may be changed using `setOptions` (see below), by setting the option "force" to `true`: `tk.setOptions({force:true});` The "force" option will only change `set` behavior for simple dot-separated paths. The use of other mechanisms such as collections, indirect properties, etc. will prevent `set` from succeeding due to the difficulty in guessing how and what properties to create in some advanced scenarios. **Note:** If an intermediate value must be created, it will **always** be created as a plain object, never an array, even if the following path segment is an integer. Since all paths are Strings, it is impossible to guess whether the path segment "12345" is the integer 12,345 or the ZIP code "12345", for example, and it could be computationally expensive to create an array with only one defined index when that index is a very high number. Therefore, be aware that when "force" is enabled, the target object may have objects within in places where arrays are expected. If this is a risk in the program, it would be best to initialize these values before calling `set` or else leave "force" set to `false`.
+This behavior may be changed using `setOptions` (see below), by enabling the "force" option (`tk.setForceOn();`, see "Options" below). The "force" option will only change `set` behavior for simple dot-separated paths. The use of other mechanisms such as collections, indirect properties, etc. will prevent `set` from succeeding due to the difficulty in guessing how and what properties to create in some advanced scenarios. **Note:** If an intermediate value must be created, it will **always** be created as a plain object, never an array, even if the following path segment is an integer. Since all paths are Strings, it is impossible to guess whether the path segment "12345" is the integer 12,345 or the ZIP code "12345", for example, and it could be computationally expensive to create an array with only one defined index when that index is a very high number. Therefore, be aware that when "force" is enabled, the target object may acquire objects within in places where arrays are expected. If this is a risk in the program, it would be best to initialize these values before calling `set` or else leave "force" set to `false`.
 ```javascript
 var data = {
     'foo': {}
@@ -319,7 +319,7 @@ This option dictates whether the `set` function will create intermediate propert
 #### setSimple, setSimpleOn/Off
 ```javascript
 tk.setSimple(true, separator);  // Enables simple path syntax. Also accepts 'on', 'yes', 'true'; not case-sensitive.
-                     // Any non-string value that javascript considers "truthy" will enable this option.
+                                // Any non-string value that javascript considers "truthy" will enable this option.
 tk.setSimple(false); // Disables simple path syntax. Any non-string value considered "falsy" will disable.
                      // SEE NOTE BELOW
 
@@ -396,7 +396,7 @@ Throws error if: argument is missing or empty string; argument is more than one 
 ```javascript
 tk.setContainerSinglequote('|', '|'); // "one['two']three" -> "one[|two|]three"
 ```
-Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
+Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d"). For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
 Both areguments are **required**.
 
