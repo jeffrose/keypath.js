@@ -12,10 +12,9 @@ var tk = new PathToolkit();
 
 // tk.setOptions({cache:false});
 
-describe( 'tk', function(){
+describe( 'PathToolkit', function(){
     var data, other;
 
-            // var str2 = 'accounts.1.{~accounts.3.propAry.0}';
     beforeEach(function(){
         data = {
             'undef': undefined,
@@ -62,6 +61,13 @@ describe( 'tk', function(){
 
     });
 
+    it('should be the PathToolkit prototype', function () {
+        expect(PathToolkit).to.be.a.function;
+    });
+
+    it('should provide instances with "new"', function () {
+        expect(new PathToolkit()).to.be.an.instanceOf(PathToolkit);
+    });
 
     // xdescribe( 'disable', function(){
     describe( 'get', function(){
@@ -1081,6 +1087,22 @@ describe( 'tk', function(){
 
                 expect(function(){tk.setContainerEvalProperty('.','|');}).to.throw(/value already in use/);
                 expect(function(){tk.setContainerEvalProperty('*','|');}).to.throw(/value already in use/);
+            });
+        });
+
+        describe('PathToolkit constructor', function () {
+            it('should take options as an argument', function () {
+                var localTk = new PathToolkit({
+                    separators:{
+                        '#': {exec:'property'}
+                    },
+                    containers: {}
+                });
+                expect(localTk.getTokens('a.b.c').t.length).to.equal(1);
+                expect(localTk.getTokens('a#b#c').t.length).to.equal(3);
+                expect(localTk.getTokens('a#b#c()').t.length).to.equal(3);
+                expect(localTk.getTokens('a#b#c()#~d').t.length).to.equal(4);
+                expect(localTk.getTokens('a#b#c()#~d').t[3]).not.to.be.a.string;
             });
         });
     });

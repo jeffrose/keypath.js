@@ -1,7 +1,8 @@
 'use strict';
 
 var KeyPathExp = require( '../dist/keypath-umd' ),
-    tk = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/tk-umd' ),
+    tk = new PathToolkit(),
     
     path = '["foo","bar"]["qux"]["baz"]',
     data = {

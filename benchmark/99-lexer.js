@@ -2,7 +2,8 @@
 
 var esprima = require( 'esprima' ),
     Lexer = require( '../dist/lexer-umd' ),
-    tk = require('../dist/tk-umd'),
+    PathToolkit = require( '../dist/tk-umd' ),
+    tk = new PathToolkit(),
     
     lexer = new Lexer(),
     

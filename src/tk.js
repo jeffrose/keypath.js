@@ -648,10 +648,8 @@ var PathToolkit = function(options){
     this._.cache = {};
 
     // Initialize option set
-    console.log('setting defaults...', this);
     setDefaultOptions(this);
     updateRegEx(this);
-    console.log('done!');
 
     // Apply custom options
     options && this.setOptions(options);

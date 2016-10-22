@@ -1,7 +1,8 @@
 'use strict';
 
 var kp = require( '../dist/kp-umd' ),
-    tk = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/tk-umd' ),
+    tk = new PathToolkit(),
     
     path = '[1,2][1][0]',
     data = [
