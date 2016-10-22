@@ -7,53 +7,37 @@
 // Parsing, tokeninzing, etc
 // Some constants for convenience
 var UNDEF = (function(u){return u;})();
-var WILDCARD = '*';
 
-// var useCache, // cache tokenized paths for repeated use
-//     simple, // not yet implemented
-//     force;    // create intermediate properties during `set` operation
-
-// var prefixes,
-//     separators,
-//     containers;
-
-// // Lists of special characters for use in regular expressions
-// var prefixList,
-//     propertySeparator,
-//     separatorList,
-//     containerList,
-//     containerCloseList;
-
-// // Find all special characters except property separator (. by default)
-// var simplePathChars;
-// var simplePathRegEx;
-
-// // Find all special characters, including backslash
-// var allSpecials;
-// var allSpecialsRegEx;
-
-// // Find all escaped special characters
-// var escapedSpecialsRegEx;
-// // Find all escaped non-special characters, i.e. unnecessary escapes
-// var escapedNonSpecialsRegEx;
-
-// // Find wildcard character
-// var wildcardRegEx;
+// Static strings, assigned to aid code minification
+var $WILDCARD     = '*';
+var $UNDEFINED    = 'undefined';
+var $STRING       = 'string';
+var $PARENT       = 'parent';
+var $ROOT         = 'root';
+var $PLACEHOLDER  = 'placeholder';
+var $CONTEXT      = 'context';
+var $PROPERTY     = 'property';
+var $COLLECTION   = 'collection';
+var $SINGLEQUOTE  = 'singlequote';
+var $DOUBLEQUOTE  = 'doublequote';
+var $CALL         = 'call';
+var $EVALPROPERTY = 'evalProperty';
+    
 
 var updateRegEx = function(_this){
     // Lists of special characters for use in regular expressions
     _this._.prefixList = Object.keys(_this._.opt.prefixes);
-    _this._.propertySeparator = _this.find(_this._.opt.separators, 'property').substr(0,1);
+    _this._.propertySeparator = _this.find(_this._.opt.separators, $PROPERTY).substr(0,1);
     _this._.separatorList = Object.keys(_this._.opt.separators);
     _this._.containerList = Object.keys(_this._.opt.containers);
     _this._.containerCloseList = _this._.containerList.map(function(key){ return _this._.opt.containers[key].closer; });
     
     // Find all special characters except property separator (. by default)
-    _this._.simplePathChars = '[\\\\' + [WILDCARD].concat(_this._.prefixList).concat(_this._.separatorList).concat(_this._.containerList).join('\\').replace('\\'+_this._.propertySeparator, '') + ']';
+    _this._.simplePathChars = '[\\\\' + [$WILDCARD].concat(_this._.prefixList).concat(_this._.separatorList).concat(_this._.containerList).join('\\').replace('\\'+_this._.propertySeparator, '') + ']';
     _this._.simplePathRegEx = new RegExp(_this._.simplePathChars);
     
     // Find all special characters, including backslash
-    _this._.allSpecials = '[\\\\\\' + [WILDCARD].concat(_this._.prefixList).concat(_this._.separatorList).concat(_this._.containerList).concat(_this._.containerCloseList).join('\\') + ']';
+    _this._.allSpecials = '[\\\\\\' + [$WILDCARD].concat(_this._.prefixList).concat(_this._.separatorList).concat(_this._.containerList).concat(_this._.containerCloseList).join('\\') + ']';
     _this._.allSpecialsRegEx = new RegExp(_this._.allSpecials, 'g');
     
     // Find all escaped special characters
@@ -62,7 +46,7 @@ var updateRegEx = function(_this){
     _this._.escapedNonSpecialsRegEx = new RegExp('\\'+_this._.allSpecials.replace(/^\[/,'[^'));
     
     // Find wildcard character
-    _this._.wildcardRegEx = new RegExp('\\'+WILDCARD);
+    _this._.wildcardRegEx = new RegExp('\\'+$WILDCARD);
 };
 
 var setDefaultOptions = function(_this){
@@ -75,48 +59,48 @@ var setDefaultOptions = function(_this){
     // Default prefix special characters
     _this._.opt.prefixes = {
         '<': {
-            'exec': 'parent'
+            'exec': $PARENT
         },
         '~': {
-            'exec': 'root'
+            'exec': $ROOT
         },
         '%': {
-            'exec': 'placeholder'
+            'exec': $PLACEHOLDER
         },
         '@': {
-            'exec': 'context'
+            'exec': $CONTEXT
         }
     };
     // Default separator special characters
     _this._.opt.separators = {
         '.': {
-            'exec': 'property'
+            'exec': $PROPERTY
             },
         ',': {
-            'exec': 'collection'
+            'exec': $COLLECTION
             }
     };
     // Default container special characters
     _this._.opt.containers = {
         '[': {
             'closer': ']',
-            'exec': 'property'
+            'exec': $PROPERTY
             },
         '\'': {
             'closer': '\'',
-            'exec': 'singlequote'
+            'exec': $SINGLEQUOTE
             },
         '"': {
             'closer': '"',
-            'exec': 'doublequote'
+            'exec': $DOUBLEQUOTE
             },
         '(': {
             'closer': ')',
-            'exec': 'call'
+            'exec': $CALL
             },
         '{': {
             'closer': '}',
-            'exec': 'evalProperty'
+            'exec': $EVALPROPERTY
             }
     };
     // updateRegEx(_this);
@@ -141,8 +125,8 @@ var setDefaultOptions = function(_this){
  * @return {Boolean}          True if pattern matches string; False if not
  */
 var wildCardMatch = function(template, str){
-    var pos = template.indexOf(WILDCARD),
-        parts = template.split(WILDCARD, 2),
+    var pos = template.indexOf($WILDCARD),
+        parts = template.split($WILDCARD, 2),
         match = true;
     if (parts[0]){
         // If no wildcard present, return simple string comparison
@@ -168,7 +152,7 @@ var wildCardMatch = function(template, str){
  * @return {Boolean}     True if thing is of type "object" or "function"
  */
 var isObject = function(val){
-    if (typeof val === 'undefined' || val === null) { return false;}
+    if (typeof val === $UNDEFINED || val === null) { return false;}
     return ( (typeof val === 'function') || (typeof val === 'object') );
 };
 
@@ -181,7 +165,7 @@ var isObject = function(val){
  */
 var truthify = function(val){
     var v;
-    if (typeof val !== 'string'){
+    if (typeof val !== $STRING){
         return val && true; // Use native javascript notion of "truthy"
     }
     v = val.toUpperCase();
@@ -227,7 +211,7 @@ var tokenize = function (_this, str){
     path = str.replace(_this._.escapedNonSpecialsRegEx, '$&'.substr(1));
     pathLength = path.length;
 
-    if (typeof str === 'string' && !_this._.simplePathRegEx.test(str)){
+    if (typeof str === $STRING && !_this._.simplePathRegEx.test(str)){
         tokens = path.split(_this._.propertySeparator);
         _this._.opt.useCache && (_this._.cache[str] = tokens);
         return tokens;
@@ -242,7 +226,7 @@ var tokenize = function (_this, str){
             i++;
         }
         // If a wildcard character is found, mark this token as having a wildcard
-        if (path[i] === WILDCARD) {
+        if (path[i] === $WILDCARD) {
             hasWildcard = true;
         }
         // If we have already processed a container opener, treat this subpath specially
@@ -262,7 +246,7 @@ var tokenize = function (_this, str){
             // When we close off the container, time to process the subpath and add results to our tokens
             else {
                 // Handle subpath "[bar]" in foo.[bar],[baz] - we must process subpath and create a new collection
-                if (i+1 < pathLength && _this._.opt.separators[path[i+1]] && _this._.opt.separators[path[i+1]].exec === 'collection'){
+                if (i+1 < pathLength && _this._.opt.separators[path[i+1]] && _this._.opt.separators[path[i+1]].exec === $COLLECTION){
                     recur = tokenize(_this, subpath);
                     if (recur === UNDEF){ return undefined; }
                     collection.push({'t':recur, 'exec': closer.exec});
@@ -276,13 +260,13 @@ var tokenize = function (_this, str){
                     collection = [];
                 }
                 // Simple property container is equivalent to dot-separated token. Just add this token to tokens.
-                else if (closer.exec === 'property'){
+                else if (closer.exec === $PROPERTY){
                     recur = tokenize(_this, subpath);
                     if (recur === UNDEF){ return undefined; }
                     tokens = tokens.concat(recur);
                 }
                 // Quoted subpath is all taken literally without token evaluation. Just add subpath to tokens as-is.
-                else if (closer.exec === 'singlequote' || closer.exec === 'doublequote'){
+                else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
                     tokens.push(subpath);
                 }
                 // Otherwise, create token object to hold tokenized subpath, add to tokens.
@@ -318,7 +302,7 @@ var tokenize = function (_this, str){
                 mods = {};
             }
             // word is a plain property or end of collection
-            if (separator.exec === 'property'){
+            if (separator.exec === $PROPERTY){
                 // we are gathering a collection, so add last word to collection and then store
                 if (collection[0] !== UNDEF){
                     word && collection.push(word);
@@ -331,7 +315,7 @@ var tokenize = function (_this, str){
                 }
             }
             // word is a collection
-            else if (separator.exec === 'collection'){
+            else if (separator.exec === $COLLECTION){
                 word && collection.push(word);
             }
             word = ''; // reset
@@ -424,7 +408,7 @@ var resolvePath = function (_this, obj, path, newValue, args, valueStack){
         prop = '',
         callArgs;
 
-    if (typeof path === 'string'){
+    if (typeof path === $STRING){
         if (_this._.opt.useCache && _this._.cache[path]) { tk = _this._.cache[path]; }
         else {
             tk = tokenize(_this, path);
@@ -439,7 +423,7 @@ var resolvePath = function (_this, obj, path, newValue, args, valueStack){
     if (tkLength === 0) { return undefined; }
     tkLastIdx = tkLength - 1;
 
-    // if (typeof valueStack === 'undefined'){
+    // if (typeof valueStack === $UNDEFINED){
     if (valueStack){
         valueStackLength = valueStack.length;
     }
@@ -454,13 +438,13 @@ var resolvePath = function (_this, obj, path, newValue, args, valueStack){
         newValueHere = (change && (idx === tkLastIdx));
 
         // Handle most common simple path scenario first
-        if (typeof curr === 'string'){
+        if (typeof curr === $STRING){
             if (change){
                 if (newValueHere){
                     context[curr] = newValue;
                     if (context[curr] !== newValue){ return undefined; } // new value failed to set
                 }
-                else if (_this._.opt.force && (prev.constructor === Array ? context[curr] !== UNDEF : !context.hasOwnProperty(curr))) {
+                else if (_this._.opt.force && (Array.isArray(prev) ? context[curr] !== UNDEF : !context.hasOwnProperty(curr))) {
                     context[curr] = {};
                 }
             }
@@ -470,7 +454,7 @@ var resolvePath = function (_this, obj, path, newValue, args, valueStack){
             if (curr === UNDEF){
                 ret = undefined;
             }
-            else if (Array.isArray(curr.constructor)){
+            else if (Array.isArray(curr)){
                 // call resolvePath again with base value as evaluated value so far and
                 // each element of array as the path. Concat all the results together.
                 ret = [];
@@ -480,14 +464,14 @@ var resolvePath = function (_this, obj, path, newValue, args, valueStack){
                     if (contextProp === UNDEF) { return undefined; }
 
                     if (newValueHere){
-                        if (curr[i].t && curr[i].exec === 'evalProperty'){
+                        if (curr[i].t && curr[i].exec === $EVALPROPERTY){
                             context[contextProp] = newValue;
                         } else {
                             ret = ret.concat(contextProp);
                         }
                     }
                     else {
-                        if (curr[i].t && curr[i].exec === 'evalProperty'){
+                        if (curr[i].t && curr[i].exec === $EVALPROPERTY){
                             ret = ret.concat(context[contextProp]);
                         } else {
                             ret = ret.concat(contextProp);
@@ -546,13 +530,13 @@ var resolvePath = function (_this, obj, path, newValue, args, valueStack){
                     else { return undefined; }
                 }
             }
-            else if (curr.exec === 'evalProperty'){
+            else if (curr.exec === $EVALPROPERTY){
                 if (newValueHere){
                     context[resolvePath(_this, context, curr, UNDEF, args, valueStack.slice())] = newValue;
                 }
                 ret = context[resolvePath(_this, context, curr, UNDEF, args, valueStack.slice())];
             }
-            else if (curr.exec === 'call'){
+            else if (curr.exec === $CALL){
                 // If function call has arguments, process those arguments as a new path
                 if (curr.t && curr.t.length){
                     callArgs = resolvePath(_this, context, curr, UNDEF, args);
@@ -596,7 +580,7 @@ var quickResolveString = function(_this, obj, path, newValue){
             }
             // For arrays, test current context against undefined to avoid parsing this segment as a number.
             // For anything else, use hasOwnProperty.
-            else if (_this._.opt.force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+            else if (_this._.opt.force && (Array.isArray(obj) ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
                 obj[tk[i]] = {};
             }
         }
@@ -618,7 +602,7 @@ var quickResolveTokenArray = function(_this, obj, tk, newValue){
             }
             // For arrays, test current context against undefined to avoid parsing this segment as a number.
             // For anything else, use hasOwnProperty.
-            else if (_this._.opt.force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+            else if (_this._.opt.force && (Array.isArray(obj) ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
                 obj[tk[i]] = {};
             }
         }
@@ -677,16 +661,14 @@ var PathToolkit = function(options){
     options && this.setOptions(options);
 };
 
-// PathToolkit.prototype.constructor = PathToolkit;
-
 PathToolkit.prototype.getTokens = function(path){
     var tokens = tokenize(this, path);
-    if (typeof tokens === 'undefined'){ return undefined; }
+    if (typeof tokens === $UNDEFINED){ return undefined; }
     return {t: tokens};
 };
 
 PathToolkit.prototype.isValid = function(path){
-    return typeof tokenize(this, path) !== 'undefined';
+    return typeof tokenize(this, path) !== $UNDEFINED;
 };
 
 PathToolkit.prototype.escape = function(path){
@@ -697,12 +679,12 @@ PathToolkit.prototype.get = function (obj, path){
     var i = 0,
         len = arguments.length,
         args;
-    if (typeof path === 'string' && !this._.simplePathRegEx.test(path)){
+    if (typeof path === $STRING && !this._.simplePathRegEx.test(path)){
         return quickResolveString(this, obj, path);
     }
     else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
         for (i = path.t.length - 1; i >= 0; i--){
-            if (typeof path.t[i] !== 'string'){
+            if (typeof path.t[i] !== $STRING){
                 args = [];
                 if (len > 2){
                     for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
@@ -727,14 +709,14 @@ PathToolkit.prototype.set = function(obj, path, val){
         done = false;
         
         // args = len > 3 ? new Array(len - 3) : [],
-    if (typeof path === 'string' && !this._.simplePathRegEx.test(path)){
+    if (typeof path === $STRING && !this._.simplePathRegEx.test(path)){
         ref = quickResolveString(this, obj, path, val);
         done = true;
     }
     else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
         for (i = path.t.length - 1; i >= 0; i--){
             // Short circuit as soon as we find a copmlex token
-            if (!done && typeof path.t[i] !== 'string'){
+            if (!done && typeof path.t[i] !== $STRING){
                 args = [];
                 if (len > 3){
                     for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
@@ -788,10 +770,10 @@ var updateOptionChar = function(_this, optionGroup, charType, val, closer){
 
 var setSimpleOptions = function(_this, sep){
     var sepOpts = {};
-    if (!(typeof sep === 'string' && sep.length === 1)){
+    if (!(typeof sep === $STRING && sep.length === 1)){
         sep = '.';
     }
-    sepOpts[sep] = {exec: 'property'};
+    sepOpts[sep] = {exec: $PROPERTY};
     _this._.opt.prefixes = {};
     _this._.opt.containers = {};
     _this._.opt.separators = sepOpts;
@@ -807,10 +789,10 @@ PathToolkit.prototype.setOptions = function(options){
     if (options.containers){
         this._.opt.containers = options.containers;
     }
-    if (typeof options.cache !== 'undefined'){
+    if (typeof options.cache !== $UNDEFINED){
         this._.opt.useCache = !!options.cache;
     }
-    if (typeof options.simple !== 'undefined'){
+    if (typeof options.simple !== $UNDEFINED){
         var tempCache = this._.opt.useCache; // preserve these two options after "setDefaultOptions"
         var tempForce = this._.opt.force;
         
@@ -824,7 +806,7 @@ PathToolkit.prototype.setOptions = function(options){
             this._.opt.force = tempForce;
         }
     }
-    if (typeof options.force !== 'undefined'){
+    if (typeof options.force !== $UNDEFINED){
         this._.opt.force = truthify(options.force);
     }
     updateRegEx(this);
@@ -881,9 +863,9 @@ PathToolkit.prototype.setSimpleOff = function(){
 };
 
 PathToolkit.prototype.setSeparatorProperty = function(val){
-    if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === 'property') && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
-            updateOptionChar(this, this._.opt.separators, 'property', val);
+    if (typeof val === $STRING && val.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === $PROPERTY) && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.separators, $PROPERTY, val);
             updateRegEx(this);
         }
         else {
@@ -896,9 +878,9 @@ PathToolkit.prototype.setSeparatorProperty = function(val){
 };
 
 PathToolkit.prototype.setSeparatorCollection = function(val){
-    if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === 'collection') && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
-            updateOptionChar(this, this._.opt.separators, 'collection', val);
+    if (typeof val === $STRING && val.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === $COLLECTION) && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.separators, $COLLECTION, val);
             updateRegEx(this);
         }
         else {
@@ -911,9 +893,9 @@ PathToolkit.prototype.setSeparatorCollection = function(val){
 };
 
 PathToolkit.prototype.setPrefixParent = function(val){
-    if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'parent') && !(this._.opt.separators[val] || this._.opt.containers[val])){
-            updateOptionChar(this, this._.opt.prefixes, 'parent', val);
+    if (typeof val === $STRING && val.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $PARENT) && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, $PARENT, val);
             updateRegEx(this);
         }
         else {
@@ -926,9 +908,9 @@ PathToolkit.prototype.setPrefixParent = function(val){
 };
 
 PathToolkit.prototype.setPrefixRoot = function(val){
-    if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'root') && !(this._.opt.separators[val] || this._.opt.containers[val])){
-            updateOptionChar(this, this._.opt.prefixes, 'root', val);
+    if (typeof val === $STRING && val.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $ROOT) && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, $ROOT, val);
             updateRegEx(this);
         }
         else {
@@ -941,9 +923,9 @@ PathToolkit.prototype.setPrefixRoot = function(val){
 };
 
 PathToolkit.prototype.setPrefixPlaceholder = function(val){
-    if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'placeholder') && !(this._.opt.separators[val] || this._.opt.containers[val])){
-            updateOptionChar(this, this._.opt.prefixes, 'placeholder', val);
+    if (typeof val === $STRING && val.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $PLACEHOLDER) && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, $PLACEHOLDER, val);
             updateRegEx(this);
         }
         else {
@@ -956,9 +938,9 @@ PathToolkit.prototype.setPrefixPlaceholder = function(val){
 };
 
 PathToolkit.prototype.setPrefixContext = function(val){
-    if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'context') && !(this._.opt.separators[val] || this._.opt.containers[val])){
-            updateOptionChar(this, this._.opt.prefixes, 'context', val);
+    if (typeof val === $STRING && val.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $CONTEXT) && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, $CONTEXT, val);
             updateRegEx(this);
         }
         else {
@@ -971,9 +953,9 @@ PathToolkit.prototype.setPrefixContext = function(val){
 };
 
 PathToolkit.prototype.setContainerProperty = function(val, closer){
-    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'property') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
-            updateOptionChar(this, this._.opt.containers, 'property', val, closer);
+    if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $PROPERTY) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, $PROPERTY, val, closer);
             updateRegEx(this);
         }
         else {
@@ -986,9 +968,9 @@ PathToolkit.prototype.setContainerProperty = function(val, closer){
 };
 
 PathToolkit.prototype.setContainerSinglequote = function(val, closer){
-    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'singlequote') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
-            updateOptionChar(this, this._.opt.containers, 'singlequote', val, closer);
+    if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $SINGLEQUOTE) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, $SINGLEQUOTE, val, closer);
             updateRegEx(this);
         }
         else {
@@ -1001,9 +983,9 @@ PathToolkit.prototype.setContainerSinglequote = function(val, closer){
 };
 
 PathToolkit.prototype.setContainerDoublequote = function(val, closer){
-    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'doublequote') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
-            updateOptionChar(this, this._.opt.containers, 'doublequote', val, closer);
+    if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $DOUBLEQUOTE) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, $DOUBLEQUOTE, val, closer);
             updateRegEx(this);
         }
         else {
@@ -1016,9 +998,9 @@ PathToolkit.prototype.setContainerDoublequote = function(val, closer){
 };
 
 PathToolkit.prototype.setContainerCall = function(val, closer){
-    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'call') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
-            updateOptionChar(this, this._.opt.containers, 'call', val, closer);
+    if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $CALL) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, $CALL, val, closer);
             updateRegEx(this);
         }
         else {
@@ -1031,9 +1013,9 @@ PathToolkit.prototype.setContainerCall = function(val, closer){
 };
 
 PathToolkit.prototype.setContainerEvalProperty = function(val, closer){
-    if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'evalProperty') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
-            updateOptionChar(this, this._.opt.containers, 'evalProperty', val, closer);
+    if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
+        if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $EVALPROPERTY) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, $EVALPROPERTY, val, closer);
             updateRegEx(this);
         }
         else {
