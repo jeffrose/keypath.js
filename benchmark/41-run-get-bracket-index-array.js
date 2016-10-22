@@ -1,7 +1,7 @@
 'use strict';
 
 var kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     
     path = '[1,2][1][0]',

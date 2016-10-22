@@ -1034,4 +1034,4 @@ return PathToolkit;
 
 })));
 
-//# sourceMappingURL=tk-umd.js.map
+//# sourceMappingURL=path-toolkit-umd.js.map

@@ -1,6 +1,6 @@
 'use strict';
 
-var PathToolkit = require( '../dist/tk-umd' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     

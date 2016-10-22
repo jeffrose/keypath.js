@@ -3,7 +3,7 @@
 var chai        = require( 'chai' ),
     //sinon       = require( 'sinon' ),
     //sinon_chai  = require( 'sinon-chai' ),
-    PathToolkit = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/path-toolkit-umd' ),
     expect      = chai.expect;
 
 var tk = new PathToolkit();
