@@ -100,7 +100,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         rollup( {
             entry: 'src/tk.js',
             format: 'umd',
-            moduleName: 'tk',
+            moduleName: 'PathToolkit',
             sourceMap: true
         } )
         .pipe( source( 'tk.js', 'src' ) )
@@ -113,7 +113,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         rollup( {
             entry: 'src/tk.js',
             format: 'umd',
-            moduleName: 'tk',
+            moduleName: 'PathToolkit',
             sourceMap: true
         } )
         .pipe( source( 'tk.js', 'src' ) )
