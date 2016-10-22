@@ -3,8 +3,10 @@
 var chai        = require( 'chai' ),
     //sinon       = require( 'sinon' ),
     //sinon_chai  = require( 'sinon-chai' ),
-    tk          = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/tk-umd' ),
     expect      = chai.expect;
+
+var tk = new PathToolkit();
 
 //chai.use( sinon_chai );
 
@@ -1083,7 +1085,7 @@ describe( 'tk', function(){
         });
     });
 
-    describe('clock', function(){
+    xdescribe('clock', function(){
         var complexObj, deepObj, testResult;
 
         var repeat = 1;

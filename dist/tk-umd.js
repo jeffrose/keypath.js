@@ -1,83 +1,79 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (factory((global.tk = global.tk || {})));
-}(this, (function (exports) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (global.tk = factory());
+}(this, (function () { 'use strict';
 
 // Parsing, tokeninzing, etc
 // Some constants for convenience
 var UNDEF = (function(u){return u;})();
 var WILDCARD = '*';
 
-// Object for storing cached tokenized paths.
-// Key = string path
-// Value = tokens
-var cache = {};
+// var useCache, // cache tokenized paths for repeated use
+//     simple, // not yet implemented
+//     force;    // create intermediate properties during `set` operation
 
-var useCache;
-var simple;
-var force;    // create intermediate properties during `set` operation
+// var prefixes,
+//     separators,
+//     containers;
 
-var prefixes;
-var separators;
-var containers;
+// // Lists of special characters for use in regular expressions
+// var prefixList,
+//     propertySeparator,
+//     separatorList,
+//     containerList,
+//     containerCloseList;
 
-// Lists of special characters for use in regular expressions
-var prefixList;
-var propertySeparator;
-var separatorList;
-var containerList;
-var containerCloseList;
+// // Find all special characters except property separator (. by default)
+// var simplePathChars;
+// var simplePathRegEx;
 
-// Find all special characters except property separator (. by default)
-var simplePathChars;
-var simplePathRegEx;
+// // Find all special characters, including backslash
+// var allSpecials;
+// var allSpecialsRegEx;
 
-// Find all special characters, including backslash
-var allSpecials;
-var allSpecialsRegEx;
+// // Find all escaped special characters
+// var escapedSpecialsRegEx;
+// // Find all escaped non-special characters, i.e. unnecessary escapes
+// var escapedNonSpecialsRegEx;
 
-// Find all escaped special characters
-var escapedSpecialsRegEx;
-// Find all escaped non-special characters, i.e. unnecessary escapes
-var escapedNonSpecialsRegEx;
+// // Find wildcard character
+// var wildcardRegEx;
 
-// Find wildcard character
-var wildcardRegEx;
-
-var updateRegEx = function(){
+var updateRegEx = function(_this){
     // Lists of special characters for use in regular expressions
-    prefixList = Object.keys(prefixes);
-    propertySeparator = find(separators, 'property').substr(0,1);
-    separatorList = Object.keys(separators);
-    containerList = Object.keys(containers);
-    containerCloseList = containerList.map(function(key){ return containers[key].closer; });
+    _this._.prefixList = Object.keys(_this._.opt.prefixes);
+    _this._.propertySeparator = _this.find(_this._.opt.separators, 'property').substr(0,1);
+    _this._.separatorList = Object.keys(_this._.opt.separators);
+    _this._.containerList = Object.keys(_this._.opt.containers);
+    _this._.containerCloseList = _this._.containerList.map(function(key){ return _this._.opt.containers[key].closer; });
     
     // Find all special characters except property separator (. by default)
-    simplePathChars = '[\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace('\\'+propertySeparator, '') + ']';
-    simplePathRegEx = new RegExp(simplePathChars);
+    _this._.simplePathChars = '[\\\\' + [WILDCARD].concat(_this._.prefixList).concat(_this._.separatorList).concat(_this._.containerList).join('\\').replace('\\'+_this._.propertySeparator, '') + ']';
+    _this._.simplePathRegEx = new RegExp(_this._.simplePathChars);
     
     // Find all special characters, including backslash
-    allSpecials = '[\\\\\\' + [WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
-    allSpecialsRegEx = new RegExp(allSpecials, 'g');
+    _this._.allSpecials = '[\\\\\\' + [WILDCARD].concat(_this._.prefixList).concat(_this._.separatorList).concat(_this._.containerList).concat(_this._.containerCloseList).join('\\') + ']';
+    _this._.allSpecialsRegEx = new RegExp(_this._.allSpecials, 'g');
     
     // Find all escaped special characters
-    escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
+    // _this._.escapedSpecialsRegEx = new RegExp('\\'+_this._.allSpecials, 'g');
     // Find all escaped non-special characters, i.e. unnecessary escapes
-    escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
+    _this._.escapedNonSpecialsRegEx = new RegExp('\\'+_this._.allSpecials.replace(/^\[/,'[^'));
     
     // Find wildcard character
-    wildcardRegEx = new RegExp('\\'+WILDCARD);
+    _this._.wildcardRegEx = new RegExp('\\'+WILDCARD);
 };
 
-var setDefaultOptions = function(){
+var setDefaultOptions = function(_this){
+    _this._.opt = _this._.opt || {};
     // Default settings
-    useCache = true;  // cache tokenized paths for repeated use
-    simple = false;   // only support dot-separated paths, no other special characters
-    force = false;    // create intermediate properties during `set` operation
+    _this._.opt.useCache = true;  // cache tokenized paths for repeated use
+    _this._.opt.simple = false;   // only support dot-separated paths, no other special characters
+    _this._.opt.force = false;    // create intermediate properties during `set` operation
 
     // Default prefix special characters
-    prefixes = {
+    _this._.opt.prefixes = {
         '<': {
             'exec': 'parent'
         },
@@ -92,7 +88,7 @@ var setDefaultOptions = function(){
         }
     };
     // Default separator special characters
-    separators = {
+    _this._.opt.separators = {
         '.': {
             'exec': 'property'
             },
@@ -101,7 +97,7 @@ var setDefaultOptions = function(){
             }
     };
     // Default container special characters
-    containers = {
+    _this._.opt.containers = {
         '[': {
             'closer': ']',
             'exec': 'property'
@@ -123,7 +119,7 @@ var setDefaultOptions = function(){
             'exec': 'evalProperty'
             }
     };
-    updateRegEx();
+    // updateRegEx(_this);
 };
 
 /**
@@ -204,10 +200,11 @@ var truthify = function(val){
  * within the container and recursively call `tokenize` on that substring. Final output will
  * be an array of tokens. A complex token (not a simple property or index) will be represented
  * as an object carrying metadata for processing.
+ * @param {Object} _this Reference to instance, needed for access to instance options
  * @param  {String} str Path string
  * @return {Array}     Array of tokens found in the input path
  */
-var tokenize = function (str){
+var tokenize = function (_this, str){
     var path = '',
         tokens = [],
         recur = [],
@@ -224,15 +221,15 @@ var tokenize = function (str){
         depth = 0,
         escaped = 0;
 
-    if (useCache && cache[str] !== UNDEF){ return cache[str]; }
+    if (_this._.opt.useCache && _this._.cache[str] !== UNDEF){ return _this._.cache[str]; }
 
     // Strip out any unnecessary escaping to simplify processing below
-    path = str.replace(escapedNonSpecialsRegEx, '$&'.substr(1));
+    path = str.replace(_this._.escapedNonSpecialsRegEx, '$&'.substr(1));
     pathLength = path.length;
 
-    if (typeof str === 'string' && !simplePathRegEx.test(str)){
-        tokens = path.split(propertySeparator);
-        useCache && (cache[str] = tokens);
+    if (typeof str === 'string' && !_this._.simplePathRegEx.test(str)){
+        tokens = path.split(_this._.propertySeparator);
+        _this._.opt.useCache && (_this._.cache[str] = tokens);
         return tokens;
     }
 
@@ -265,14 +262,14 @@ var tokenize = function (str){
             // When we close off the container, time to process the subpath and add results to our tokens
             else {
                 // Handle subpath "[bar]" in foo.[bar],[baz] - we must process subpath and create a new collection
-                if (i+1 < pathLength && separators[path[i+1]] && separators[path[i+1]].exec === 'collection'){
-                    recur = tokenize(subpath);
+                if (i+1 < pathLength && _this._.opt.separators[path[i+1]] && _this._.opt.separators[path[i+1]].exec === 'collection'){
+                    recur = tokenize(_this, subpath);
                     if (recur === UNDEF){ return undefined; }
                     collection.push({'t':recur, 'exec': closer.exec});
                 }
                 // Handle subpath "[baz]" in foo.[bar],[baz] - we must process subpath and add to collection
                 else if (collection[0]){
-                    recur = tokenize(subpath);
+                    recur = tokenize(_this, subpath);
                     if (recur === UNDEF){ return undefined; }
                     collection.push({'t':recur, 'exec': closer.exec});
                     tokens.push(collection);
@@ -280,7 +277,7 @@ var tokenize = function (str){
                 }
                 // Simple property container is equivalent to dot-separated token. Just add this token to tokens.
                 else if (closer.exec === 'property'){
-                    recur = tokenize(subpath);
+                    recur = tokenize(_this, subpath);
                     if (recur === UNDEF){ return undefined; }
                     tokens = tokens.concat(recur);
                 }
@@ -290,7 +287,7 @@ var tokenize = function (str){
                 }
                 // Otherwise, create token object to hold tokenized subpath, add to tokens.
                 else {
-                    recur = tokenize(subpath);
+                    recur = tokenize(_this, subpath);
                     if (recur === UNDEF){ return undefined; }
                     tokens.push({'t':recur, 'exec': closer.exec});
                 }
@@ -299,18 +296,18 @@ var tokenize = function (str){
         }
         // If a prefix character is found, store it in `mods` for later reference.
         // Must keep count due to `parent` prefix that can be used multiple times in one token.
-        else if (!escaped && path[i] in prefixes && prefixes[path[i]].exec){
+        else if (!escaped && path[i] in _this._.opt.prefixes && _this._.opt.prefixes[path[i]].exec){
             mods.has = true;
-            if (mods[prefixes[path[i]].exec]) { mods[prefixes[path[i]].exec]++; }
-            else { mods[prefixes[path[i]].exec] = 1; }
+            if (mods[_this._.opt.prefixes[path[i]].exec]) { mods[_this._.opt.prefixes[path[i]].exec]++; }
+            else { mods[_this._.opt.prefixes[path[i]].exec] = 1; }
         }
         // If a separator is found, time to store the token we've been accumulating. If
         // this token had a prefix, we store the token as an object with modifier data.
         // If the separator is the collection separator, we must either create or add
         // to a collection for this token. For simple separator, we either add the token
         // to the token list or else add to the existing collection if it exists.
-        else if (!escaped && separators.hasOwnProperty(path[i]) && separators[path[i]].exec){
-            separator = separators[path[i]];
+        else if (!escaped && _this._.opt.separators.hasOwnProperty(path[i]) && _this._.opt.separators[path[i]].exec){
+            separator = _this._.opt.separators[path[i]];
             if (!word && (mods.has || hasWildcard)){
                 // found a separator, after seeing prefixes, but no token word -> invalid
                 return undefined;
@@ -348,8 +345,8 @@ var tokenize = function (str){
         // merely another entry in the collection, so we don't close off the collection token
         // yet.
         // Set depth value for further processing.
-        else if (!escaped && containers.hasOwnProperty(path[i]) && containers[path[i]].exec){
-            closer = containers[path[i]];
+        else if (!escaped && _this._.opt.containers.hasOwnProperty(path[i]) && _this._.opt.containers[path[i]].exec){
+            closer = _this._.opt.containers[path[i]];
             if (word && (mods.has || hasWildcard)){
                 word = {'w': word, 'mods': mods};
                 mods = {};
@@ -402,12 +399,12 @@ var tokenize = function (str){
     if (depth !== 0){ return undefined; }
 
     // If path was valid, cache the result
-    useCache && (cache[str] = tokens);
+    _this._.opt.useCache && (_this._.cache[str] = tokens);
 
     return tokens;
 };
 
-var resolvePath = function (obj, path, newValue, args, valueStack){
+var resolvePath = function (_this, obj, path, newValue, args, valueStack){
     var change = newValue !== UNDEF,
         tk = [],
         tkLength = 0,
@@ -428,9 +425,9 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
         callArgs;
 
     if (typeof path === 'string'){
-        if (useCache && cache[path]) { tk = cache[path]; }
+        if (_this._.opt.useCache && _this._.cache[path]) { tk = _this._.cache[path]; }
         else {
-            tk = tokenize(path);
+            tk = tokenize(_this, path);
             if (tk === UNDEF){ return undefined; }
         }
     }
@@ -463,7 +460,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     context[curr] = newValue;
                     if (context[curr] !== newValue){ return undefined; } // new value failed to set
                 }
-                else if (force && (prev.constructor === Array ? context[curr] !== UNDEF : !context.hasOwnProperty(curr))) {
+                else if (_this._.opt.force && (prev.constructor === Array ? context[curr] !== UNDEF : !context.hasOwnProperty(curr))) {
                     context[curr] = {};
                 }
             }
@@ -473,13 +470,13 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
             if (curr === UNDEF){
                 ret = undefined;
             }
-            else if (curr.constructor === Array){
+            else if (Array.isArray(curr.constructor)){
                 // call resolvePath again with base value as evaluated value so far and
                 // each element of array as the path. Concat all the results together.
                 ret = [];
                 currLength = curr.length
                 for (i = 0; i < currLength; i++){
-                    contextProp = resolvePath(context, curr[i], newValue, args, valueStack.slice());
+                    contextProp = resolvePath(_this, context, curr[i], newValue, args, valueStack.slice());
                     if (contextProp === UNDEF) { return undefined; }
 
                     if (newValueHere){
@@ -537,7 +534,7 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
                     else if (typeof context === 'function'){
                         ret = wordCopy;
                     }
-                    else if (wildcardRegEx.test(wordCopy) >-1){
+                    else if (_this._.wildcardRegEx.test(wordCopy) >-1){
                         ret = [];
                         for (prop in context){
                             if (context.hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
@@ -551,14 +548,14 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
             }
             else if (curr.exec === 'evalProperty'){
                 if (newValueHere){
-                    context[resolvePath(context, curr, UNDEF, args, valueStack.slice())] = newValue;
+                    context[resolvePath(_this, context, curr, UNDEF, args, valueStack.slice())] = newValue;
                 }
-                ret = context[resolvePath(context, curr, UNDEF, args, valueStack.slice())];
+                ret = context[resolvePath(_this, context, curr, UNDEF, args, valueStack.slice())];
             }
             else if (curr.exec === 'call'){
                 // If function call has arguments, process those arguments as a new path
                 if (curr.t && curr.t.length){
-                    callArgs = resolvePath(context, curr, UNDEF, args);
+                    callArgs = resolvePath(_this, context, curr, UNDEF, args);
                     if (callArgs === UNDEF){
                         ret = context.apply(valueStack[valueStackLength - 2]);
                     }
@@ -583,13 +580,13 @@ var resolvePath = function (obj, path, newValue, args, valueStack){
     return context;
 };
 
-var quickResolveString = function(obj, path, newValue){
+var quickResolveString = function(_this, obj, path, newValue){
     var change = newValue !== UNDEF,
         tk = [],
         i = 0,
         tkLength = 0;
 
-    tk = path.split(propertySeparator);
+    tk = path.split(_this._.propertySeparator);
     tkLength = tk.length;
     while (obj !== UNDEF && i < tkLength){
         if (tk[i] === ''){ return undefined; }
@@ -599,7 +596,7 @@ var quickResolveString = function(obj, path, newValue){
             }
             // For arrays, test current context against undefined to avoid parsing this segment as a number.
             // For anything else, use hasOwnProperty.
-            else if (force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+            else if (_this._.opt.force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
                 obj[tk[i]] = {};
             }
         }
@@ -608,7 +605,7 @@ var quickResolveString = function(obj, path, newValue){
     return obj;
 };
 
-var quickResolveTokenArray = function(obj, tk, newValue){
+var quickResolveTokenArray = function(_this, obj, tk, newValue){
     var change = newValue !== UNDEF,
         i = 0,
         tkLength = tk.length;
@@ -621,7 +618,7 @@ var quickResolveTokenArray = function(obj, tk, newValue){
             }
             // For arrays, test current context against undefined to avoid parsing this segment as a number.
             // For anything else, use hasOwnProperty.
-            else if (force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+            else if (_this._.opt.force && (obj.constructor === Array ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
                 obj[tk[i]] = {};
             }
         }
@@ -662,26 +659,46 @@ var scanForValue = function(obj, val, savePath, path){
     return true; // keep looking
 };
 
-var getTokens = function(path){
-    var tokens = tokenize(path);
+var PathToolkit = function(options){
+    this._ = {};
+
+    // Object for storing cached tokenized paths.
+    // Key = string path
+    // Value = tokens
+    this._.cache = {};
+
+    // Initialize option set
+    console.log('setting defaults...', this);
+    setDefaultOptions(this);
+    updateRegEx(this);
+    console.log('done!');
+
+    // Apply custom options
+    options && this.setOptions(options);
+};
+
+// PathToolkit.prototype.constructor = PathToolkit;
+
+PathToolkit.prototype.getTokens = function(path){
+    var tokens = tokenize(this, path);
     if (typeof tokens === 'undefined'){ return undefined; }
     return {t: tokens};
 };
 
-var isValid = function(path){
-    return typeof tokenize(path) !== 'undefined';
+PathToolkit.prototype.isValid = function(path){
+    return typeof tokenize(this, path) !== 'undefined';
 };
 
-var escape = function(path){
-    return path.replace(allSpecialsRegEx, '\\$&');
+PathToolkit.prototype.escape = function(path){
+    return path.replace(this._.allSpecialsRegEx, '\\$&');
 };
 
-var get = function (obj, path){
+PathToolkit.prototype.get = function (obj, path){
     var i = 0,
         len = arguments.length,
         args;
-    if (typeof path === 'string' && !simplePathRegEx.test(path)){
-        return quickResolveString(obj, path);
+    if (typeof path === 'string' && !this._.simplePathRegEx.test(path)){
+        return quickResolveString(this, obj, path);
     }
     else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
         for (i = path.t.length - 1; i >= 0; i--){
@@ -690,19 +707,19 @@ var get = function (obj, path){
                 if (len > 2){
                     for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
                 }
-                return resolvePath(obj, path, undefined, args);
+                return resolvePath(this, obj, path, undefined, args);
             }
         }
-        return quickResolveTokenArray(obj, path.t);
+        return quickResolveTokenArray(this, obj, path.t);
     }
     args = [];
     if (len > 2){
         for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
     }
-    return resolvePath(obj, path, undefined, args);
+    return resolvePath(this, obj, path, undefined, args);
 };
 
-var set = function(obj, path, val){
+PathToolkit.prototype.set = function(obj, path, val){
     var i = 0,
         len = arguments.length,
         args,
@@ -710,8 +727,8 @@ var set = function(obj, path, val){
         done = false;
         
         // args = len > 3 ? new Array(len - 3) : [],
-    if (typeof path === 'string' && !simplePathRegEx.test(path)){
-        ref = quickResolveString(obj, path, val);
+    if (typeof path === 'string' && !this._.simplePathRegEx.test(path)){
+        ref = quickResolveString(this, obj, path, val);
         done = true;
     }
     else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
@@ -722,13 +739,13 @@ var set = function(obj, path, val){
                 if (len > 3){
                     for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
                 }
-                ref = resolvePath(obj, path, val, args);
+                ref = resolvePath(this, obj, path, val, args);
                 done = true;
             }
         }
         // We had a token array of simple tokens
         if (!done){
-            ref = quickResolveTokenArray(obj, path.t, val);
+            ref = quickResolveTokenArray(this, obj, path.t, val);
         }
     }
     // Path was (probably) a string and it contained complex path characters
@@ -737,7 +754,7 @@ var set = function(obj, path, val){
             args = [];
             for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
         }
-        ref = resolvePath(obj, path, val, args);
+        ref = resolvePath(this, obj, path, val, args);
     }
     
     if (Array.isArray(ref)){
@@ -746,7 +763,7 @@ var set = function(obj, path, val){
     return ref !== UNDEF;
 };
 
-var find = function(obj, val, oneOrMany){
+PathToolkit.prototype.find = function(obj, val, oneOrMany){
     var retVal = [];
     var savePath = function(path){
         retVal.push(path.substr(1));
@@ -760,114 +777,114 @@ var find = function(obj, val, oneOrMany){
     return retVal[0] ? retVal : undefined;
 };
 
-var updateOptionChar = function(optionGroup, charType, val, closer){
-    var path = find(optionGroup, charType);
+var updateOptionChar = function(_this, optionGroup, charType, val, closer){
+    var path = _this.find(optionGroup, charType);
     var oldVal = path.substr(0,1);
 
     delete optionGroup[oldVal];
     optionGroup[val] = {exec: charType};
     if (closer){ optionGroup[val].closer = closer; }
-    updateRegEx();
 };
 
-var setOptions = function(options){
-    if (options.prefixes){
-        prefixes = options.prefixes;
-    }
-    if (options.separators){
-        separators = options.separators;
-    }
-    if (options.containers){
-        containers = options.containers;
-    }
-    if (typeof options.cache !== 'undefined'){
-        useCache = !!options.cache;
-    }
-    if (typeof options.simple !== 'undefined'){
-        var tempCache = cache; // preserve these two options after "setDefaultOptions"
-        var tempForce = force;
-        
-        simple = !!options.simple;
-        if (simple){
-            setSimpleOptions();
-        }
-        else {
-            setDefaultOptions();
-            cache = tempCache;
-            force = tempForce;
-        }
-    }
-    if (typeof options.force !== 'undefined'){
-        force = !!options.force;
-    }
-    updateRegEx();
-};
-
-var setSimpleOptions = function(sep){
+var setSimpleOptions = function(_this, sep){
     var sepOpts = {};
     if (!(typeof sep === 'string' && sep.length === 1)){
         sep = '.';
     }
     sepOpts[sep] = {exec: 'property'};
-    setOptions({
-        prefixes: {},
-        containers: {},
-        separators: sepOpts
-    });
+    _this._.opt.prefixes = {};
+    _this._.opt.containers = {};
+    _this._.opt.separators = sepOpts;
 };
 
-var setCache = function(val){
-    useCache = truthify(val);
-};
-var setCacheOn = function(){
-    useCache = true;
-};
-var setCacheOff = function(){
-    useCache = false;
+PathToolkit.prototype.setOptions = function(options){
+    if (options.prefixes){
+        this._.opt.prefixes = options.prefixes;
+    }
+    if (options.separators){
+        this._.opt.separators = options.separators;
+    }
+    if (options.containers){
+        this._.opt.containers = options.containers;
+    }
+    if (typeof options.cache !== 'undefined'){
+        this._.opt.useCache = !!options.cache;
+    }
+    if (typeof options.simple !== 'undefined'){
+        var tempCache = this._.opt.useCache; // preserve these two options after "setDefaultOptions"
+        var tempForce = this._.opt.force;
+        
+        this._.opt.simple = truthify(options.simple);
+        if (this._.opt.simple){
+            setSimpleOptions(this);
+        }
+        else {
+            setDefaultOptions(this);
+            this._.opt.useCache = tempCache;
+            this._.opt.force = tempForce;
+        }
+    }
+    if (typeof options.force !== 'undefined'){
+        this._.opt.force = truthify(options.force);
+    }
+    updateRegEx(this);
 };
 
-var setForce = function(val){
-    force = truthify(val);
+PathToolkit.prototype.setCache = function(val){
+    this._.opt.useCache = truthify(val);
 };
-var setForceOn = function(){
-    force = true;
+PathToolkit.prototype.setCacheOn = function(){
+    this._.opt.useCache = true;
 };
-var setForceOff = function(){
-    force = false;
+PathToolkit.prototype.setCacheOff = function(){
+    this._.opt.useCache = false;
 };
 
-var setSimple = function(val, sep){
-    var tempCache = cache; // preserve these two options after "setDefaultOptions"
-    var tempForce = force;
-    simple = truthify(val);
-    if (simple){
-        setSimpleOptions(sep);
-        updateRegEx();
+PathToolkit.prototype.setForce = function(val){
+    this._.opt.force = truthify(val);
+};
+PathToolkit.prototype.setForceOn = function(){
+    this._.opt.force = true;
+};
+PathToolkit.prototype.setForceOff = function(){
+    this._.opt.force = false;
+};
+
+PathToolkit.prototype.setSimple = function(val, sep){
+    var tempCache = this._.opt.useCache; // preserve these two options after "setDefaultOptions"
+    var tempForce = this._.opt.force;
+    this._.opt.simple = truthify(val);
+    if (this._.opt.simple){
+        setSimpleOptions(this, sep);
+        updateRegEx(this);
     }
     else {
-        setDefaultOptions();
-        cache = tempCache;
-        force = tempForce;
+        setDefaultOptions(this);
+        updateRegEx(this);
+        this._.opt.useCache = tempCache;
+        this._.opt.force = tempForce;
     }
 };
-var setSimpleOn = function(sep){
-    simple = true;
-    setSimpleOptions(sep);
-    updateRegEx();
+PathToolkit.prototype.setSimpleOn = function(sep){
+    this._.opt.simple = true;
+    setSimpleOptions(this, sep);
+    updateRegEx(this);
 };
-var setSimpleOff = function(){
-    var tempCache = cache; // preserve these two options after "setDefaultOptions"
-    var tempForce = force;
-    simple = false;
-    setDefaultOptions();
-    cache = tempCache;
-    force = tempForce;
+PathToolkit.prototype.setSimpleOff = function(){
+    var tempCache = this._.opt.useCache; // preserve these two options after "setDefaultOptions"
+    var tempForce = this._.opt.force;
+    this._.opt.simple = false;
+    setDefaultOptions(this);
+    updateRegEx(this);
+    this._.opt.useCache = tempCache;
+    this._.opt.force = tempForce;
 };
 
-var setSeparatorProperty = function(val){
+PathToolkit.prototype.setSeparatorProperty = function(val){
     if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!separators[val] || separators[val].exec === 'property') && !(prefixes[val] || containers[val])){
-            updateOptionChar(separators, 'property', val);
+        if (val !== WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === 'property') && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.separators, 'property', val);
+            updateRegEx(this);
         }
         else {
             throw new Error('setSeparatorProperty - value already in use');
@@ -878,10 +895,11 @@ var setSeparatorProperty = function(val){
     }
 };
 
-var setSeparatorCollection = function(val){
+PathToolkit.prototype.setSeparatorCollection = function(val){
     if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!separators[val] || separators[val].exec === 'collection') && !(prefixes[val] || containers[val])){
-            updateOptionChar(separators, 'collection', val);
+        if (val !== WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === 'collection') && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.separators, 'collection', val);
+            updateRegEx(this);
         }
         else {
             throw new Error('setSeparatorCollection - value already in use');
@@ -892,10 +910,11 @@ var setSeparatorCollection = function(val){
     }
 };
 
-var setPrefixParent = function(val){
+PathToolkit.prototype.setPrefixParent = function(val){
     if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'parent') && !(separators[val] || containers[val])){
-            updateOptionChar(prefixes, 'parent', val);
+        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'parent') && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, 'parent', val);
+            updateRegEx(this);
         }
         else {
             throw new Error('setPrefixParent - value already in use');
@@ -906,10 +925,11 @@ var setPrefixParent = function(val){
     }
 };
 
-var setPrefixRoot = function(val){
+PathToolkit.prototype.setPrefixRoot = function(val){
     if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'root') && !(separators[val] || containers[val])){
-            updateOptionChar(prefixes, 'root', val);
+        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'root') && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, 'root', val);
+            updateRegEx(this);
         }
         else {
             throw new Error('setPrefixRoot - value already in use');
@@ -920,10 +940,11 @@ var setPrefixRoot = function(val){
     }
 };
 
-var setPrefixPlaceholder = function(val){
+PathToolkit.prototype.setPrefixPlaceholder = function(val){
     if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'placeholder') && !(separators[val] || containers[val])){
-            updateOptionChar(prefixes, 'placeholder', val);
+        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'placeholder') && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, 'placeholder', val);
+            updateRegEx(this);
         }
         else {
             throw new Error('setPrefixPlaceholder - value already in use');
@@ -934,10 +955,11 @@ var setPrefixPlaceholder = function(val){
     }
 };
 
-var setPrefixContext = function(val){
+PathToolkit.prototype.setPrefixContext = function(val){
     if (typeof val === 'string' && val.length === 1){
-        if (val !== WILDCARD && (!prefixes[val] || prefixes[val].exec === 'context') && !(separators[val] || containers[val])){
-            updateOptionChar(prefixes, 'context', val);
+        if (val !== WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === 'context') && !(this._.opt.separators[val] || this._.opt.containers[val])){
+            updateOptionChar(this, this._.opt.prefixes, 'context', val);
+            updateRegEx(this);
         }
         else {
             throw new Error('setPrefixContext - value already in use');
@@ -948,10 +970,11 @@ var setPrefixContext = function(val){
     }
 };
 
-var setContainerProperty = function(val, closer){
+PathToolkit.prototype.setContainerProperty = function(val, closer){
     if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'property') && !(separators[val] || prefixes[val])){
-            updateOptionChar(containers, 'property', val, closer);
+        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'property') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, 'property', val, closer);
+            updateRegEx(this);
         }
         else {
             throw new Error('setContainerProperty - value already in use');
@@ -962,10 +985,11 @@ var setContainerProperty = function(val, closer){
     }
 };
 
-var setContainerSinglequote = function(val, closer){
+PathToolkit.prototype.setContainerSinglequote = function(val, closer){
     if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'singlequote') && !(separators[val] || prefixes[val])){
-            updateOptionChar(containers, 'singlequote', val, closer);
+        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'singlequote') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, 'singlequote', val, closer);
+            updateRegEx(this);
         }
         else {
             throw new Error('setContainerSinglequote - value already in use');
@@ -976,10 +1000,11 @@ var setContainerSinglequote = function(val, closer){
     }
 };
 
-var setContainerDoublequote = function(val, closer){
+PathToolkit.prototype.setContainerDoublequote = function(val, closer){
     if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'doublequote') && !(separators[val] || prefixes[val])){
-            updateOptionChar(containers, 'doublequote', val, closer);
+        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'doublequote') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, 'doublequote', val, closer);
+            updateRegEx(this);
         }
         else {
             throw new Error('setContainerDoublequote - value already in use');
@@ -990,10 +1015,11 @@ var setContainerDoublequote = function(val, closer){
     }
 };
 
-var setContainerCall = function(val, closer){
+PathToolkit.prototype.setContainerCall = function(val, closer){
     if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'call') && !(separators[val] || prefixes[val])){
-            updateOptionChar(containers, 'call', val, closer);
+        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'call') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, 'call', val, closer);
+            updateRegEx(this);
         }
         else {
             throw new Error('setContainerCall - value already in use');
@@ -1004,10 +1030,11 @@ var setContainerCall = function(val, closer){
     }
 };
 
-var setContainerEvalProperty = function(val, closer){
+PathToolkit.prototype.setContainerEvalProperty = function(val, closer){
     if (typeof val === 'string' && val.length === 1 && typeof closer === 'string' && closer.length === 1){
-        if (val !== WILDCARD && (!containers[val] || containers[val].exec === 'evalProperty') && !(separators[val] || prefixes[val])){
-            updateOptionChar(containers, 'evalProperty', val, closer);
+        if (val !== WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === 'evalProperty') && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
+            updateOptionChar(this, this._.opt.containers, 'evalProperty', val, closer);
+            updateRegEx(this);
         }
         else {
             throw new Error('setContainerEvalProperty - value already in use');
@@ -1018,42 +1045,12 @@ var setContainerEvalProperty = function(val, closer){
     }
 };
 
-var resetOptions = function(){
-    setDefaultOptions();
+PathToolkit.prototype.resetOptions = function(){
+    setDefaultOptions(this);
+    updateRegEx(this);
 };
 
-setDefaultOptions();
-
-exports.getTokens = getTokens;
-exports.isValid = isValid;
-exports.escape = escape;
-exports.get = get;
-exports.set = set;
-exports.find = find;
-exports.setOptions = setOptions;
-exports.setCache = setCache;
-exports.setCacheOn = setCacheOn;
-exports.setCacheOff = setCacheOff;
-exports.setForce = setForce;
-exports.setForceOn = setForceOn;
-exports.setForceOff = setForceOff;
-exports.setSimple = setSimple;
-exports.setSimpleOn = setSimpleOn;
-exports.setSimpleOff = setSimpleOff;
-exports.setSeparatorProperty = setSeparatorProperty;
-exports.setSeparatorCollection = setSeparatorCollection;
-exports.setPrefixParent = setPrefixParent;
-exports.setPrefixRoot = setPrefixRoot;
-exports.setPrefixPlaceholder = setPrefixPlaceholder;
-exports.setPrefixContext = setPrefixContext;
-exports.setContainerProperty = setContainerProperty;
-exports.setContainerSinglequote = setContainerSinglequote;
-exports.setContainerDoublequote = setContainerDoublequote;
-exports.setContainerCall = setContainerCall;
-exports.setContainerEvalProperty = setContainerEvalProperty;
-exports.resetOptions = resetOptions;
-
-Object.defineProperty(exports, '__esModule', { value: true });
+return PathToolkit;
 
 })));
 
