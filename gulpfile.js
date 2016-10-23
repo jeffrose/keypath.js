@@ -1,7 +1,6 @@
 'use strict';
 
 const gulp = require( 'gulp' ),
-    babel = require( 'rollup-plugin-babel' ),
     benchmark = require( 'gulp-bench' ),
     buffer = require( 'vinyl-buffer' ),
     concat = require( 'gulp-concat' ),

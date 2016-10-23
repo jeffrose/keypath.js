@@ -180,6 +180,7 @@ describe( 'Interpreter', function(){
                         }, 5 );
                     } );
                 } },
+                data3 = { foo: [ 123 ] },
                 fn, result;
              
             fn = interpreter.compile( '%0.%1', false ),
@@ -200,7 +201,11 @@ describe( 'Interpreter', function(){
                 return data;
             } } );
             
-            expect( result ).to.eventually.equal( 999 );
+            fn = interpreter.compile( 'foo.forEach(%fn,%ctx)', false ),
+            result = fn( data3, undefined, { fn: ( data ) => {
+                expect( this.foo ).to.equal( 777 );
+                expect( data ).to.equal( 123 );
+            }, ctx: { foo: 777 } } );
         } );
         
         it( 'should interpret range expressions', function(){
