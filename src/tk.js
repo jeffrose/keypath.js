@@ -23,11 +23,15 @@ var $WILDCARD     = '*',
 var updateRegEx = function(_this){
     // Lists of special characters for use in regular expressions
     _this._.prefixList = Object.keys(_this._.opt.prefixes);
-    _this._.propertySeparator = _this.find(_this._.opt.separators, $PROPERTY).substr(0,1);
     _this._.separatorList = Object.keys(_this._.opt.separators);
     _this._.containerList = Object.keys(_this._.opt.containers);
     _this._.containerCloseList = _this._.containerList.map(function(key){ return _this._.opt.containers[key].closer; });
     
+    _this._.propertySeparator = '';
+    Object.keys(_this._.opt.separators).forEach(function(sep){ if (_this._.opt.separators[sep].exec === $PROPERTY){ _this._.propertySeparator = sep; } });
+    _this._.singlequote = '';
+    Object.keys(_this._.opt.containers).forEach(function(sep){ if (_this._.opt.containers[sep].exec === $SINGLEQUOTE){ _this._.singlequote = sep; } });
+
     // Find all special characters except property separator (. by default)
     _this._.simplePathChars = '[\\\\' + [$WILDCARD].concat(_this._.prefixList).concat(_this._.separatorList).concat(_this._.containerList).join('\\').replace('\\'+_this._.propertySeparator, '') + ']';
     _this._.simplePathRegEx = new RegExp(_this._.simplePathChars);
@@ -607,8 +611,13 @@ var quickResolveTokenArray = function(_this, obj, tk, newValue){
     return obj;
 };
 
-var scanForValue = function(obj, val, savePath, path){
-    var i, len, more, keys;
+var quoteString = function(q, str){
+    var qRegEx = new RegExp(q, 'g');
+    return q + str.replace(qRegEx, '\\' + q) + q;
+};
+
+var scanForValue = function(_this, obj, val, savePath, path){
+    var i, len, more, keys, prop;
 
     path = path ? path : '';
 
@@ -618,7 +627,7 @@ var scanForValue = function(obj, val, savePath, path){
     else if (Array.isArray(obj)){
         len = obj.length;
         for(i = 0; i < len; i++){
-            more = scanForValue(obj[i], val, savePath, path + '.' + i);
+            more = scanForValue(_this, obj[i], val, savePath, path + _this._.propertySeparator + i);
             if (!more){ return; }
         }
         return true; // keep looking
@@ -629,7 +638,11 @@ var scanForValue = function(obj, val, savePath, path){
         if (len > 1){ keys = keys.sort(); } // Force order of object keys to produce repeatable results
         for (i = 0; i < len; i++){
             if (obj.hasOwnProperty(keys[i])){
-                more = scanForValue(obj[keys[i]], val, savePath, path + '.' + keys[i]);
+                prop = keys[i];
+                if (_this._.allSpecialsRegEx.test(prop)){
+                    prop = quoteString(_this._.singlequote, prop);
+                }
+                more = scanForValue(_this, obj[keys[i]], val, savePath, path + _this._.propertySeparator + prop);
                 if (!more){ return; }
             }
         }
@@ -749,13 +762,14 @@ PathToolkit.prototype.find = function(obj, val, oneOrMany){
         }
         return true;
     };
-    scanForValue(obj, val, savePath);
+    scanForValue(this, obj, val, savePath);
     return retVal[0] ? retVal : undefined;
 };
 
 var updateOptionChar = function(_this, optionGroup, charType, val, closer){
-    var path = _this.find(optionGroup, charType);
-    var oldVal = path.substr(0,1);
+    // var path = _this.find(optionGroup, charType);
+    var oldVal = '';
+    Object.keys(optionGroup).forEach(function(str){ if (optionGroup[str].exec === charType){ oldVal = str; } });
 
     delete optionGroup[oldVal];
     optionGroup[val] = {exec: charType};
@@ -776,12 +790,15 @@ var setSimpleOptions = function(_this, sep){
 PathToolkit.prototype.setOptions = function(options){
     if (options.prefixes){
         this._.opt.prefixes = options.prefixes;
+        this._.cache = {};
     }
     if (options.separators){
         this._.opt.separators = options.separators;
+        this._.cache = {};
     }
     if (options.containers){
         this._.opt.containers = options.containers;
+        this._.cache = {};
     }
     if (typeof options.cache !== $UNDEFINED){
         this._.opt.useCache = !!options.cache;
@@ -799,6 +816,7 @@ PathToolkit.prototype.setOptions = function(options){
             this._.opt.useCache = tempCache;
             this._.opt.force = tempForce;
         }
+        this._.cache = {};
     }
     if (typeof options.force !== $UNDEFINED){
         this._.opt.force = truthify(options.force);
@@ -840,11 +858,13 @@ PathToolkit.prototype.setSimple = function(val, sep){
         this._.opt.useCache = tempCache;
         this._.opt.force = tempForce;
     }
+    this._.cache = {};
 };
 PathToolkit.prototype.setSimpleOn = function(sep){
     this._.opt.simple = true;
     setSimpleOptions(this, sep);
     updateRegEx(this);
+    this._.cache = {};
 };
 PathToolkit.prototype.setSimpleOff = function(){
     var tempCache = this._.opt.useCache; // preserve these two options after "setDefaultOptions"
@@ -854,6 +874,7 @@ PathToolkit.prototype.setSimpleOff = function(){
     updateRegEx(this);
     this._.opt.useCache = tempCache;
     this._.opt.force = tempForce;
+    this._.cache = {};
 };
 
 PathToolkit.prototype.setSeparatorProperty = function(val){
@@ -861,6 +882,7 @@ PathToolkit.prototype.setSeparatorProperty = function(val){
         if (val !== $WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === $PROPERTY) && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
             updateOptionChar(this, this._.opt.separators, $PROPERTY, val);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setSeparatorProperty - value already in use');
@@ -876,6 +898,7 @@ PathToolkit.prototype.setSeparatorCollection = function(val){
         if (val !== $WILDCARD && (!this._.opt.separators[val] || this._.opt.separators[val].exec === $COLLECTION) && !(this._.opt.prefixes[val] || this._.opt.containers[val])){
             updateOptionChar(this, this._.opt.separators, $COLLECTION, val);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setSeparatorCollection - value already in use');
@@ -891,6 +914,7 @@ PathToolkit.prototype.setPrefixParent = function(val){
         if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $PARENT) && !(this._.opt.separators[val] || this._.opt.containers[val])){
             updateOptionChar(this, this._.opt.prefixes, $PARENT, val);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setPrefixParent - value already in use');
@@ -906,6 +930,7 @@ PathToolkit.prototype.setPrefixRoot = function(val){
         if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $ROOT) && !(this._.opt.separators[val] || this._.opt.containers[val])){
             updateOptionChar(this, this._.opt.prefixes, $ROOT, val);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setPrefixRoot - value already in use');
@@ -921,6 +946,7 @@ PathToolkit.prototype.setPrefixPlaceholder = function(val){
         if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $PLACEHOLDER) && !(this._.opt.separators[val] || this._.opt.containers[val])){
             updateOptionChar(this, this._.opt.prefixes, $PLACEHOLDER, val);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setPrefixPlaceholder - value already in use');
@@ -936,6 +962,7 @@ PathToolkit.prototype.setPrefixContext = function(val){
         if (val !== $WILDCARD && (!this._.opt.prefixes[val] || this._.opt.prefixes[val].exec === $CONTEXT) && !(this._.opt.separators[val] || this._.opt.containers[val])){
             updateOptionChar(this, this._.opt.prefixes, $CONTEXT, val);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setPrefixContext - value already in use');
@@ -951,6 +978,7 @@ PathToolkit.prototype.setContainerProperty = function(val, closer){
         if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $PROPERTY) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
             updateOptionChar(this, this._.opt.containers, $PROPERTY, val, closer);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setContainerProperty - value already in use');
@@ -966,6 +994,7 @@ PathToolkit.prototype.setContainerSinglequote = function(val, closer){
         if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $SINGLEQUOTE) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
             updateOptionChar(this, this._.opt.containers, $SINGLEQUOTE, val, closer);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setContainerSinglequote - value already in use');
@@ -981,6 +1010,7 @@ PathToolkit.prototype.setContainerDoublequote = function(val, closer){
         if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $DOUBLEQUOTE) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
             updateOptionChar(this, this._.opt.containers, $DOUBLEQUOTE, val, closer);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setContainerDoublequote - value already in use');
@@ -996,6 +1026,7 @@ PathToolkit.prototype.setContainerCall = function(val, closer){
         if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $CALL) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
             updateOptionChar(this, this._.opt.containers, $CALL, val, closer);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setContainerCall - value already in use');
@@ -1011,6 +1042,7 @@ PathToolkit.prototype.setContainerEvalProperty = function(val, closer){
         if (val !== $WILDCARD && (!this._.opt.containers[val] || this._.opt.containers[val].exec === $EVALPROPERTY) && !(this._.opt.separators[val] || this._.opt.prefixes[val])){
             updateOptionChar(this, this._.opt.containers, $EVALPROPERTY, val, closer);
             updateRegEx(this);
+            this._.cache = {};
         }
         else {
             throw new Error('setContainerEvalProperty - value already in use');
@@ -1024,6 +1056,7 @@ PathToolkit.prototype.setContainerEvalProperty = function(val, closer){
 PathToolkit.prototype.resetOptions = function(){
     setDefaultOptions(this);
     updateRegEx(this);
+    this._.cache = {};
 };
 
 export default PathToolkit;
