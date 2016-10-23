@@ -1,6 +1,7 @@
 'use strict';
 
-var tk = require( '../dist/tk-umd' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
+    tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     
     dotPath = 'foo.bar.qux.baz',

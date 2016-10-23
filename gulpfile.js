@@ -16,6 +16,7 @@ const gulp = require( 'gulp' ),
     source = require( 'vinyl-source-stream' ),
     sourcemaps = require( 'gulp-sourcemaps' ),
     mergeStream = require( 'merge-stream' ),
+    uglify = require( 'gulp-uglify' ),
     yargs = require( 'yargs' ),
     
     colors = gutil.colors,
@@ -98,13 +99,27 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         rollup( {
             entry: 'src/tk.js',
             format: 'umd',
-            moduleName: 'tk',
+            moduleName: 'PathToolkit',
             sourceMap: true
         } )
         .pipe( source( 'tk.js', 'src' ) )
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'tk-umd.js' ) )
+        .pipe( rename( 'path-toolkit-umd.js' ) )
+        .pipe( sourcemaps.write( '.' ) )
+        .pipe( gulp.dest( 'dist' ) ),
+
+        rollup( {
+            entry: 'src/tk.js',
+            format: 'umd',
+            moduleName: 'PathToolkit',
+            sourceMap: true
+        } )
+        .pipe( source( 'tk.js', 'src' ) )
+        .pipe( buffer() )
+        .pipe( uglify() )
+        .pipe( sourcemaps.init( { loadMaps: true } ) )
+        .pipe( rename( 'path-toolkit-min.js' ) )
         .pipe( sourcemaps.write( '.' ) )
         .pipe( gulp.dest( 'dist' ) )
     )

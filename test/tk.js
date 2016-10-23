@@ -3,17 +3,18 @@
 var chai        = require( 'chai' ),
     //sinon       = require( 'sinon' ),
     //sinon_chai  = require( 'sinon-chai' ),
-    tk          = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/path-toolkit-umd' ),
     expect      = chai.expect;
+
+var tk = new PathToolkit();
 
 //chai.use( sinon_chai );
 
 // tk.setOptions({cache:false});
 
-describe( 'tk', function(){
+describe( 'PathToolkit', function(){
     var data, other;
 
-            // var str2 = 'accounts.1.{~accounts.3.propAry.0}';
     beforeEach(function(){
         data = {
             'undef': undefined,
@@ -60,6 +61,13 @@ describe( 'tk', function(){
 
     });
 
+    it('should be the PathToolkit prototype', function () {
+        expect(PathToolkit).to.be.a.function;
+    });
+
+    it('should provide instances with "new"', function () {
+        expect(new PathToolkit()).to.be.an.instanceOf(PathToolkit);
+    });
 
     // xdescribe( 'disable', function(){
     describe( 'get', function(){
@@ -753,6 +761,117 @@ describe( 'tk', function(){
            
         });
         
+        describe('simple', function(){
+           it('"true" should still process simple dot-separated string paths', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                tk.setOptions({simple:true});
+                
+                expect(tk.get(data, str)).to.equal(val);
+           });
+           
+           it('"true" should disable use of other special characters', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setOptions({simple:true});
+                
+                expect(tk.get(data, 'accounts.1.checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should work with setSimpleOn()', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimpleOn();
+                
+                expect(tk.get(data, 'accounts.1.checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should be able to declare a different separator with setSimpleOn(separator)', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimpleOn(',');
+                
+                expect(tk.get(data, 'accounts,1,checking,id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should work with setSimple(true)', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimple(true);
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('should be able to declare a different separator with setSimple(true, separator)', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimple(true, ',');
+                
+                expect(tk.get(data, 'accounts,1,checking,id')).to.equal(val);
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+           });
+           
+           it('"false" should restore full suite of path features', function(){
+                var str = 'accounts.1.checking.id';
+                var val = data.accounts[1].checking.id;
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimpleOn();
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+                
+                tk.setSimpleOff();
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setSimple(true);
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+                
+                tk.setSimple(false);
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+                
+                tk.setOptions({simple:true});
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.be.undefined;
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
+                
+                tk.setOptions({simple:false});
+                
+                expect(tk.get(data, 'accounts[1]checking.id')).to.equal(val);
+                expect(tk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
+           });
+        });
+        
         describe('separators', function(){
             it('should allow all separators to be changed at once', function(){
                 tk.setOptions({
@@ -970,210 +1089,22 @@ describe( 'tk', function(){
                 expect(function(){tk.setContainerEvalProperty('*','|');}).to.throw(/value already in use/);
             });
         });
-    });
 
-    describe('clock', function(){
-        var complexObj, deepObj, testResult;
-
-        var repeat = 1;
-
-        var getTime = function getTime(startTime){
-            if (global.process && global.process.hrtime){
-                if (startTime){
-                    var diff = process.hrtime(startTime);
-                    return diff[0] ? (diff[0] * 1000000000) + diff[1] : diff[1];
-                }
-                return process.hrtime();
-            }
-            startTime = startTime || 0;
-            if (global.Performance !== undefined){
-                return (Date.now() * 1000) - startTime;
-            }
-            return (Date.now() * 1000) - startTime;
-        };
-
-        var getMeanTime = function getMeanTime(t, num){
-            if(t.shift && t.pop){
-                return t[0] ? Math.floor(((t[0] * 1000000000) + t[1]) / num) : Math.floor(t[1] / num);
-            }
-            return Math.floor(t / num);
-        };
-
-        var getDisplayTime = function getDisplayTime(t){
-            var tString = '';
-
-            // if(t.shift && t.pop){
-            //     // convert process.hrtime array into nanoseconds
-            //     t = t[0] ? (t[0] * 1000000000) + t[1] : t[1];
-            // }
-            // else {
-            //     // normalize other timing methods to nanoseconds
-            //     t = t * 1000;
-            // }
-            if (Math.abs(t) / 1000000000 > 1) {
-                return ((Math.round(t / 1000000))/1000) + 's';
-            }
-            if (Math.abs(t) / 1000000 > 1) {
-                return ((Math.round(t / 1000))/1000) + 'ms';
-            }
-            if (Math.abs(t) / 1000 > 1) {
-                return (t/1000) + 'µs';
-            }
-            return t + 'ns';
-        };
-
-        var timeFunction = function timeFunction(){
-            var args = Array.prototype.slice.call(arguments);
-            var num = args.shift();
-            var cb = args.shift();
-            var startTime, endTime, totalTime = 0;
-
-            // Call once to create in memory - first run is always slow
-            // cb.apply(this, args);
-
-            for(var i = 0; i < num; i++){
-                args.push(i);
-                startTime = getTime();
-                cb.apply(this, args);
-                totalTime = getTime(startTime);
-            }
-            return totalTime;
-            // var avg = totalTime / num;
-            // return Math.floor(avg);
-        };
-
-        var timeFunctionString = function timeFunctionString(){
-            var args = Array.prototype.slice.call(arguments);
-            var num = args[0];
-            return getDisplayTime(getMeanTime(timeFunction.apply(this, arguments), num));
-        };
-
-        var getRandomInt = function getRandomInt(min, max){
-            return Math.floor(Math.random() * (max - min)) + min;
-        };
-
-        var compare = function compare(num, a, b){
-            if (!(a.shift && b.shift && (num > 0))){
-                console.error('Usage: compare(executionCount,[fn, arg1..],[fn, arg1..]');
-                return;
-            }
-            var aTime, bTime;
-            aTime = getMeanTime(timeFunction.apply(this, [num].concat(a)), num);
-            bTime = getMeanTime(timeFunction.apply(this, [num].concat(b)), num);
-            return [aTime, bTime, aTime - bTime];
-        };
-
-        var compareString = function compareString(num, a, b){
-            var args = Array.prototype.slice.call(arguments);
-            var num = args[0];
-            var compareResult = compare.apply(this, arguments);
-            return compareResult.map(getDisplayTime);
-        }
-
-        beforeEach(function () {
-            testResult = '';
-
-            complexObj = {
-                'propA': 'one',
-                'propB': 'two',
-                'propC': 'three',
-                'accounts': [
-                    { 'ary': [9,8,7,6] },
-                    {
-                        'checking': {
-                            'balance': 123.00,
-                            'id': '12345',
-                            'fn': function(){ return 'Function return value'; },
-                            'repeat': 'propA'
-                        },
-                        'savX': 'X',
-                        'savY': 'Y',
-                        'savZ': 'Z',
-                        'savAa': 'aa',
-                        'savAb': 'ab',
-                        'savAc': 'ac',
-                        'savBa': 'ba',
-                        'savBb': 'bb',
-                        'savBc': 'bc',
-                        'test1': 'propA',
-                        'test2': 'propB',
-                        'test3': 'propC'
+        describe('PathToolkit constructor', function () {
+            it('should take options as an argument', function () {
+                var localTk = new PathToolkit({
+                    separators:{
+                        '#': {exec:'property'}
                     },
-                    function(){ return 1;},
-                    { 'propAry': ['savBa', 'savBb'] }
-                ]
-            };
-            deepObj = {};
-            var tmp = deepObj;
-            for (var i = 0; i < 20; i++){
-                tmp.sub = {'a':'one'};
-                tmp = tmp.sub;
-            }
+                    containers: {}
+                });
+                expect(localTk.getTokens('a.b.c').t.length).to.equal(1);
+                expect(localTk.getTokens('a#b#c').t.length).to.equal(3);
+                expect(localTk.getTokens('a#b#c()').t.length).to.equal(3);
+                expect(localTk.getTokens('a#b#c()#~d').t.length).to.equal(4);
+                expect(localTk.getTokens('a#b#c()#~d').t[3]).not.to.be.a.string;
+            });
         });
-
-        afterEach(function(){
-            testResult && console.log(testResult);
-        });
-
-        it('should run a perf test', function () {
-            var str = 'accounts.1.checking.id';
-            var result = timeFunctionString(repeat, tk.get, complexObj, str);
-            expect(result).to.be.a.string;
-            expect(result.length).not.to.equal(0);
-        });
-
-        it('should give a baseline performance of basic object get', function () {
-            var str = 'sub';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, function(obj, prop){ return obj[prop]; }, deepObj, str));
-        });
-
-        it('should find first level property', function () {
-            var str = 'sub';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, deepObj, str));
-        });
-
-        it('should find 10th level property', function () {
-            var str = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, deepObj, str));
-        });
-
-        it('should find 20th level property', function () {
-            var str = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, deepObj, str));
-        });
-
-        it('should find complex value', function () {
-            var str = 'accounts.1.{<3.propAry.0},savA*';
-            // var str = 'accounts[accounts.2()]checking.fn()';
-            testResult = ('"' + str + '": ' + timeFunctionString(repeat, tk.get, complexObj, str));
-        });
-
-        it('should compare first level property with 10th level property', function () {
-            var strA = 'sub';
-            var strB = 'sub.sub.sub.sub.sub.sub.sub.sub.sub.sub';
-            var result = compareString(repeat, [ tk.get, deepObj, strA ], [ tk.get, deepObj, strB ]);
-            testResult = ('A ("' + strA + '"): ' + result[0] + '\nB ("' + strB + '"): ' + result[1] + '\n' +
-                'A - B: ' + result[2]);
-        });
-
-        it('should compare complex value resolution with plain javascript version', function () {
-            var str = 'accounts.1.{<3.propAry.0},savA*';
-            var testFunc = function(data){
-                var ary = [];
-                ary.push(data.accounts[1][ data.accounts[3].propAry[0] ]);
-                for(var prop in data.accounts[1]){
-                    if (prop.substr(0,4) === 'savA'){
-                        ary.push(data.accounts[1][prop]);
-                    }
-                }
-                return ary;
-            }
-            // var str = 'accounts[accounts.2()]checking.fn()';
-            var result = compareString(repeat, [ tk.get, complexObj, str ], [ testFunc, complexObj ]);
-            testResult = ('A ("' + str + '"): ' + result[0] + '\nB (testFunc): ' + result[1] + '\n' +
-                'A - B: ' + result[2]);
-        });
-
     });
     // });
 

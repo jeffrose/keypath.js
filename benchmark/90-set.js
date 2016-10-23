@@ -2,7 +2,8 @@
 
 var KeyPathExp = require( '../dist/keypath-umd' ),
     kp = require( '../dist/kp-umd' ),
-    tk = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/path-toolkit-min' ),
+    tk = new PathToolkit(),
     loset = require( 'lodash.set' ),
     keypather = require( 'keypather' )(),
     

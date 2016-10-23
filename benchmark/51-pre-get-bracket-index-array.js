@@ -1,7 +1,8 @@
 'use strict';
 
 var KeyPathExp = require( '../dist/keypath-umd' ),
-    tk = require( '../dist/tk-umd' ),
+    PathToolkit = require( '../dist/path-toolkit-min' ),
+    tk = new PathToolkit(),
     
     path = '[1,2][1][0]',
     data = [
