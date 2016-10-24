@@ -237,6 +237,7 @@ var PathToolkit = function(options){
      */
     var tokenize = function (str){
         var path = '',
+            simplePath = true, // path is assumed "simple" until proven otherwise
             tokens = [],
             recur = [],
             mods = {},
@@ -260,8 +261,8 @@ var PathToolkit = function(options){
 
         if (typeof str === $STRING && !simplePathRegEx.test(str)){
             tokens = path.split(propertySeparator);
-            opt.useCache && (cache[str] = tokens);
-            return tokens;
+            opt.useCache && (cache[str] = {t: tokens, simple: simplePath});
+            return {t: tokens, simple: simplePath};
         }
 
         for (i = 0; i < pathLength; i++){
@@ -296,31 +297,38 @@ var PathToolkit = function(options){
                     if (i+1 < pathLength && opt.separators[path[i+1]] && opt.separators[path[i+1]].exec === $COLLECTION){
                         recur = tokenize(subpath);
                         if (recur === UNDEF){ return undefined; }
-                        collection.push({'t':recur, 'exec': closer.exec});
+                        recur.exec = closer.exec;
+                        collection.push(recur);
                     }
                     // Handle subpath "[baz]" in foo.[bar],[baz] - we must process subpath and add to collection
                     else if (collection[0]){
                         recur = tokenize(subpath);
                         if (recur === UNDEF){ return undefined; }
-                        collection.push({'t':recur, 'exec': closer.exec});
+                        recur.exec = closer.exec;
+                        collection.push(recur);
                         tokens.push(collection);
                         collection = [];
+                        simplePath &= false;
                     }
                     // Simple property container is equivalent to dot-separated token. Just add this token to tokens.
                     else if (closer.exec === $PROPERTY){
                         recur = tokenize(subpath);
                         if (recur === UNDEF){ return undefined; }
-                        tokens = tokens.concat(recur);
+                        tokens = tokens.concat(recur.t);
+                        simplePath &= recur.simple;
                     }
                     // Quoted subpath is all taken literally without token evaluation. Just add subpath to tokens as-is.
                     else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
                         tokens.push(subpath);
+                        simplePath &= true;
                     }
                     // Otherwise, create token object to hold tokenized subpath, add to tokens.
                     else {
                         recur = tokenize(subpath);
                         if (recur === UNDEF){ return undefined; }
-                        tokens.push({'t':recur, 'exec': closer.exec});
+                        recur.exec = closer.exec;
+                        tokens.push(recur);
+                        simplePath &= false;
                     }
                     subpath = ''; // reset subpath
                 }
@@ -347,6 +355,7 @@ var PathToolkit = function(options){
                 if (word && (mods.has || hasWildcard)){
                     word = {'w': word, 'mods': mods};
                     mods = {};
+                    simplePath &= false;
                 }
                 // word is a plain property or end of collection
                 if (separator.exec === $PROPERTY){
@@ -355,10 +364,12 @@ var PathToolkit = function(options){
                         word && collection.push(word);
                         tokens.push(collection);
                         collection = []; // reset
+                        simplePath &= false;
                     }
                     // word is a plain property
                     else {
                         word && tokens.push(word);
+                        simplePath &= true;
                     }
                 }
                 // word is a collection
@@ -389,6 +400,7 @@ var PathToolkit = function(options){
                 else {
                     // word is a plain property
                     word && tokens.push(word);
+                    simplePath &= true;
                 }
                 word = '';
                 hasWildcard = false;
@@ -415,24 +427,27 @@ var PathToolkit = function(options){
         if (word && (mods.has || hasWildcard)){
             word = {'w': word, 'mods': mods};
             mods = {};
+            simplePath &= false;
         }
         // We are gathering a collection, so add last word to collection and then store
         if (collection[0] !== UNDEF){
             word && collection.push(word);
             tokens.push(collection);
+            simplePath &= false;
         }
         // Word is a plain property
         else {
             word && tokens.push(word);
+            simplePath &= true;
         }
 
         // depth != 0 means mismatched containers
         if (depth !== 0){ return undefined; }
 
         // If path was valid, cache the result
-        opt.useCache && (cache[str] = tokens);
+        opt.useCache && (cache[str] = {t: tokens, simple: simplePath});
 
-        return tokens;
+        return {t: tokens, simple: simplePath};
     };
 
     /**
@@ -477,10 +492,11 @@ var PathToolkit = function(options){
 
         // For String path, either fetch tokens from cache or from `tokenize`.
         if (typeof path === $STRING){
-            if (opt.useCache && cache[path]) { tk = cache[path]; }
+            if (opt.useCache && cache[path]) { tk = cache[path].t; }
             else {
                 tk = tokenize(path);
                 if (tk === UNDEF){ return undefined; }
+                tk = tk.t;
             }
         }
         // For a non-string, assume a pre-compiled token array
@@ -677,7 +693,19 @@ var PathToolkit = function(options){
             i = 0,
             tkLength = 0;
 
+        // if (opt.useCache){
+        //     if (cache[path]){
+        //         tk = cache[path].t;
+        //     }
+        //     else {
+        //         tk = path.split(propertySeparator);
+        //         cache[path] = {t: tk, simple: true};
+        //     }
+        // }
+        // else {
         tk = path.split(propertySeparator);
+        opt.useCache && (cache[path] = {t: tk, simple: true});
+        // }
         tkLength = tk.length;
         while (obj !== UNDEF && i < tkLength){
             if (tk[i] === ''){ return undefined; }
@@ -768,7 +796,7 @@ var PathToolkit = function(options){
     _this.getTokens = function(path){
         var tokens = tokenize(path);
         if (typeof tokens === $UNDEFINED){ return undefined; }
-        return {t: tokens};
+        return tokens;
     };
 
     _this.isValid = function(path){
@@ -783,19 +811,18 @@ var PathToolkit = function(options){
         var i = 0,
             len = arguments.length,
             args;
-        if (typeof path === $STRING && !simplePathRegEx.test(path)){
-            return quickResolveString(obj, path);
-        }
-        else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
-            for (i = path.t.length - 1; i >= 0; i--){
-                if (typeof path.t[i] !== $STRING){
-                    args = [];
-                    if (len > 2){
-                        for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
-                    }
-                    return resolvePath(obj, path, undefined, args);
-                }
+        // if (typeof path === $STRING && !simplePathRegEx.test(path)){
+        //     return quickResolveString(obj, path);
+        // }
+        if (typeof path === $STRING){
+            if (opt.useCache && cache[path] && cache[path].simple){
+                return quickResolveTokenArray(obj, cache[path].t);
             }
+            else if (!simplePathRegEx.test(path)){
+                return quickResolveString(obj, path);
+            }
+        }
+        else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t) && path.simple){
             return quickResolveTokenArray(obj, path.t);
         }
         args = [];
