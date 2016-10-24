@@ -4,6 +4,12 @@
     (global.PathToolkit = factory());
 }(this, (function () { 'use strict';
 
+/**
+ * @fileOverview PathToolkit evaluates string paths as property/index sequences within objects and arrays
+ * @author Aaron Brown
+ * @version 1.0.0
+ */
+
 // Parsing, tokeninzing, etc
 // Some constants for convenience
 var UNDEF = (function(u){return u;})();
@@ -24,7 +30,6 @@ var $CALL         = 'call';
 var $EVALPROPERTY = 'evalProperty';
     
 /**
- * Private Function
  * Tests whether a wildcard templates matches a given string.
  * ```javascript
  * var str = 'aaabbbxxxcccddd';
@@ -37,6 +42,7 @@ var $EVALPROPERTY = 'evalProperty';
  * wildCardMatch('*a', str); // false
  * wildCardMatch('a*z', str); // false
  * ```
+ * @private
  * @param  {String} template Wildcard pattern
  * @param  {String} str      String to match against wildcard pattern
  * @return {Boolean}          True if pattern matches string; False if not
@@ -61,10 +67,10 @@ var wildCardMatch = function(template, str){
 };
 
 /**
- * Private Function
  * Inspect input value and determine whether it is an Object or not.
  * Values of undefined and null will return "false", otherwise
  * must be of type "object" or "function".
+ * @private
  * @param  {Object}  val Thing to examine, may be of any type
  * @return {Boolean}     True if thing is of type "object" or "function"
  */
@@ -74,11 +80,11 @@ var isObject = function(val){
 };
 
 /**
- * Private Function
  * Convert various values to true boolean `true` or `false`.
  * For non-string values, the native javascript idea of "true" will apply.
  * For string values, the words "true", "yes", and "on" will all return `true`.
  * All other strings return `false`. The string match is non-case-sensitive.
+ * @private
  */
 var truthify = function(val){
     var v;
@@ -93,11 +99,11 @@ var truthify = function(val){
 };
 
 /**
- * Private Function
  * Using provided quote character as prefix and suffix, escape any instances
  * of the quote character within the string and return quote+string+quote.
  * The character defined as "singlequote" may be altered by custom options,
  * so a general-purpose function is needed to quote path segments correctly.
+ * @private
  * @param  {String} q   Single-character string to use as quote character
  * @param  {String} str String to be quoted.
  * @return {String}     Original string, surrounded by the quote character,
@@ -109,11 +115,11 @@ var quoteString = function(q, str){
 };
 
 /**
- * Constructor
  * PathToolkit base object. Includes all instance-specific data (options, cache)
  * as local variables. May be passed an options hash to pre-configure the
  * instance prior to use.
- * @param {Object} options Optional. Collection of configuration settings for this
+ * @constructor
+ * @property {Object} options Optional. Collection of configuration settings for this
  * instance of PathToolkit. See `setOptions` function below for detailed documentation.
  */
 var PathToolkit = function(options){
@@ -129,10 +135,10 @@ var PathToolkit = function(options){
         wildcardRegEx;
 
     /**
-     * Private Function
      * Several regular expressions are pre-compiled for use in path interpretation.
      * These expressions are built from the current syntax configuration, so they
      * must be re-built every time the syntax changes.
+     * @private
      */
     var updateRegEx = function(){
         // Lists of special characters for use in regular expressions
@@ -164,8 +170,8 @@ var PathToolkit = function(options){
     };
 
     /**
-     * Private Function
      * Sets all the default options for interpreter behavior and syntax.
+     * @private
      */
     var setDefaultOptions = function(){
         opt = opt || {};
@@ -224,7 +230,6 @@ var PathToolkit = function(options){
     };
 
     /**
-     * Private Function
      * Scan input string from left to right, one character at a time. If a special character
      * is found (one of "separators", "containers", or "prefixes"), either store the accumulated
      * word as a token or else begin watching input for end of token (finding a closing character
@@ -232,6 +237,7 @@ var PathToolkit = function(options){
      * within the container and recursively call `tokenize` on that substring. Final output will
      * be an array of tokens. A complex token (not a simple property or index) will be represented
      * as an object carrying metadata for processing.
+     * @private
      * @param  {String} str Path string
      * @return {Array}     Array of tokens found in the input path
      */
@@ -451,7 +457,6 @@ var PathToolkit = function(options){
     };
 
     /**
-     * Private Function
      * It is `resolvePath`'s job to traverse an object according to the tokens
      * derived from the keypath and either return the value found there or set
      * a new value in that location.
@@ -463,6 +468,7 @@ var PathToolkit = function(options){
      * through path prefixes like "<" for "parent" and "~" for "root". The loop
      * short-circuits by returning `undefined` if the path is invalid at any point,
      * except in `set` scenario with `force` enabled.
+     * @private
      * @param  {Object} obj        The data object to be read/written
      * @param  {String} path       The keypath which `resolvePath` will evaluate against `obj`. May be a pre-compiled Tokens set instead of a string.
      * @param  {Any} newValue   The new value to set at the point described by `path`. Undefined if used in `get` scenario.
@@ -675,13 +681,13 @@ var PathToolkit = function(options){
     };
 
     /**
-     * Private Function
      * Simplified path evaluation heavily optimized for performance when
      * processing paths with only property names or indices and separators.
      * If the path can be correctly processed with "path.split(separator)",
      * this function will do so. Any other special characters found in the
      * path will cause the path to be evaluated with the full `resolvePath`
      * function instead.
+     * @private
      * @param  {Object} obj        The data object to be read/written
      * @param  {String} path       The keypath which `resolvePath` will evaluate against `obj`.
      * @param  {Any} newValue   The new value to set at the point described by `path`. Undefined if used in `get` scenario.
@@ -725,11 +731,11 @@ var PathToolkit = function(options){
     };
 
     /**
-     * Private Function
      * Simplified path evaluation heavily optimized for performance when
      * processing array of simple path tokens (plain property names).
      * This function is essentially the same as `quickResolveString` except
      * `quickResolveTokenArray` does nto need to execute path.split.
+     * @private
      * @param  {Object} obj        The data object to be read/written
      * @param  {Array} tk       The token array which `resolvePath` will evaluate against `obj`.
      * @param  {Any} newValue   The new value to set at the point described by `path`. Undefined if used in `get` scenario.
