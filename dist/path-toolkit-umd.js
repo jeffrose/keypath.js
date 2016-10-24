@@ -92,11 +92,30 @@ var truthify = function(val){
     return false;
 };
 
+/**
+ * Private Function
+ * Using provided quote character as prefix and suffix, escape any instances
+ * of the quote character within the string and return quote+string+quote.
+ * The character defined as "singlequote" may be altered by custom options,
+ * so a general-purpose function is needed to quote path segments correctly.
+ * @param  {String} q   Single-character string to use as quote character
+ * @param  {String} str String to be quoted.
+ * @return {String}     Original string, surrounded by the quote character,
+ * possibly modified internally if the quote character exists within the string.
+ */
 var quoteString = function(q, str){
     var qRegEx = new RegExp(q, 'g');
     return q + str.replace(qRegEx, '\\' + q) + q;
 };
 
+/**
+ * Constructor
+ * PathToolkit base object. Includes all instance-specific data (options, cache)
+ * as local variables. May be passed an options hash to pre-configure the
+ * instance prior to use.
+ * @param {Object} options Optional. Collection of configuration settings for this
+ * instance of PathToolkit. See `setOptions` function below for detailed documentation.
+ */
 var PathToolkit = function(options){
     var _this = this,
         cache = {},
@@ -109,6 +128,12 @@ var PathToolkit = function(options){
         escapedNonSpecialsRegEx,
         wildcardRegEx;
 
+    /**
+     * Private Function
+     * Several regular expressions are pre-compiled for use in path interpretation.
+     * These expressions are built from the current syntax configuration, so they
+     * must be re-built every time the syntax changes.
+     */
     var updateRegEx = function(){
         // Lists of special characters for use in regular expressions
         prefixList = Object.keys(opt.prefixes);
@@ -138,6 +163,10 @@ var PathToolkit = function(options){
         wildcardRegEx = new RegExp('\\'+$WILDCARD);
     };
 
+    /**
+     * Private Function
+     * Sets all the default options for interpreter behavior and syntax.
+     */
     var setDefaultOptions = function(){
         opt = opt || {};
         // Default settings
@@ -406,8 +435,28 @@ var PathToolkit = function(options){
         return tokens;
     };
 
+    /**
+     * Private Function
+     * It is `resolvePath`'s job to traverse an object according to the tokens
+     * derived from the keypath and either return the value found there or set
+     * a new value in that location.
+     * The tokens are a simple array and `reoslvePath` loops through the list
+     * with a simple "while" loop. A token may itself be a nested token array,
+     * which is processed through recursion.
+     * As each successive value is resolved within `obj`, the current value is
+     * pushed onto the "valueStack", enabling backward references (upwards in `obj`)
+     * through path prefixes like "<" for "parent" and "~" for "root". The loop
+     * short-circuits by returning `undefined` if the path is invalid at any point,
+     * except in `set` scenario with `force` enabled.
+     * @param  {Object} obj        The data object to be read/written
+     * @param  {String} path       The keypath which `resolvePath` will evaluate against `obj`. May be a pre-compiled Tokens set instead of a string.
+     * @param  {Any} newValue   The new value to set at the point described by `path`. Undefined if used in `get` scenario.
+     * @param  {Array} args       Array of extra arguments which may be referenced by placeholders. Undefined if no extra arguments were given.
+     * @param  {Array} valueStack Stack of object contexts accumulated as the path tokens are processed in `obj`
+     * @return {Any}            In `get`, returns the value found in `obj` at `path`. In `set`, returns the new value that was set in `obj`. If `get` or `set` are nto successful, returns `undefined`
+     */
     var resolvePath = function (obj, path, newValue, args, valueStack){
-        var change = newValue !== UNDEF,
+        var change = newValue !== UNDEF, // are we setting a new value?
             tk = [],
             tkLength = 0,
             tkLastIdx = 0,
@@ -426,6 +475,7 @@ var PathToolkit = function(options){
             prop = '',
             callArgs;
 
+        // For String path, either fetch tokens from cache or from `tokenize`.
         if (typeof path === $STRING){
             if (opt.useCache && cache[path]) { tk = cache[path]; }
             else {
@@ -433,6 +483,7 @@ var PathToolkit = function(options){
                 if (tk === UNDEF){ return undefined; }
             }
         }
+        // For a non-string, assume a pre-compiled token array
         else {
             tk = path.t ? path.t : [path];
         }
@@ -441,39 +492,51 @@ var PathToolkit = function(options){
         if (tkLength === 0) { return undefined; }
         tkLastIdx = tkLength - 1;
 
-        // if (typeof valueStack === $UNDEFINED){
+        // valueStack will be an array if we are within a recursive call to `resolvePath`
         if (valueStack){
             valueStackLength = valueStack.length;
         }
+        // On original entry to `resolvePath`, initialize valueStack with the base object.
+        // valueStackLength was already initialized to 1.
         else {
-            valueStack = [obj]; // Initialize valueStack with original data object; length already init to 1
+            valueStack = [obj];
         }
 
         // Converted Array.reduce into while loop, still using "prev", "curr", "idx"
         // as loop values
         while (prev !== UNDEF && idx < tkLength){
             curr = tk[idx];
+
+            // If we are setting a new value and this token is the last token, this
+            // is the point where the new value must be set.
             newValueHere = (change && (idx === tkLastIdx));
 
             // Handle most common simple path scenario first
             if (typeof curr === $STRING){
+                // If we are setting...
                 if (change){
+                    // If this is the final token where the new value goes, set it
                     if (newValueHere){
                         context[curr] = newValue;
                         if (context[curr] !== newValue){ return undefined; } // new value failed to set
                     }
+                    // For earlier tokens, create object properties if "force" is enabled
                     else if (opt.force && (Array.isArray(prev) ? context[curr] !== UNDEF : !context.hasOwnProperty(curr))) {
                         context[curr] = {};
                     }
                 }
+                // Return value is assigned as value of this object property
                 ret = context[curr];
+
+                // This basic structure is repeated in other scenarios below, so the logic
+                // pattern is only documented here for brevity.
             }
             else {
                 if (curr === UNDEF){
                     ret = undefined;
                 }
                 else if (Array.isArray(curr)){
-                    // call resolvePath again with base value as evaluated value so far and
+                    // Call resolvePath again with base value as evaluated value so far and
                     // each element of array as the path. Concat all the results together.
                     ret = [];
                     currLength = curr.length
@@ -498,9 +561,10 @@ var PathToolkit = function(options){
                     }
                 }
                 else if (curr.w){
+                    // this word token has modifiers
                     wordCopy = curr.w + '';
-                    // this word token has modifiers, modify current context
                     if (curr.mods.parent){
+                        // modify current context, shift upwards in base object one level
                         context = valueStack[valueStackLength - 1 - curr.mods.parent];
                         if (context === UNDEF) { return undefined; }
                     }
@@ -536,7 +600,12 @@ var PathToolkit = function(options){
                         else if (typeof context === 'function'){
                             ret = wordCopy;
                         }
-                        else if (wildcardRegEx.test(wordCopy) >-1){
+                        // Plain property tokens are listed as special word tokens whenever
+                        // a wildcard is found within the property string. A wildcard in a
+                        // property causes an array of matching properties to be returned,
+                        // so loop through all properties and evaluate token for every
+                        // property where `wildCardMatch` returns true.
+                        else if (wildcardRegEx.test(wordCopy)){
                             ret = [];
                             for (prop in context){
                                 if (context.hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
@@ -548,12 +617,18 @@ var PathToolkit = function(options){
                         else { return undefined; }
                     }
                 }
+                // Eval Property tokens operate on a temporary context created by
+                // recursively calling `resolvePath` with a copy of the valueStack.
                 else if (curr.exec === $EVALPROPERTY){
                     if (newValueHere){
                         context[resolvePath(context, curr, UNDEF, args, valueStack.slice())] = newValue;
                     }
                     ret = context[resolvePath(context, curr, UNDEF, args, valueStack.slice())];
                 }
+                // Functions are called using `call` or `apply`, depending on the state of
+                // the arguments within the ( ) container. Functions are executed with "this"
+                // set to the context immediately prior to the function in the stack.
+                // For example, "a.b.c.fn()" is equivalent to obj.a.b.c.fn.call(obj.a.b.c)
                 else if (curr.exec === $CALL){
                     // If function call has arguments, process those arguments as a new path
                     if (curr.t && curr.t.length){
@@ -573,6 +648,7 @@ var PathToolkit = function(options){
                     }
                 }
             }
+            // Add the return value to the stack in case we must loop again
             valueStack.push(ret);
             valueStackLength++;
             context = ret;
@@ -582,6 +658,19 @@ var PathToolkit = function(options){
         return context;
     };
 
+    /**
+     * Private Function
+     * Simplified path evaluation heavily optimized for performance when
+     * processing paths with only property names or indices and separators.
+     * If the path can be correctly processed with "path.split(separator)",
+     * this function will do so. Any other special characters found in the
+     * path will cause the path to be evaluated with the full `resolvePath`
+     * function instead.
+     * @param  {Object} obj        The data object to be read/written
+     * @param  {String} path       The keypath which `resolvePath` will evaluate against `obj`.
+     * @param  {Any} newValue   The new value to set at the point described by `path`. Undefined if used in `get` scenario.
+     * @return {Any}            In `get`, returns the value found in `obj` at `path`. In `set`, returns the new value that was set in `obj`. If `get` or `set` are nto successful, returns `undefined`
+     */
     var quickResolveString = function(obj, path, newValue){
         var change = newValue !== UNDEF,
             tk = [],
@@ -607,6 +696,17 @@ var PathToolkit = function(options){
         return obj;
     };
 
+    /**
+     * Private Function
+     * Simplified path evaluation heavily optimized for performance when
+     * processing array of simple path tokens (plain property names).
+     * This function is essentially the same as `quickResolveString` except
+     * `quickResolveTokenArray` does nto need to execute path.split.
+     * @param  {Object} obj        The data object to be read/written
+     * @param  {Array} tk       The token array which `resolvePath` will evaluate against `obj`.
+     * @param  {Any} newValue   The new value to set at the point described by `path`. Undefined if used in `get` scenario.
+     * @return {Any}            In `get`, returns the value found in `obj` at `path`. In `set`, returns the new value that was set in `obj`. If `get` or `set` are nto successful, returns `undefined`
+     */
     var quickResolveTokenArray = function(obj, tk, newValue){
         var change = newValue !== UNDEF,
             i = 0,
