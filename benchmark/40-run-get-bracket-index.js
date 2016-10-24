@@ -14,7 +14,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             [ [ 123, 4 ], [ 456, 5 ], [ 789, 6 ] ]
         ]
     ];
-
+    
 module.exports = {
     name: 'Runtime:Get:Bracket:Index',
     maxTime: 5,

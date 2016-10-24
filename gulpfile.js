@@ -94,15 +94,15 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( sourcemaps.write( '.' ) )
         .pipe( gulp.dest( 'dist' ) ),
         
-        // tk.js does not really need to be bundled
+        // path-toolkit.js does not really need to be bundled
         // but it's easier to just reuse the code
         rollup( {
-            entry: 'src/tk.js',
+            entry: 'src/path-toolkit.js',
             format: 'umd',
             moduleName: 'PathToolkit',
             sourceMap: true
         } )
-        .pipe( source( 'tk.js', 'src' ) )
+        .pipe( source( 'path-toolkit.js', 'src' ) )
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'path-toolkit-umd.js' ) )
@@ -110,12 +110,12 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( gulp.dest( 'dist' ) ),
 
         rollup( {
-            entry: 'src/tk.js',
+            entry: 'src/path-toolkit.js',
             format: 'umd',
             moduleName: 'PathToolkit',
             sourceMap: true
         } )
-        .pipe( source( 'tk.js', 'src' ) )
+        .pipe( source( 'path-toolkit.js', 'src' ) )
         .pipe( buffer() )
         .pipe( uglify() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
@@ -180,4 +180,4 @@ gulp.task( 'monitor', [ 'dist' ], ( done ) => {
         } );
 } );
 
-gulp.task( 'default', [ 'tk-test', 'test' ] );
+gulp.task( 'default', [ 'path-toolkit-test', 'test' ] );
