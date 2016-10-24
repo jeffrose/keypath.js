@@ -1,11 +1,20 @@
-# tk
-The tk keypath interpreter supports dot notation ('foo.bar.2') for object/array property lookup. It also supports relative paths, referencing other property values as a key within a path, function calls (with arguments), numbered placeholders within keypaths, wildcard paths, collections, and escaped keypaths. In addition, the operators in the interpreter may be configured if, for example, it's more convenient to use : instead of . as the separator.
+# PathToolkit
+The PathToolkit keypath interpreter supports dot notation ('foo.bar.2') for object/array property lookup. It also supports relative paths, referencing other property values as a key within a path, function calls (with arguments), numbered placeholders within keypaths, wildcard paths, collections, and escaped keypaths. In addition, the operators in the interpreter may be configured if, for example, it's more convenient to use : instead of . as the separator.
+
+PathToolkit is a constructor which is used to create PathToolkit instances. Each instance independently tracks its own configuration, so different instances may be created to process different path syntaxes.
+
+```javascript
+var PathToolkit = require('path-toolkit-min');
+var ptk = new PathToolkit( /* options */ );
+```
+
+The constructor accepts an optional argument: an options object which can be used to override the default configuration at the point of instantiation. See `setOptions` documentation below for details - the constructor calls `setOptions` to process the options argument, if present.
 
 ## Examples
 ### get
 ```javascript
-var val1 = tk.get(obj, path);
-var val2 = tk.get(obj, path, arg1, arg2,..., argN);
+var val1 = ptk.get(obj, path);
+var val2 = ptk.get(obj, path, arg1, arg2,..., argN);
 ```
 
 If the keypath is invalid or does not exist within the target object, `get` returns `undefined`. The `get` function will short circuit and return as soon as `undefined` is detected to prevent unexpected object reference exceptions.
@@ -17,7 +26,7 @@ var data = {
         bar: ['a','b','c']
     }
 };
-tk.get(data, 'foo.bar.2'); // 'c'
+ptk.get(data, 'foo.bar.2'); // 'c'
 ```
 
 #### Separators
@@ -28,9 +37,9 @@ var data = {
         bar: ['a','b','c']
     }
 };
-tk.get(data, 'foo.[bar].2'); // 'c'
-tk.get(data, 'foo[bar]2'); // 'c'
-tk.get(data, 'foo[bar][2]'); // 'c'
+ptk.get(data, 'foo.[bar].2'); // 'c'
+ptk.get(data, 'foo[bar]2'); // 'c'
+ptk.get(data, 'foo[bar][2]'); // 'c'
 ```
 
 #### Quotes
@@ -44,13 +53,13 @@ var data = {
         'one.two': 'three'
     }
 };
-tk.get(data, "foo['bar']2"); // 'c'
-tk.get(data, 'foo["bar"]2'); // 'c'
-tk.get(data, '"abc"'); // 'def'
-tk.get(data, '["abc"]'); // 'def'
-tk.get(data, '\\"abc\\"'); // 'xyz' (see escaped strings below)
-tk.get(data, '"one.two"'); // 'three'
-tk.get(data, '["one.two"]'); // 'three'
+ptk.get(data, "foo['bar']2"); // 'c'
+ptk.get(data, 'foo["bar"]2'); // 'c'
+ptk.get(data, '"abc"'); // 'def'
+ptk.get(data, '["abc"]'); // 'def'
+ptk.get(data, '\\"abc\\"'); // 'xyz' (see escaped strings below)
+ptk.get(data, '"one.two"'); // 'three'
+ptk.get(data, '["one.two"]'); // 'three'
 ```
 
 #### Collections
@@ -63,9 +72,9 @@ var data = {
         b: 'y'
     }
 };
-tk.get(data, 'foo.bar.0,2'); // ['a', 'c']
-tk.get(data, 'foo.bar[0,2]'); // ['a', 'c']
-tk.get(data, 'foo.bar.a,b'); // ['z', 'y']
+ptk.get(data, 'foo.bar.0,2'); // ['a', 'c']
+ptk.get(data, 'foo.bar[0,2]'); // ['a', 'c']
+ptk.get(data, 'foo.bar.a,b'); // ['z', 'y']
 ```
 
 #### Function execution
@@ -76,8 +85,8 @@ var data = {
         bar: ['a','b','c']
     }
 };
-tk.get(data, 'foo.bar.2,0.sort()'); // ['a', 'c']
-tk.get(data, 'foo.bar.2,0.sort().0'); // 'a'
+ptk.get(data, 'foo.bar.2,0.sort()'); // ['a', 'c']
+ptk.get(data, 'foo.bar.2,0.sort().0'); // 'a'
 ```
 
 #### Indirect or Evaluated Properties
@@ -90,11 +99,11 @@ var data = {
         b: 'two'
     }
 };
-tk.get(data, 'foo.bar.0'); // 'a'
-tk.get(data, 'foo.a'); // 'one'
+ptk.get(data, 'foo.bar.0'); // 'a'
+ptk.get(data, 'foo.a'); // 'one'
 // Use the value at "foo.bar.0" as a property of "foo"...
-tk.get(data, 'foo{bar.0}'); // 'one'
-tk.get(data, 'foo{bar.0,2.sort().0}'); // 'one'
+ptk.get(data, 'foo{bar.0}'); // 'one'
+ptk.get(data, 'foo{bar.0,2.sort().0}'); // 'one'
 ```
 
 #### Context modifiers
@@ -107,10 +116,10 @@ var data = {
         b: 'two'
     }
 };
-tk.get(data, 'foo.bar.0'); // 'a'
-tk.get(data, 'foo.a'); // 'one'
-tk.get(data, 'foo.bar.<a'); // 'one'
-tk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
+ptk.get(data, 'foo.bar.0'); // 'a'
+ptk.get(data, 'foo.a'); // 'one'
+ptk.get(data, 'foo.bar.<a'); // 'one'
+ptk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
 ```
 
 #### Placeholders
@@ -123,10 +132,10 @@ var data = {
         b: 'two'
     }
 };
-tk.get(data, 'foo.bar.0'); // 'a'
-tk.get(data, 'foo.%1.%2', 'bar', (2-2)); // 'a'
-tk.get(data, 'foo{%1.0,%1.1', 'bar'); // ['one','two']
-tk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
+ptk.get(data, 'foo.bar.0'); // 'a'
+ptk.get(data, 'foo.%1.%2', 'bar', (2-2)); // 'a'
+ptk.get(data, 'foo{%1.0,%1.1', 'bar'); // ['one','two']
+ptk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
 ```
 
 #### Context Placeholders
@@ -145,32 +154,32 @@ var other = {
     prop: 'bar'
 };
 
-tk.get(data, 'foo.bar.0'); // 'a'
-tk.get(data, 'foo.@1.prop', other); // 'bar'
-tk.get(data, 'foo{@1.prop}0', other); // 'a'
-tk.get(data, 'foo{@1(%2)}', fn, 'x'); // 'blah'
+ptk.get(data, 'foo.bar.0'); // 'a'
+ptk.get(data, 'foo.@1.prop', other); // 'bar'
+ptk.get(data, 'foo{@1.prop}0', other); // 'a'
+ptk.get(data, 'foo{@1(%2)}', fn, 'x'); // 'blah'
 ```
 Use of the context placeholder is most likely to be helpful within the indirect property container (`{ }`) since that container creates a temporary context for evaluation, then returns to the original data context. In the above examples, the path `'foo.@1.prop'` will replace the original data context for the remainder of the evaluation. The net result is exactly the same as finding `other.prop` directly, except with more work and obfuscation. Within the indirect property container, though, this mechanism can be used to create data transformations or to run locally defined functions that are not native to the values.
 
 ### set
 ```javascript
-var result1 = tk.set(obj, path, newVal);
-var result2 = tk.set(obj, path, newVal, arg1, arg2,..., argN);
+var result1 = ptk.set(obj, path, newVal);
+var result2 = ptk.set(obj, path, newVal, arg1, arg2,..., argN);
 ```
 
 Any property specified in a keypath may be set to a new value. The set function returns `true` if the set was successful, `false` if not. By default, only the final property in the keypath may be set - any intermediate properties must be defined and valid or `set` will fail. The final property does not need to exist prior to `set`, it will be created if necessary. This behavior is equivalent to setting an object property in plain javascript code.
 
-This behavior may be changed using `setOptions` (see below), by enabling the "force" option (`tk.setForceOn();`, see "Options" below). The "force" option will only change `set` behavior for simple dot-separated paths. The use of other mechanisms such as collections, indirect properties, etc. will prevent `set` from succeeding due to the difficulty in guessing how and what properties to create in some advanced scenarios. **Note:** If an intermediate value must be created, it will **always** be created as a plain object, never an array, even if the following path segment is an integer. Since all paths are Strings, it is impossible to guess whether the path segment "12345" is the integer 12,345 or the ZIP code "12345", for example, and it could be computationally expensive to create an array with only one defined index when that index is a very high number. Therefore, be aware that when "force" is enabled, the target object may acquire objects within in places where arrays are expected. If this is a risk in the program, it would be best to initialize these values before calling `set` or else leave "force" set to `false`.
+This behavior may be changed using `setOptions` (see below), by enabling the "force" option (`ptk.setForceOn();`, see "Options" below). The "force" option will only change `set` behavior for simple dot-separated paths. The use of other mechanisms such as collections, indirect properties, etc. will prevent `set` from succeeding due to the difficulty in guessing how and what properties to create in some advanced scenarios. **Note:** If an intermediate value must be created, it will **always** be created as a plain object, never an array, even if the following path segment is an integer. Since all paths are Strings, it is impossible to guess whether the path segment "12345" is the integer 12,345 or the ZIP code "12345", for example, and it could be computationally expensive to create an array with only one defined index when that index is a very high number. Therefore, be aware that when "force" is enabled, the target object may acquire objects within in places where arrays are expected. If this is a risk in the program, it would be best to initialize these values before calling `set` or else leave "force" set to `false`.
 ```javascript
 var data = {
     'foo': {}
 };
 data.foo.bar = 1;  // valid
 data.foo.a.b.c = 2; // NOT valid because "data.foo.a" is undefined, so "data.foo.a.b" throws an error
-tk.set(data, 'foo.bar', 1); // 1
-tk.set(data, 'foo.a.b.c', 2); // undefined (tk.set fails)
-tk.setOptions({force: true});
-tk.set(data, 'foo.a.b.c', 2); // 2 (tk.set creates foo.a, foo.a.b, and foo.a.b.c, setting foo.a.b.c = 2)
+ptk.set(data, 'foo.bar', 1); // 1
+ptk.set(data, 'foo.a.b.c', 2); // undefined (ptk.set fails)
+ptk.setOptions({force: true});
+ptk.set(data, 'foo.a.b.c', 2); // 2 (ptk.set creates foo.a, foo.a.b, and foo.a.b.c, setting foo.a.b.c = 2)
 ```
 
 All keypaths that are valid for `get` will behave in the same way for `set`. One special case is worth noting: If the final path segment is a collection, then every property in that collection will be set to the new value.
@@ -180,17 +189,19 @@ var data = {
         bar: ['a','b','c']
     }
 };
-tk.set(data, 'foo.bar.0,1', 'xxx'); // 'xxx'
-tk.get(data, 'foo.bar.0,1,2'); // ['xxx', 'xxx', 'c']
+ptk.set(data, 'foo.bar.0,1', 'xxx'); // 'xxx'
+ptk.get(data, 'foo.bar.0,1,2'); // ['xxx', 'xxx', 'c']
 ```
 
 ### find
 ```javascript
-var path = tk.find(obj, val); // first found path to value
-var allPaths = tk.find(obj, val, 'all'); // all paths to value
+var path = ptk.find(obj, val); // first found path to value
+var allPaths = ptk.find(obj, val, 'all'); // all paths to value
 ```
 
 Does a seep scan through the data object, executing a `===` test on each node against the provided value. If the equals test returns true, the path is returned. By default, only one path is returned and the `find` function aborts as soon as it succeeds. If the last argument is 'all', `find` will scan the full object and return all paths with matching values.
+
+`find` returns a path that is compliant with the current options. If a keypath segment includes special characters, it will be quoted with the current "singlequote" container character, and that quote will be escaped in the segment if it appears.
 
 **Note:** Object keys are sorted in processing, so repeated calls to `find` should produce repeatable results.
 
@@ -201,15 +212,15 @@ var data = {
     },
     xyz: 'b'
 };
-tk.find(data, 'b'); // 'foo.bar.1'
-tk.find(data, 'b', 'all'); // ['foo.bar.1','xyz']
+ptk.find(data, 'b'); // 'foo.bar.1'
+ptk.find(data, 'b', 'all'); // ['foo.bar.1','xyz']
 ```
 
 ### escape
 ```javascript
 var str = 'John Q. Doe';
-var escapedPathSegment = tk.escape(str);
-tk.get(data, ['people', escapedPathSegment, 'address'].join('.'));
+var escapedPathSegment = ptk.escape(str);
+ptk.get(data, ['people', escapedPathSegment, 'address'].join('.'));
 ```
 
 The path interpreter supports escaped characters using backslash (`\`). This is another way to deal with data where operators may be present in the data object as property names. For example, an object that uses full names as keys may include `.` or an object using phone numbers as keys may include `( )`. By pre-processing the path segment with `escape`, these operators will all be prepended with `\`, making the path safe for execution.
@@ -221,27 +232,35 @@ The `escape` function will obey whatever characters are currently defined as ope
 ### isValid
 
 ```javascript
-var bool = tk.isValid(keypath);
+var bool = ptk.isValid(keypath);
 ```
 
 Returns a boolean value: true if the keypath is syntactically valid, false if not. This `isValid` does not take a data object; it does not test whether the keypath exists in an object. It merely evaluates the syntax and indicates if it is improper. This can help when dynamically building a keypath or using complex nested structures. `isValid` will identify mismatched containers and a keypath that ends in `\`, with no characters following to escape.
 
 ### getTokens
 ```javascript
-var tokens = tk.getTokens(keypath);
+var tokens = ptk.getTokens(keypath);
 ```
 
 Returns the tokenized object representing the keypath. This tokens object may be used when calling `get` or `set` in place of a string keypath. When used, those functions will skip the tokenizing step. `getTokens` may be used to pre-compile a keypath for later use, making the `get` and `set` functions slightly more efficient for some keypaths. If the keypath is invalid, `undefined` is returned.
 
 ### Options
 
-The tk library's path interpreter can be customized in many ways. Behavior like caching and whether `set` will create intermediate properties as well as most special characters may be customized. There are a variety of ways to set these options, ranging from the all-at-once `setOptions` function to individual "turn this option on or off" and "change this particular character to a different character" functions.
+The PathToolkit library's path interpreter can be customized in many ways. Behavior like caching and whether `set` will create intermediate properties as well as most special characters may be customized. There are a variety of ways to set these options, ranging from the all-at-once `setOptions` function to individual "turn this option on or off" and "change this particular character to a different character" functions.
+
+Options are stored locally within each PathToolkit instance, so multiple instances may carry different options.
+
+Any time the path syntax is altered through any of the following functions, the PathToolkit instance's local cache is cleared so that paths will be re-evaluated with the new syntax.
 
 #### resetOptions
 ```javascript
-tk.resetOptions();
+ptk.resetOptions();
 ```
-Resets all options to their default state. The default options are as follows:
+Resets all options to their default state.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
+
+The default options are as follows:
 ```javascript
 {
     cache: true,
@@ -296,35 +315,37 @@ Resets all options to their default state. The default options are as follows:
 
 #### setCache, setCacheOn/Off
 ```javascript
-tk.setCache(true);  // Enables cache. Also accepts 'on', 'yes', 'true'; not case-sensitive.
+ptk.setCache(true);  // Enables cache. Also accepts 'on', 'yes', 'true'; not case-sensitive.
                     // Any non-string value that javascript considers "truthy" will enable cache.
-tk.setCache(false); // Disables cache. Any non-string value considered "falsy" will disable cache.
+ptk.setCache(false); // Disables cache. Any non-string value considered "falsy" will disable cache.
 
-tk.setCacheOn();    // enables cache
-tk.setCacheOff();   // disables cache
+ptk.setCacheOn();    // enables cache
+ptk.setCacheOff();   // disables cache
 ```
 For any path beyond the simple case (see `get` above), a tokenizing function parses the path before it is resolved. By default, the results of the tokenizing function are cached so repeated calls for the same path string can skip the tokenizing step. If cache is disabled, any new path evaluation will execute the tokenizing routine, even if the path was stored in cache prior to cache being disabled. Any new paths processed while cache is disabled will not be stored in cache.
 
+Each PathToolkit instance carries its own cache.
+
 #### setForce, setForceOn/Off
 ```javascript
-tk.setForce(true);  // Enables forced property creation. Also accepts 'on', 'yes', 'true'; not case-sensitive.
+ptk.setForce(true);  // Enables forced property creation. Also accepts 'on', 'yes', 'true'; not case-sensitive.
                     // Any non-string value that javascript considers "truthy" will enable this option.
-tk.setForce(false); // Disables forced property creation. Any non-string value considered "falsy" will disable.
+ptk.setForce(false); // Disables forced property creation. Any non-string value considered "falsy" will disable.
 
-tk.setForceOn();    // enables forced property creation
-tk.setForceOff();   // disables forced property creation
+ptk.setForceOn();    // enables forced property creation
+ptk.setForceOff();   // disables forced property creation
 ```
 This option dictates whether the `set` function will create intermediate properties as needed to set a value at the end of a path. This feature is described above in the documentation for `set`.
 
 #### setSimple, setSimpleOn/Off
 ```javascript
-tk.setSimple(true, separator);  // Enables simple path syntax. Also accepts 'on', 'yes', 'true'; not case-sensitive.
+ptk.setSimple(true, separator);  // Enables simple path syntax. Also accepts 'on', 'yes', 'true'; not case-sensitive.
                                 // Any non-string value that javascript considers "truthy" will enable this option.
-tk.setSimple(false); // Disables simple path syntax. Any non-string value considered "falsy" will disable.
+ptk.setSimple(false); // Disables simple path syntax. Any non-string value considered "falsy" will disable.
                      // SEE NOTE BELOW
 
-tk.setSimpleOn(separator);    // enables simple path syntax
-tk.setSimpleOff();            // disables simple path syntax; SEE NOTE BELOW
+ptk.setSimpleOn(separator);    // enables simple path syntax
+ptk.setSimpleOff();            // disables simple path syntax; SEE NOTE BELOW
 ```
 The "separator" argument is optional. If not provided, the default separator "." will be used.
 
@@ -332,57 +353,71 @@ In many cases, the more advanced features offered here are not necessary and onl
 
 **NOTE:** When "simple" mode is **disabled**, the full set of default characters will be restored. Calling `setSimpleOff()` is nearly equivalent to calling `resetOptions()` except that the "cache" and "force" options are not affected by `setSimpleOff()`. The same is true for `setSimple(false)`.
 
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
+
 #### setSeparatorProperty
 ```javascript
-tk.setSeparatorProperty('/'); // 'one.two.three' -> 'one/two/three'
+ptk.setSeparatorProperty('/'); // 'one.two.three' -> 'one/two/three'
 ```
 Removes the existing character used for this purpose and sets the new character instead. The code above is merely an example: any new character is allowed as long as it is only one character.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setSeparatorCollection
 ```javascript
-tk.setSeparatorCollection('/'); // 'one.two,three.four' -> 'one.two/three.four'
+ptk.setSeparatorCollection('/'); // 'one.two,three.four' -> 'one.two/three.four'
 ```
 Removes the existing character used for this purpose and sets the new character instead. The code above is merely an example: any new character is allowed as long as it is only one character.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setPrefixParent
 ```javascript
-tk.setPrefixParent('^'); // 'one{<two.three}four' -> 'one{^two.three}four'
+ptk.setPrefixParent('^'); // 'one{<two.three}four' -> 'one{^two.three}four'
 ```
 Removes the existing character used for this purpose and sets the new character instead. The code above is merely an example: any new character is allowed as long as it is only one character.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setPrefixRoot
 ```javascript
-tk.setPrefixRoot('#'); // 'one{~two.three}four' -> 'one{#two.three}four'
+ptk.setPrefixRoot('#'); // 'one{~two.three}four' -> 'one{#two.three}four'
 ```
 Removes the existing character used for this purpose and sets the new character instead. The code above is merely an example: any new character is allowed as long as it is only one character.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setPrefixPlaceholder
 ```javascript
-tk.setPrefixPlaceholder('&'); // 'one.%1.three' -> 'one.&1.three'
+ptk.setPrefixPlaceholder('&'); // 'one.%1.three' -> 'one.&1.three'
 ```
 Removes the existing character used for this purpose and sets the new character instead. The code above is merely an example: any new character is allowed as long as it is only one character.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setPrefixContext
 ```javascript
-tk.setPrefixContext('+'); // 'one.@1()' -> 'one.+1()'
+ptk.setPrefixContext('+'); // 'one.@1()' -> 'one.+1()'
 ```
 Removes the existing character used for this purpose and sets the new character instead. The code above is merely an example: any new character is allowed as long as it is only one character.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setContainerProperty
 ```javascript
-tk.setContainerProperty('<', '>'); // 'one[two]three' -> 'one<two>three'
+ptk.setContainerProperty('<', '>'); // 'one[two]three' -> 'one<two>three'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
@@ -390,11 +425,13 @@ Both areguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
+
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setContainerSinglequote
 ```javascript
-tk.setContainerSinglequote('|', '|'); // "one['two']three" -> "one[|two|]three"
+ptk.setContainerSinglequote('|', '|'); // "one['two']three" -> "one[|two|]three"
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d"). For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
@@ -402,35 +439,41 @@ Both areguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
+
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setContainerDoublequote
 ```javascript
-tk.setContainerDoublequote('|', '|'); // 'one["two"]three' -> 'one[|two|]three'
+ptk.setContainerDoublequote('|', '|'); // 'one["two"]three' -> 'one[|two|]three'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
 Both areguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setContainerCall
 ```javascript
-tk.setContainerCall('<', '>'); // 'one.fn()' -> 'one.fn<>'
+ptk.setContainerCall('<', '>'); // 'one.fn()' -> 'one.fn<>'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
 Both areguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
+
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setContainerEvalProperty
 ```javascript
-tk.setContainerEvalProperty('<', '>'); // 'one{two.three}four' -> 'one<two.three>four'
+ptk.setContainerEvalProperty('<', '>'); // 'one{two.three}four' -> 'one<two.three>four'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
@@ -438,17 +481,19 @@ Both areguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
+Clears the cache to force all paths to be re-evaluated with the new path syntax.
+
 Throws error if: argument is missing or empty string; argument is more than one character long; argument is already in use for some other purpose in the path syntax.
 
 #### setOptions
 ```javascript
-tk.setOptions(opts);
+ptk.setOptions(opts);
 ```
-Takes an options object as an argument and can set one, some, or all options at once. The operator characters come in three categories: separators, prefixes, and containers. Any or all of these may be set when calling `setOptions`, the function will simply **reqplace** the existing group with whatever is found in the provided options object. If an option (like "cache" or "force") or a character group (like "separators") is not present in the options argument, that option or character group will not be changed.
+Takes an options object as an argument and can set one, some, or all options at once. The operator characters come in three categories: separators, prefixes, and containers. Any or all of these may be set when calling `setOptions`, the function will simply **replace** the existing group with whatever is found in the provided options object. If an option (like "cache" or "force") or a character group (like "separators") is not present in the options argument, that option or character group will not be changed.
 
 ```javascript
 // This command is equivalent to "setSimpleOn('/')"
-tk.setOptions({
+ptk.setOptions({
     // "cache" and "force" are not altered
     simple: true,
     separators: {
@@ -463,5 +508,7 @@ tk.setOptions({
 });
 
 // Equivalent to "setCacheOff()"
-tk.setOptions({ cache: false });
+ptk.setOptions({ cache: false });
 ```
+
+If any of the character groups is set using setOptions, the cache is cleared to force all paths to be re-evaluated with the new path syntax.
