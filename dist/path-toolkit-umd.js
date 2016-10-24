@@ -811,9 +811,6 @@ var PathToolkit = function(options){
         var i = 0,
             len = arguments.length,
             args;
-        // if (typeof path === $STRING && !simplePathRegEx.test(path)){
-        //     return quickResolveString(obj, path);
-        // }
         if (typeof path === $STRING){
             if (opt.useCache && cache[path] && cache[path].simple){
                 return quickResolveTokenArray(obj, cache[path].t);
@@ -839,30 +836,24 @@ var PathToolkit = function(options){
             ref,
             done = false;
             
-            // args = len > 3 ? new Array(len - 3) : [],
-        if (typeof path === $STRING && !simplePathRegEx.test(path)){
-            ref = quickResolveString(obj, path, val);
-            done = true;
-        }
-        else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t)){
-            for (i = path.t.length - 1; i >= 0; i--){
-                // Short circuit as soon as we find a copmlex token
-                if (!done && typeof path.t[i] !== $STRING){
-                    args = [];
-                    if (len > 3){
-                        for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
-                    }
-                    ref = resolvePath(obj, path, val, args);
-                    done = true;
-                }
+
+        if (typeof path === $STRING){
+            if (opt.useCache && cache[path] && cache[path].simple){
+                ref = quickResolveTokenArray(obj, cache[path].t, val);
+                done |= true;
             }
-            // We had a token array of simple tokens
-            if (!done){
-                ref = quickResolveTokenArray(obj, path.t, val);
+            else if (!simplePathRegEx.test(path)){
+                ref = quickResolveString(obj, path, val);
+                done |= true;
             }
         }
+        else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t) && path.simple){
+            ref = quickResolveTokenArray(obj, path.t, val);
+            done |= true;
+        }
+        
         // Path was (probably) a string and it contained complex path characters
-        else {
+        if (!done) {
             if (len > 3){
                 args = [];
                 for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
