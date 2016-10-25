@@ -63,7 +63,7 @@ describe( 'PathToolkit', function(){
         expect(new PathToolkit()).to.be.an.instanceOf(PathToolkit);
     });
 
-    describe( 'disable', function(){
+    // xdescribe( 'disable', function(){
     describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -1101,15 +1101,9 @@ describe( 'PathToolkit', function(){
             });
         });
     });
-    });
+    // });
 
-    xdescribe( 'debug', function(){
-        it( 'should allow wildcard * for array indices, resolved as array of values', function(){
-            var str = 'accounts.0.ary.*';
-            expect(ptk.get(data, str)).to.be.an.array;
-            expect(ptk.get(data, str).length).to.equal(data.accounts[0].ary.length);
-            expect(ptk.get(data, str).join(',')).to.equal(data.accounts[0].ary.join(','));
-        } );
-    });
+    // describe( 'debug', function(){
+    // });
 
 } );

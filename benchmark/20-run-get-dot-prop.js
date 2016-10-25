@@ -16,6 +16,9 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
                 }
             }
         }
+    },
+    native = function(data){
+        return data.foo.bar.qux.baz;
     };
 
 module.exports = {
@@ -33,6 +36,9 @@ module.exports = {
         },
         'lodash#get': function(){
             loget( data, path );
+        },
+        'native#dot': function(){
+            native(data);
         }
     }
 };
