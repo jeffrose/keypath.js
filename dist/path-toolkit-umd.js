@@ -106,8 +106,7 @@ var truthify = function(val){
  * @private
  * @param  {String} q   Single-character string to use as quote character
  * @param  {String} str String to be quoted.
- * @return {String}     Original string, surrounded by the quote character,
- * possibly modified internally if the quote character exists within the string.
+ * @return {String}     Original string, surrounded by the quote character, possibly modified internally if the quote character exists within the string.
  */
 var quoteString = function(q, str){
     var qRegEx = new RegExp(q, 'g');
@@ -119,8 +118,7 @@ var quoteString = function(q, str){
  * as local variables. May be passed an options hash to pre-configure the
  * instance prior to use.
  * @constructor
- * @property {Object} options Optional. Collection of configuration settings for this
- * instance of PathToolkit. See `setOptions` function below for detailed documentation.
+ * @property {Object} options Optional. Collection of configuration settings for this instance of PathToolkit. See `setOptions` function below for detailed documentation.
  */
 var PathToolkit = function(options){
     var _this = this,
@@ -330,7 +328,12 @@ var PathToolkit = function(options){
                     }
                     // Otherwise, create token object to hold tokenized subpath, add to tokens.
                     else {
-                        recur = tokenize(subpath);
+                        if (subpath === ''){
+                            recur = {t:[],simple:true};
+                        }
+                        else {
+                            recur = tokenize(subpath);
+                        }
                         if (recur === UNDEF){ return undefined; }
                         recur.exec = closer.exec;
                         tokens.push(recur);
@@ -654,7 +657,7 @@ var PathToolkit = function(options){
                 else if (curr.exec === $CALL){
                     // If function call has arguments, process those arguments as a new path
                     if (curr.t && curr.t.length){
-                        callArgs = resolvePath(context, curr, UNDEF, args);
+                        callArgs = resolvePath(context, curr, UNDEF, args, valueStack.slice());
                         if (callArgs === UNDEF){
                             ret = context.apply(valueStack[valueStackLength - 2]);
                         }
@@ -763,22 +766,42 @@ var PathToolkit = function(options){
         return obj;
     };
 
+    /**
+     * Searches an object or array for a value, accumulating the keypath to the value along
+     * the way. Operates in a recursive way until either all keys/indices have been
+     * exhausted or a match is found. Return value "true" means "keep scanning", "false"
+     * means "stop now". If a match is found, instead of returning a simple "false", a
+     * callback function (savePath) is called which will decide whether or not to continue
+     * the scan. This allows the function to find one instance of value or all instances,
+     * based on logic in the callback.
+     * @private
+     * @param {Object} obj    The data object to scan
+     * @param {Any} val The value we are looking for within `obj`
+     * @param {Function} savePath Callback function which will store accumulated paths and indicate whether to continue
+     * @param {String} path Accumulated keypath; undefined at first, populated in recursive calls
+     * @return {Boolean} Indicates whether scan process should continue ("true"->yes, "false"->no)
+     */
     var scanForValue = function(obj, val, savePath, path){
         var i, len, more, keys, prop;
 
         path = path ? path : '';
 
+        // If we found the value we're looking for
         if (obj === val){
-            return savePath(path); // true -> keep looking; false -> stop now
+            return savePath(path); // Save the accumulated path, ask whether to continue
         }
+        // This object is an array, so examine each index separately
         else if (Array.isArray(obj)){
             len = obj.length;
             for(i = 0; i < len; i++){
+                // Call `scanForValue` recursively
                 more = scanForValue(obj[i], val, savePath, path + propertySeparator + i);
+                // Halt if that recursive call returned "false"
                 if (!more){ return; }
             }
             return true; // keep looking
         }
+        // This object is an object, so examine each local property separately
         else if (isObject(obj)) {
             keys = Object.keys(obj);
             len = keys.length;
@@ -786,6 +809,8 @@ var PathToolkit = function(options){
             for (i = 0; i < len; i++){
                 if (obj.hasOwnProperty(keys[i])){
                     prop = keys[i];
+                    // Property may include the separator character or some other special character,
+                    // so quote this path segment and escape any separators within.
                     if (allSpecialsRegEx.test(prop)){
                         prop = quoteString(singlequote, prop);
                     }
@@ -799,24 +824,59 @@ var PathToolkit = function(options){
         return true; // keep looking
     };
 
+    /**
+     * Get tokenized representation of string keypath.
+     * @public
+     * @param {String} path Keypath
+     * @return {Object} Object including the array of path tokens and a boolean indicating "simple". Simple token sets have no special operators or nested tokens, only a plain array of strings for fast evaluation.
+     */
     _this.getTokens = function(path){
         var tokens = tokenize(path);
         if (typeof tokens === $UNDEFINED){ return undefined; }
         return tokens;
     };
 
+    /**
+     * Informs whether the string path has valid syntax. The path is NOT evaluated against a
+     * data object, only the syntax is checked.
+     * @public
+     * @param {String} path Keypath
+     * @return {Boolean} valid syntax -> "true"; not valid -> "false"
+     */
     _this.isValid = function(path){
         return typeof tokenize(path) !== $UNDEFINED;
     };
 
-    _this.escape = function(path){
-        return path.replace(allSpecialsRegEx, '\\$&');
+    /**
+     * Escapes any special characters found in the input string using backslash, preventing
+     * these characters from causing unintended processing by PathToolkit. This function
+     * DOES respect the current configured syntax, even if it has been altered from the default.
+     * @public
+     * @param {String} segment Segment of a keypath
+     * @return {String} The original segment string with all PathToolkit special characters prepended with "\"
+     */
+    _this.escape = function(segment){
+        return segment.replace(allSpecialsRegEx, '\\$&');
     };
 
+    /**
+     * Evaluates keypath in object and returns the value found there, if available. If the path
+     * does not exist in the provided data object, returns `undefined`. For "simple" paths, which
+     * don't include any operations beyond property separators, optimized resolvers will be used
+     * which are more lightweight than the full-featured `resolvePath`.
+     * @public
+     * @param {Any} obj Source data object
+     * @param {String} path Keypath to evaluate within "obj". Also accepts token array in place of a string path.
+     * @return {Any} If the keypath exists in "obj", return the value at that location; If not, return `undefined`.
+     */
     _this.get = function (obj, path){
         var i = 0,
             len = arguments.length,
             args;
+        // For string paths, first see if path has already been cached and if the token set is simple. If
+        // so, we can use the optimized token array resolver using the cached token set.
+        // If there is no cached entry, use RegEx to look for special characters apart from the separator.
+        // If none are found, we can use the optimized string resolver.
         if (typeof path === $STRING){
             if (opt.useCache && cache[path] && cache[path].simple){
                 return quickResolveTokenArray(obj, cache[path].t);
@@ -825,9 +885,13 @@ var PathToolkit = function(options){
                 return quickResolveString(obj, path);
             }
         }
+        // For array paths (pre-compiled token sets), check for simplicity so we can use the optimized resolver.
         else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t) && path.simple){
             return quickResolveTokenArray(obj, path.t);
         }
+        
+        // If we made it this far, the path is complex and may include placeholders. Gather up any
+        // extra arguments and call the full `resolvePath` function.
         args = [];
         if (len > 2){
             for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
@@ -835,6 +899,17 @@ var PathToolkit = function(options){
         return resolvePath(obj, path, undefined, args);
     };
 
+    /**
+     * Evaluates a keypath in object and sets a new value at the point described in the keypath. If
+     * "force" is disabled, the full path must exist up to the final property, which may be created
+     * by the set operation. If "force" is enabled, any missing intermediate properties will be created
+     * in order to set the value on the final property. If `set` succeeds, returns "true", otherwise "false".
+     * @public
+     * @param {Any} obj Source data object
+     * @param {String} path Keypath to evaluate within "obj". Also accepts token array in place of a string path.
+     * @param {Any} val New value to set at the location described in "path"
+     * @return {Boolean} "true" if the set operation succeeds; "false" if it does not succeed
+     */
     _this.set = function(obj, path, val){
         var i = 0,
             len = arguments.length,
@@ -842,7 +917,9 @@ var PathToolkit = function(options){
             ref,
             done = false;
             
-
+        // Path resolution follows the same logic as `get` above, with one difference: `get` will
+        // abort by returning the value as soon as it's found. `set` does not abort so the if-else
+        // structure is slightly different to dictate when/if the final case should execute.
         if (typeof path === $STRING){
             if (opt.useCache && cache[path] && cache[path].simple){
                 ref = quickResolveTokenArray(obj, cache[path].t, val);
@@ -867,14 +944,27 @@ var PathToolkit = function(options){
             ref = resolvePath(obj, path, val, args);
         }
         
+        // `set` can set a new value in multiple places if the final path segment is an array.
+        // If any of those value assignments fail, `set` will return "false" indicating failure.
         if (Array.isArray(ref)){
             return ref.indexOf(undefined) === -1;
         }
         return ref !== UNDEF;
     };
 
+    /**
+     * Locate a value within an object or array. This is the publicly exposed interface to the
+     * private `scanForValue` function defined above.
+     * @public
+     * @param {Any} obj Source data object
+     * @param {Any} val The value to search for within "obj"
+     * @param {String} oneOrMany Optional; If missing or "one", `find` will only return the first valid path. If "onOrMany" is any other string, `find` will scan the full object looking for all valid paths to all cases where "val" appears.
+     * @return {Array} Array of keypaths to "val" or `undefined` if "val" is not found.
+     */
     _this.find = function(obj, val, oneOrMany){
         var retVal = [];
+        // savePath is the callback which will accumulate any found paths in a local array
+        // variable.
         var savePath = function(path){
             retVal.push(path.substr(1));
             if(!oneOrMany || oneOrMany === 'one'){
@@ -887,6 +977,17 @@ var PathToolkit = function(options){
         return retVal[0] ? retVal : undefined;
     };
 
+    /**
+     * For a given special character group (e.g., separators) and character type (e.g., "property"),
+     * replace an existing separator with a new character. This creates a new special character for
+     * that purpose anwithin the character group and removes the old one. Also takes a "closer" argument
+     * for cases where the special character is a container set.
+     * @private
+     * @param {Object} optionGroup Reference to current configuration for a certain type of special characters
+     * @param {String} charType The type of special character to be replaced
+     * @param {String} val New special character string
+     * @param {String} closer Optional; New special character closer string, only used for "containers" group
+     */
     var updateOptionChar = function(optionGroup, charType, val, closer){
         var oldVal = '';
         Object.keys(optionGroup).forEach(function(str){ if (optionGroup[str].exec === charType){ oldVal = str; } });
@@ -896,6 +997,12 @@ var PathToolkit = function(options){
         if (closer){ optionGroup[val].closer = closer; }
     };
 
+    /**
+     * Sets "simple" syntax in special character groups. This syntax only supports a separator
+     * character and no other operators. A custom separator may be provided as an argument.
+     * @private
+     * @param {String} sep Optional; Separator string. If missing, the default separator (".") is used.
+     */
     var setSimpleOptions = function(sep){
         var sepOpts = {};
         if (!(typeof sep === $STRING && sep.length === 1)){
