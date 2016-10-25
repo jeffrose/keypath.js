@@ -4,6 +4,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     kp = require( '../dist/kp-umd' ),
     PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
+    tkNoCache = new PathToolkit({cache:false}),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
     
@@ -30,6 +31,9 @@ module.exports = {
         },
         'tk#get': function(){
             tk.get( data, path );
+        },
+        'tkNoCache#get': function(){
+            tkNoCache.get( data, path );
         },
         'keypather#get': function(){
             keypather.get( data, path );
