@@ -1010,6 +1010,15 @@ var PathToolkit = function(options){
         opt.separators = sepOpts;
     };
 
+    /**
+     * Alter PathToolkit configuration. Takes an options hash which may include
+     * multiple settings to change at once. If the path syntax is changed by
+     * changing special characters, the cache is wiped. Each option group is
+     * REPLACED by the new option group passed in. If an option group is not
+     * included in the options hash, it is not changed.
+     * @public
+     * @param {Object} options Option hash. For sample input, see `setDefaultOptions` above.
+     */
     _this.setOptions = function(options){
         if (options.prefixes){
             opt.prefixes = options.prefixes;
@@ -1047,26 +1056,61 @@ var PathToolkit = function(options){
         updateRegEx();
     };
 
+    /**
+     * Sets use of keypath cache to enabled or disabled, depending on input value.
+     * @public
+     * @param {Any} val Value which will be interpreted as a boolean using `truthify`. "true" will enable cache; "false" will disable.
+     */
     _this.setCache = function(val){
         opt.useCache = truthify(val);
     };
+    /**
+     * Enables use of keypath cache.
+     * @public
+     */
     _this.setCacheOn = function(){
         opt.useCache = true;
     };
+    /**
+     * Disables use of keypath cache.
+     * @public
+     */
     _this.setCacheOff = function(){
         opt.useCache = false;
     };
 
+    /**
+     * Sets "force" option when setting values in an object, depending on input value.
+     * @public
+     * @param {Any} val Value which will be interpreted as a boolean using `truthify`. "true" enables "force"; "false" disables.
+     */
     _this.setForce = function(val){
         opt.force = truthify(val);
     };
+    /**
+     * Enables "force" option when setting values in an object.
+     * @public
+     */
     _this.setForceOn = function(){
         opt.force = true;
     };
+    /**
+     * Disables "force" option when setting values in an object.
+     * @public
+     */
     _this.setForceOff = function(){
         opt.force = false;
     };
 
+    /**
+     * Shortcut function to alter PathToolkit syntax to a "simple" mode that only uses
+     * separators and no other operators. "Simple" mode is enabled or disabled according
+     * to the first argument and the separator may be customized with the second
+     * argument when enabling "simple" mode.
+     * @public
+     * @param {Any} val Value which will be interpreted as a boolean using `truthify`. "true" enables "simple" mode; "false" disables.
+     * @param {String} sep Separator string to use in place of the default "."
+     */
     _this.setSimple = function(val, sep){
         var tempCache = opt.useCache; // preserve these two options after "setDefaultOptions"
         var tempForce = opt.force;
@@ -1083,12 +1127,26 @@ var PathToolkit = function(options){
         }
         cache = {};
     };
+    
+    /**
+     * Enables "simple" mode
+     * @public
+     * @param {String} sep Separator string to use in place of the default "."
+     * @see setSimple
+     */
     _this.setSimpleOn = function(sep){
         opt.simple = true;
         setSimpleOptions(sep);
         updateRegEx();
         cache = {};
     };
+    
+    /**
+     * Disables "simple" mode, restores default PathToolkit syntax
+     * @public
+     * @see setSimple
+     * @see setDefaultOptions
+     */
     _this.setSimpleOff = function(){
         var tempCache = opt.useCache; // preserve these two options after "setDefaultOptions"
         var tempForce = opt.force;
@@ -1100,6 +1158,11 @@ var PathToolkit = function(options){
         cache = {};
     };
 
+    /**
+     * Modify the property separator in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for this operation.
+     */
     _this.setSeparatorProperty = function(val){
         if (typeof val === $STRING && val.length === 1){
             if (val !== $WILDCARD && (!opt.separators[val] || opt.separators[val].exec === $PROPERTY) && !(opt.prefixes[val] || opt.containers[val])){
@@ -1116,6 +1179,11 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the collection separator in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for this operation.
+     */
     _this.setSeparatorCollection = function(val){
         if (typeof val === $STRING && val.length === 1){
             if (val !== $WILDCARD && (!opt.separators[val] || opt.separators[val].exec === $COLLECTION) && !(opt.prefixes[val] || opt.containers[val])){
@@ -1132,6 +1200,11 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the parent prefix in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for this operation.
+     */
     _this.setPrefixParent = function(val){
         if (typeof val === $STRING && val.length === 1){
             if (val !== $WILDCARD && (!opt.prefixes[val] || opt.prefixes[val].exec === $PARENT) && !(opt.separators[val] || opt.containers[val])){
@@ -1148,6 +1221,11 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the root prefix in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for this operation.
+     */
     _this.setPrefixRoot = function(val){
         if (typeof val === $STRING && val.length === 1){
             if (val !== $WILDCARD && (!opt.prefixes[val] || opt.prefixes[val].exec === $ROOT) && !(opt.separators[val] || opt.containers[val])){
@@ -1164,6 +1242,11 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the placeholder prefix in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for this operation.
+     */
     _this.setPrefixPlaceholder = function(val){
         if (typeof val === $STRING && val.length === 1){
             if (val !== $WILDCARD && (!opt.prefixes[val] || opt.prefixes[val].exec === $PLACEHOLDER) && !(opt.separators[val] || opt.containers[val])){
@@ -1180,6 +1263,11 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the context prefix in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for this operation.
+     */
     _this.setPrefixContext = function(val){
         if (typeof val === $STRING && val.length === 1){
             if (val !== $WILDCARD && (!opt.prefixes[val] || opt.prefixes[val].exec === $CONTEXT) && !(opt.separators[val] || opt.containers[val])){
@@ -1196,6 +1284,12 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the property container characters in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for the container opener.
+     * @param {String} closer New character to use for the container closer.
+     */
     _this.setContainerProperty = function(val, closer){
         if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
             if (val !== $WILDCARD && (!opt.containers[val] || opt.containers[val].exec === $PROPERTY) && !(opt.separators[val] || opt.prefixes[val])){
@@ -1212,6 +1306,12 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the single quote container characters in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for the container opener.
+     * @param {String} closer New character to use for the container closer.
+     */
     _this.setContainerSinglequote = function(val, closer){
         if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
             if (val !== $WILDCARD && (!opt.containers[val] || opt.containers[val].exec === $SINGLEQUOTE) && !(opt.separators[val] || opt.prefixes[val])){
@@ -1228,6 +1328,12 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the double quote container characters in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for the container opener.
+     * @param {String} closer New character to use for the container closer.
+     */
     _this.setContainerDoublequote = function(val, closer){
         if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
             if (val !== $WILDCARD && (!opt.containers[val] || opt.containers[val].exec === $DOUBLEQUOTE) && !(opt.separators[val] || opt.prefixes[val])){
@@ -1244,6 +1350,12 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the function call container characters in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for the container opener.
+     * @param {String} closer New character to use for the container closer.
+     */
     _this.setContainerCall = function(val, closer){
         if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
             if (val !== $WILDCARD && (!opt.containers[val] || opt.containers[val].exec === $CALL) && !(opt.separators[val] || opt.prefixes[val])){
@@ -1260,6 +1372,12 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Modify the eval property container characters in the PathToolkit syntax.
+     * @public
+     * @param {String} val New character to use for the container opener.
+     * @param {String} closer New character to use for the container closer.
+     */
     _this.setContainerEvalProperty = function(val, closer){
         if (typeof val === $STRING && val.length === 1 && typeof closer === $STRING && closer.length === 1){
             if (val !== $WILDCARD && (!opt.containers[val] || opt.containers[val].exec === $EVALPROPERTY) && !(opt.separators[val] || opt.prefixes[val])){
@@ -1276,6 +1394,10 @@ var PathToolkit = function(options){
         }
     };
 
+    /**
+     * Reset all PathToolkit options to their default values.
+     * @public
+     */
     _this.resetOptions = function(){
         setDefaultOptions();
         updateRegEx();

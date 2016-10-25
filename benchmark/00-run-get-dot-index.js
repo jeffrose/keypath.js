@@ -13,7 +13,10 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             [ [ 123, 1 ], [ 456, 2 ], [ 789, 3 ] ],
             [ [ 123, 4 ], [ 456, 5 ], [ 789, 6 ] ]
         ]
-    ];
+    ],
+    native = function(data){
+        return data[2][0][1][0];
+    };
 
 module.exports = {
     name: 'Runtime:Get:Dot:Index',
@@ -31,6 +34,9 @@ module.exports = {
         },
         'lodash#get': function(){
             loget( data, path );
+        },
+        'native': function(){
+            native(data);
         }
         
     }
