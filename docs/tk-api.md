@@ -113,7 +113,7 @@ ptk.get(data, 'foo.bar.*'); // ['a', 'b', 'c']
 ptk.get(data, 'foo.bar.*<toUpperCase()'); // ['A', 'B', 'C']
 
 ptk.get(data, 'people.*<id'); // [1, 2, 3]
-ptk.get(data, 'people.*<id,name'); // [ [1, 2, 3], ['John', 'Jane', 'Mephistopholes'] ]
+ptk.get(data, 'people.*<id,name'); // [ [1, 'John'], [2, 'Jane'], [3, 'Mephistopholes'] ]
 
 ```
 
