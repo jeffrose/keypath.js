@@ -1,6 +1,7 @@
 'use strict';
 
-var esprima = require( 'esprima' ),
+var acorn = require( 'acorn' ),
+    esprima = require( 'esprima' ),
     Lexer = require( '../dist/lexer-umd' ),
     Builder = require( '../dist/builder-umd' ),
     
@@ -10,8 +11,6 @@ var esprima = require( 'esprima' ),
     path = 'foo.bar.qux.baz',
     
     tokens = lexer.lex( path );
-
-console.log( esprima.parse( path ) );
 
 module.exports = {
     name: 'Building',
@@ -25,6 +24,9 @@ module.exports = {
         },
         'esprima#parse': function(){
             esprima.parse( path );
+        },
+        'acorn#parse': function(){
+            acorn.parse( path );
         }
     }
 };
