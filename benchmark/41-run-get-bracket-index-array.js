@@ -5,6 +5,8 @@ var kp = require( '../dist/kp-umd' ),
     tk = new PathToolkit(),
     
     path = '[1,2][1][0]',
+    tkpath = '[1,2]<[1]<[0]',
+    tkpathSimplified = '1,2<1<0',
     data = [
         [ [ 1 ], [ 2 ] ],// 0
         [ [ 3 ], [ 4 ] ],// 1
@@ -18,10 +20,12 @@ module.exports = {
     tests: {
         'kp': function(){
             kp`[1,2][1][0]`( data );
-        }/*, Is this supported?
+        },
         'tk#get': function(){
-            tk.get( data, path );
+            tk.get( data, tkpath );
+        },
+        'tk#get-simplified': function(){
+            tk.get( data, tkpathSimplified );
         }
-        */
     }
 };

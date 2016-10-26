@@ -20,6 +20,7 @@ var $WILDCARD     = '*',
     $CONTEXT      = 'context',
     $PROPERTY     = 'property',
     $COLLECTION   = 'collection',
+    $EACH         = 'each',
     $SINGLEQUOTE  = 'singlequote',
     $DOUBLEQUOTE  = 'doublequote',
     $CALL         = 'call',
@@ -176,7 +177,7 @@ var PathToolkit = function(options){
 
         // Default prefix special characters
         opt.prefixes = {
-            '<': {
+            '^': {
                 'exec': $PARENT
             },
             '~': {
@@ -196,7 +197,10 @@ var PathToolkit = function(options){
                 },
             ',': {
                 'exec': $COLLECTION
-                }
+                },
+            '<': {
+                'exec': $EACH
+            }
         };
         // Default container special characters
         opt.containers = {
@@ -244,6 +248,7 @@ var PathToolkit = function(options){
             pathLength = 0,
             word = '',
             hasWildcard = false,
+            doEach = false, // must remember the "each" operator into the following token
             subpath = '',
             i = 0,
             opener = '',
@@ -298,6 +303,7 @@ var PathToolkit = function(options){
                         recur = tokenize(subpath);
                         if (recur === UNDEF){ return undefined; }
                         recur.exec = closer.exec;
+                        recur.doEach = doEach;
                         collection.push(recur);
                     }
                     // Handle subpath "[baz]" in foo.[bar],[baz] - we must process subpath and add to collection
@@ -305,6 +311,7 @@ var PathToolkit = function(options){
                         recur = tokenize(subpath);
                         if (recur === UNDEF){ return undefined; }
                         recur.exec = closer.exec;
+                        recur.doEach = doEach;
                         collection.push(recur);
                         tokens.push(collection);
                         collection = [];
@@ -314,8 +321,15 @@ var PathToolkit = function(options){
                     else if (closer.exec === $PROPERTY){
                         recur = tokenize(subpath);
                         if (recur === UNDEF){ return undefined; }
-                        tokens = tokens.concat(recur.t);
-                        simplePath &= recur.simple;
+                        if (doEach){
+                            tokens = tokens.concat({'w':recur.t, 'mods':{}, 'doEach':true});
+                            simplePath &= false;
+                            doEach = false; // reset
+                        }
+                        else {
+                            tokens = tokens.concat(recur.t);
+                            simplePath &= recur.simple;
+                        }
                     }
                     // Quoted subpath is all taken literally without token evaluation. Just add subpath to tokens as-is.
                     else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
@@ -332,6 +346,7 @@ var PathToolkit = function(options){
                         }
                         if (recur === UNDEF){ return undefined; }
                         recur.exec = closer.exec;
+                        recur.doEach = doEach;
                         tokens.push(recur);
                         simplePath &= false;
                     }
@@ -357,17 +372,22 @@ var PathToolkit = function(options){
                     return undefined;
                 }
                 // This token will require special interpreter processing due to prefix or wildcard.
-                if (word && (mods.has || hasWildcard)){
-                    word = {'w': word, 'mods': mods};
+                if (word && (mods.has || hasWildcard || doEach)){
+                    word = {'w': word, 'mods': mods, 'doEach': doEach};
                     mods = {};
                     simplePath &= false;
                 }
                 // word is a plain property or end of collection
-                if (separator.exec === $PROPERTY){
+                if (separator.exec === $PROPERTY || separator.exec === $EACH){
                     // we are gathering a collection, so add last word to collection and then store
                     if (collection[0] !== UNDEF){
                         word && collection.push(word);
-                        tokens.push(collection);
+                        if (doEach){
+                            tokens.push({'t':collection, 'doEach':true});
+                        }
+                        else {
+                            tokens.push(collection);
+                        }
                         collection = []; // reset
                         simplePath &= false;
                     }
@@ -376,6 +396,9 @@ var PathToolkit = function(options){
                         word && tokens.push(word);
                         simplePath &= true;
                     }
+                    // If the separator is the "each" separtor, the following word will be evaluated differently.
+                    // If it's not the "each" separator, then reset "doEach"
+                    doEach = separator.exec === $EACH; // reset
                 }
                 // word is a collection
                 else if (separator.exec === $COLLECTION){
@@ -394,8 +417,14 @@ var PathToolkit = function(options){
             // Set depth value for further processing.
             else if (!escaped && opt.containers.hasOwnProperty(path[i]) && opt.containers[path[i]].exec){
                 closer = opt.containers[path[i]];
-                if (word && (mods.has || hasWildcard)){
-                    word = {'w': word, 'mods': mods};
+                if (word && (mods.has || hasWildcard || doEach)){
+                    if (typeof word === 'string'){
+                        word = {'w': word, 'mods': mods, 'doEach':doEach};
+                    }
+                    else {
+                        word.mods = mods;
+                        word.doEach = doEach;
+                    }
                     mods = {};
                 }
                 if (collection[0] !== UNDEF){
@@ -407,9 +436,14 @@ var PathToolkit = function(options){
                     word && tokens.push(word);
                     simplePath &= true;
                 }
+                opener = path[i];
+                // 1) don't reset doEach for empty word because this is [foo]<[bar]
+                // 2) don't reset doEach for opening Call because this is a,b<fn()
+                if (word && opt.containers[opener].exec !== $CALL){
+                    doEach = false;
+                }
                 word = '';
                 hasWildcard = false;
-                opener = path[i];
                 depth++;
             }
             // Otherwise, this is just another character to add to the current token
@@ -429,10 +463,13 @@ var PathToolkit = function(options){
         }
 
         // Add trailing word to tokens, if present
-        if (word && (mods.has || hasWildcard)){
-            word = {'w': word, 'mods': mods};
+        if (typeof word === 'string' && word && (mods.has || hasWildcard || doEach)){
+            word = {'w': word, 'mods': mods, 'doEach': doEach};
             mods = {};
             simplePath &= false;
+        }
+        else if (word && word.mods){
+            word.mods = mods;
         }
         // We are gathering a collection, so add last word to collection and then store
         if (collection[0] !== UNDEF){
@@ -560,25 +597,31 @@ var PathToolkit = function(options){
                     // Call resolvePath again with base value as evaluated value so far and
                     // each element of array as the path. Concat all the results together.
                     ret = [];
-                    currLength = curr.length
-                    for (i = 0; i < currLength; i++){
-                        contextProp = resolvePath(context, curr[i], newValue, args, valueStack.slice());
+                    i = 0;
+                    while(typeof curr[i] !== 'undefined'){
+                        if (newValueHere){
+                            contextProp = resolvePath(context, curr[i], newValue, args, valueStack.slice());
+                        }
+                        else {
+                            contextProp = resolvePath(context, curr[i], undefined, args, valueStack.slice());
+                        }
                         if (contextProp === UNDEF) { return undefined; }
 
                         if (newValueHere){
                             if (curr[i].t && curr[i].exec === $EVALPROPERTY){
                                 context[contextProp] = newValue;
                             } else {
-                                ret = ret.concat(contextProp);
+                                ret.push(contextProp);
                             }
                         }
                         else {
                             if (curr[i].t && curr[i].exec === $EVALPROPERTY){
-                                ret = ret.concat(context[contextProp]);
+                                ret.push(context[contextProp]);
                             } else {
-                                ret = ret.concat(contextProp);
+                                ret.push(contextProp);
                             }
                         }
+                        i++;
                     }
                 }
                 else if (curr.w){
@@ -602,70 +645,163 @@ var PathToolkit = function(options){
                         // arg of type function, array, or plain object
                         wordCopy = args[placeInt].toString();
                     }
-                    
-                    // "context" modifier ("@" by default) replaces current context with a value from
-                    // the arguments.
-                    if (curr.mods.context){
-                        placeInt = wordCopy - 1;
-                        if (args[placeInt] === UNDEF){ return undefined; }
-                        // Force args[placeInt] to String, won't atwordCopyt to process
-                        // arg of type function, array, or plain object
-                        ret = args[placeInt];
+
+                    // doEach option means to take all values in context (must be an array), apply
+                    // "curr" to each one, and return the new array. Operates like Array.map.
+                    if (curr.doEach){
+                        if (!Array.isArray(context)){
+                            return undefined;
+                        }
+                        ret = [];
+                        i = 0;
+                        while(typeof context[i] !== 'undefined'){
+                            // "context" modifier ("@" by default) replaces current context with a value from
+                            // the arguments.
+                            if (curr.mods.context){
+                                placeInt = wordCopy - 1;
+                                if (args[placeInt] === UNDEF){ return undefined; }
+                                // Force args[placeInt] to String, won't atwordCopyt to process
+                                // arg of type function, array, or plain object
+                                ret.push(args[placeInt]);
+                            }
+                            else {
+                                // Repeat basic string property processing with word and modified context
+                                if (context[i][wordCopy] !== UNDEF) {
+                                    if (newValueHere){ context[i][wordCopy] = newValue; }
+                                    ret.push(context[i][wordCopy]);
+                                }
+                                else if (typeof context[i] === 'function'){
+                                    ret.push(wordCopy);
+                                }
+                                // Plain property tokens are listed as special word tokens whenever
+                                // a wildcard is found within the property string. A wildcard in a
+                                // property causes an array of matching properties to be returned,
+                                // so loop through all properties and evaluate token for every
+                                // property where `wildCardMatch` returns true.
+                                else if (wildcardRegEx.test(wordCopy)){
+                                    ret.push([]);
+                                    for (prop in context[i]){
+                                        if (context[i].hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
+                                            if (newValueHere){ context[i][prop] = newValue; }
+                                            ret[i].push(context[i][prop]);
+                                        }
+                                    }
+                                }
+                                else { return undefined; }
+                            }
+                            i++;
+                        }
                     }
                     else {
-                        // Repeat basic string property processing with word and modified context
-                        if (context[wordCopy] !== UNDEF) {
-                            if (newValueHere){ context[wordCopy] = newValue; }
-                            ret = context[wordCopy];
+                        // "context" modifier ("@" by default) replaces current context with a value from
+                        // the arguments.
+                        if (curr.mods.context){
+                            placeInt = wordCopy - 1;
+                            if (args[placeInt] === UNDEF){ return undefined; }
+                            // Force args[placeInt] to String, won't atwordCopyt to process
+                            // arg of type function, array, or plain object
+                            ret = args[placeInt];
                         }
-                        else if (typeof context === 'function'){
-                            ret = wordCopy;
-                        }
-                        // Plain property tokens are listed as special word tokens whenever
-                        // a wildcard is found within the property string. A wildcard in a
-                        // property causes an array of matching properties to be returned,
-                        // so loop through all properties and evaluate token for every
-                        // property where `wildCardMatch` returns true.
-                        else if (wildcardRegEx.test(wordCopy)){
-                            ret = [];
-                            for (prop in context){
-                                if (context.hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
-                                    if (newValueHere){ context[prop] = newValue; }
-                                    ret.push(context[prop]);
+                        else {
+                            // Repeat basic string property processing with word and modified context
+                            if (context[wordCopy] !== UNDEF) {
+                                if (newValueHere){ context[wordCopy] = newValue; }
+                                ret = context[wordCopy];
+                            }
+                            else if (typeof context === 'function'){
+                                
+                                ret = wordCopy;
+                            }
+                            // Plain property tokens are listed as special word tokens whenever
+                            // a wildcard is found within the property string. A wildcard in a
+                            // property causes an array of matching properties to be returned,
+                            // so loop through all properties and evaluate token for every
+                            // property where `wildCardMatch` returns true.
+                            else if (wildcardRegEx.test(wordCopy)){
+                                ret = [];
+                                for (prop in context){
+                                    if (context.hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
+                                        if (newValueHere){ context[prop] = newValue; }
+                                        ret.push(context[prop]);
+                                    }
                                 }
                             }
+                            else { return undefined; }
                         }
-                        else { return undefined; }
                     }
                 }
                 // Eval Property tokens operate on a temporary context created by
                 // recursively calling `resolvePath` with a copy of the valueStack.
                 else if (curr.exec === $EVALPROPERTY){
-                    if (newValueHere){
-                        context[resolvePath(context, curr, UNDEF, args, valueStack.slice())] = newValue;
+                    if (curr.doEach){
+                        if (!Array.isArray(context)){
+                            return undefined;
+                        }
+                        ret = [];
+                        i = 0;
+                        while(typeof context[i] !== 'undefined'){
+                            if (newValueHere){
+                                context[i][resolvePath(context[i], curr, UNDEF, args, valueStack.slice())] = newValue;
+                            }
+                            ret.push(context[i][resolvePath(context[i], curr, UNDEF, args, valueStack.slice())]);
+                            i++;
+                        }
                     }
-                    ret = context[resolvePath(context, curr, UNDEF, args, valueStack.slice())];
+                    else {
+                        if (newValueHere){
+                            context[resolvePath(context, curr, UNDEF, args, valueStack.slice())] = newValue;
+                        }
+                        ret = context[resolvePath(context, curr, UNDEF, args, valueStack.slice())];
+                    }
                 }
                 // Functions are called using `call` or `apply`, depending on the state of
                 // the arguments within the ( ) container. Functions are executed with "this"
                 // set to the context immediately prior to the function in the stack.
                 // For example, "a.b.c.fn()" is equivalent to obj.a.b.c.fn.call(obj.a.b.c)
                 else if (curr.exec === $CALL){
-                    // If function call has arguments, process those arguments as a new path
-                    if (curr.t && curr.t.length){
-                        callArgs = resolvePath(context, curr, UNDEF, args, valueStack.slice());
-                        if (callArgs === UNDEF){
-                            ret = context.apply(valueStack[valueStackLength - 2]);
+                    if (curr.doEach){
+                        if (!Array.isArray(valueStack[valueStackLength - 2])){
+                            return undefined;
                         }
-                        else if (Array.isArray(callArgs)){
-                            ret = context.apply(valueStack[valueStackLength - 2], callArgs);
-                        }
-                        else {
-                            ret = context.call(valueStack[valueStackLength - 2], callArgs);
+                        ret = [];
+                        i = 0;
+                        while(typeof context[i] !== 'undefined'){
+                            // If function call has arguments, process those arguments as a new path
+                            if (curr.t && curr.t.length){
+                                callArgs = resolvePath(context, curr, UNDEF, args, valueStack.slice());
+                                if (callArgs === UNDEF){
+                                    ret.push(context[i].apply(valueStack[valueStackLength - 2][i]));
+                                }
+                                else if (Array.isArray(callArgs)){
+                                    ret.push(context[i].apply(valueStack[valueStackLength - 2][i], callArgs));
+                                }
+                                else {
+                                    ret.push(context[i].call(valueStack[valueStackLength - 2][i], callArgs));
+                                }
+                            }
+                            else {
+                                ret.push(context[i].call(valueStack[valueStackLength - 2][i]));
+                            }
+                            i++;
                         }
                     }
                     else {
-                        ret = context.call(valueStack[valueStackLength - 2]);
+                        // If function call has arguments, process those arguments as a new path
+                        if (curr.t && curr.t.length){
+                            callArgs = resolvePath(context, curr, UNDEF, args, valueStack.slice());
+                            if (callArgs === UNDEF){
+                                ret = context.apply(valueStack[valueStackLength - 2]);
+                            }
+                            else if (Array.isArray(callArgs)){
+                                ret = context.apply(valueStack[valueStackLength - 2], callArgs);
+                            }
+                            else {
+                                ret = context.call(valueStack[valueStackLength - 2], callArgs);
+                            }
+                        }
+                        else {
+                            ret = context.call(valueStack[valueStackLength - 2]);
+                        }
                     }
                 }
             }
@@ -698,19 +834,8 @@ var PathToolkit = function(options){
             i = 0,
             tkLength = 0;
 
-        // if (opt.useCache){
-        //     if (cache[path]){
-        //         tk = cache[path].t;
-        //     }
-        //     else {
-        //         tk = path.split(propertySeparator);
-        //         cache[path] = {t: tk, simple: true};
-        //     }
-        // }
-        // else {
         tk = path.split(propertySeparator);
         opt.useCache && (cache[path] = {t: tk, simple: true});
-        // }
         tkLength = tk.length;
         while (obj !== UNDEF && i < tkLength){
             if (tk[i] === ''){ return undefined; }

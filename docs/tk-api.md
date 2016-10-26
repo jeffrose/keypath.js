@@ -77,6 +77,46 @@ ptk.get(data, 'foo.bar[0,2]'); // ['a', 'c']
 ptk.get(data, 'foo.bar.a,b'); // ['z', 'y']
 ```
 
+#### Each separator
+The "Each" separator is `<` by default. This can also be thought of as a "fork" operator. When this separator is used following an array, either an array created through the path using a Collection or an array that is evaluated from the data object, the token following `<` will be evaluated separately against each index of the array, and the results are accumulated into a new array. It is much like Array.map except that "map" executes a function against each index while the Each separator can return a property or any other PathToolkit evaluation from each index.
+
+The Collection separator creates an array at that point, and generally the following token will be an index or some function that operates on an array. The result will either be an array or a single value, depending on the evaluated result. The Each separator will create a new array as a result of applying its token to each element of the prior array, so that token should be one that operates on the element, not on the array as a whole. These Each tokens may be chained together.
+```javascript
+var data = {
+    foo: {
+        bar: ['a','b','c']
+    },
+    people: [
+        {
+            id: 1,
+            name: 'John'
+        },
+        {
+            id: 2,
+            name: 'Jane'
+        },
+        {
+            id: 3,
+            name: 'Mephistopholes'
+        }
+    ]
+};
+// The following two code sections produce equivalent results:
+// 1.
+// Intermediate step: ptk.get(data, 'foo.bar.0,2'); // ['a', 'c']
+ptk.get(data, 'foo.bar.0,2<toUpperCase()'); // ['A', 'C'] - note that "toUpperCase" is a string function, not an array function
+
+// 2
+[data.foo.bar[0], data.foo.bar[1]].map(function(val){ return val.toUpperCase(); }); // ['A', 'C']
+
+ptk.get(data, 'foo.bar.*'); // ['a', 'b', 'c']
+ptk.get(data, 'foo.bar.*<toUpperCase()'); // ['A', 'B', 'C']
+
+ptk.get(data, 'people.*<id'); // [1, 2, 3]
+ptk.get(data, 'people.*<id,name'); // [ [1, 2, 3], ['John', 'Jane', 'Mephistopholes'] ]
+
+```
+
 #### Function execution
 Functions may be called with `( )`.
 ```javascript
@@ -107,7 +147,7 @@ ptk.get(data, 'foo{bar.0,2.sort().0}'); // 'one'
 ```
 
 #### Context modifiers
-Object context can be shifted upwards using prefixes `<` for 'parent' and `~` for 'root'. These prefixes apply in the base keypath as well as internal sub-keypaths.
+Object context can be shifted upwards using prefixes `^` for 'parent' and `~` for 'root'. These prefixes apply in the base keypath as well as internal sub-keypaths.
 ```javascript
 var data = {
     foo: {
@@ -118,7 +158,7 @@ var data = {
 };
 ptk.get(data, 'foo.bar.0'); // 'a'
 ptk.get(data, 'foo.a'); // 'one'
-ptk.get(data, 'foo.bar.<a'); // 'one'
+ptk.get(data, 'foo.bar.^a'); // 'one'
 ptk.get(data, 'foo.bar.~foo.bar.0'); // 'a'
 ```
 
@@ -269,13 +309,16 @@ The default options are as follows:
     separators: {
         '.': {
             'exec': 'property'
-            },
+        },
         ',': {
             'exec': 'collection'
-            }
+        },
+        '<': {
+            'exec': 'each'
+        }
     },
     prefixes: {
-        '<': {
+        '^': {
             'exec': 'parent'
         },
         '~': {
@@ -292,23 +335,23 @@ The default options are as follows:
         '[': {
             'closer': ']',
             'exec': 'property'
-            },
+        },
         '\'': {
             'closer': '\'',
             'exec': 'singlequote'
-            },
+        },
         '"': {
             'closer': '"',
             'exec': 'doublequote'
-            },
+        },
         '(': {
             'closer': ')',
             'exec': 'call'
-            },
+        },
         '{': {
             'closer': '}',
             'exec': 'evalProperty'
-            }
+        }
     }
 }
 ```
@@ -377,7 +420,7 @@ Throws error if: argument is missing or empty string; argument is more than one 
 
 #### setPrefixParent
 ```javascript
-ptk.setPrefixParent('^'); // 'one{<two.three}four' -> 'one{^two.three}four'
+ptk.setPrefixParent('!'); // 'one{^two.three}four' -> 'one{!two.three}four'
 ```
 Removes the existing character used for this purpose and sets the new character instead. The code above is merely an example: any new character is allowed as long as it is only one character.
 
@@ -417,7 +460,7 @@ Throws error if: argument is missing or empty string; argument is more than one 
 
 #### setContainerProperty
 ```javascript
-ptk.setContainerProperty('<', '>'); // 'one[two]three' -> 'one<two>three'
+ptk.setContainerProperty('^', '>'); // 'one[two]three' -> 'one^two>three'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
@@ -459,7 +502,7 @@ Throws error if: argument is missing or empty string; argument is more than one 
 
 #### setContainerCall
 ```javascript
-ptk.setContainerCall('<', '>'); // 'one.fn()' -> 'one.fn<>'
+ptk.setContainerCall('^', '>'); // 'one.fn()' -> 'one.fn^>'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
@@ -473,7 +516,7 @@ Throws error if: argument is missing or empty string; argument is more than one 
 
 #### setContainerEvalProperty
 ```javascript
-ptk.setContainerEvalProperty('<', '>'); // 'one{two.three}four' -> 'one<two.three>four'
+ptk.setContainerEvalProperty('^', '>'); // 'one{two.three}four' -> 'one^two.three>four'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 

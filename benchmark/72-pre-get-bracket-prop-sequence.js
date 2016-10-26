@@ -5,6 +5,8 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     tk = new PathToolkit(),
     
     path = '["foo"]["bar","qux"]["baz"]',
+    tkpath = '["foo"]["bar","qux"]<["baz"]',
+    tkpathSimplified = 'foo.bar,qux<baz',
     data = {
         foo: {
             bar: {
@@ -17,7 +19,8 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     },
 
     kpex = new KeyPathExp( path ),
-    tkTokens = tk.getTokens( path );
+    tkTokens = tk.getTokens( tkpath ),
+    tkTokensSimplified = tk.getTokens( tkpathSimplified );
 
 module.exports = {
     name: 'Precompiled:Get:Bracket:Property:Sequence',
@@ -25,10 +28,12 @@ module.exports = {
     tests: {
         'KeyPathExp#get': function(){
             kpex.get( data );
-        }/*, Is this supported?
+        },
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens );
+        },
+        'tk#get-tokenized-simplified': function(){
+            tk.get( data, tkTokensSimplified );
         }
-        */
     }
 };
