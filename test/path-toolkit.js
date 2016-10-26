@@ -129,7 +129,7 @@ describe( 'PathToolkit', function(){
         } );
 
         it('should allow parent prefix to shift context within object', function () {
-            var str = 'accounts.0.<1.checking.id';
+            var str = 'accounts.0.^1.checking.id';
             expect(ptk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
         
@@ -139,12 +139,12 @@ describe( 'PathToolkit', function(){
         });
         
         it('should allow multiple prefixes in one word', function () {
-            var str = 'accounts.3.propAry.<<1.checking.id';
+            var str = 'accounts.3.propAry.^^1.checking.id';
             expect(ptk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
         
         it('should allow container to leave outer context alone while processing internal prefix paths', function () {
-            var str = 'accounts.1.{<3.propAry.0}';
+            var str = 'accounts.1.{^3.propAry.0}';
             var str2 = 'accounts.1.{~accounts.3.propAry.0}';
             var val = data.accounts[1][ data.accounts[3].propAry[0] ];
             expect(ptk.get(data, str)).to.equal(val);
@@ -152,7 +152,7 @@ describe( 'PathToolkit', function(){
         });
         
         it('should allow parent prefix to shift context for all wildcard props', function () {
-            var str = 'accounts.1.checking.<test*.sort()';
+            var str = 'accounts.1.checking.^test*.sort()';
             var ary = [];
             for(var prop in data.accounts[1]){
                 if (prop.substr(0,4) === 'test'){
@@ -181,24 +181,26 @@ describe( 'PathToolkit', function(){
         it( 'should allow wildcards inside group', function(){
             var str = 'accounts.1.savA*,savBa';
             var ary = [];
+            ary.push([]); ary.push([]);
             for(var prop in data.accounts[1]){
                 if (prop.substr(0,4) === 'savA'){
-                    ary.push(data.accounts[1][prop]);
+                    ary[0].push(data.accounts[1][prop]);
                 }
             }
-            ary.push(data.accounts[1].savBa);
+            ary[1].push(data.accounts[1].savBa);
             expect(ptk.get(data, str)).to.be.an.array;
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
         
         it( 'should allow container inside group', function(){
-            var str = 'accounts.1.{<3.propAry.0},savA*';
+            var str = 'accounts.1.{^3.propAry.0},savA*';
             var ary = [];
             ary.push(data.accounts[1][ data.accounts[3].propAry[0] ]);
+            ary.push([]);
             for(var prop in data.accounts[1]){
                 if (prop.substr(0,4) === 'savA'){
-                    ary.push(data.accounts[1][prop]);
+                    ary[1].push(data.accounts[1][prop]);
                 }
             }
             expect(ptk.get(data, str)).to.be.an.array;
@@ -254,13 +256,13 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(empty, str)).to.be.undefined;
             str = {t: ['propA', undefined, 'propB']}; // undefined path segment in token list
             expect(ptk.get(data, str)).to.be.undefined;
-            str = 'accounts.1.<<<<checking'; // too many parent refs
+            str = 'accounts.1.^^^^checking'; // too many parent refs
             expect(ptk.get(data, str)).to.be.undefined;
             str = 'accounts.%.checking.id'; // missing placeholder number
             expect(ptk.get(data, str, 1)).to.be.undefined;
             str = 'accounts.%1.checking.id'; // missing placeholder argument
             expect(ptk.get(data, str)).to.be.undefined;
-            str = 'accounts.1.<missing.id'; // invalid property using modifier
+            str = 'accounts.1.^missing.id'; // invalid property using modifier
             expect(ptk.get(data, str)).to.be.undefined;
         });
 
@@ -425,7 +427,7 @@ describe( 'PathToolkit', function(){
         });
 
         it('should allow parent prefix to shift context for all wildcard props', function () {
-            var str = 'accounts.1.checking.<test*';
+            var str = 'accounts.1.checking.^test*';
             var newVal = 'new';
             var ary = [];
             var resultAry = [];
@@ -450,7 +452,7 @@ describe( 'PathToolkit', function(){
         });
 
         it('should allow container to leave outer context alone while processing internal prefix paths', function () {
-            var str = 'accounts.1.{<3.propAry.0}';
+            var str = 'accounts.1.{^3.propAry.0}';
             var str2 = 'accounts.1.{~accounts.3.propAry.0}';
             var newVal = 'new';
             var newVal2 = 'new2';
@@ -461,7 +463,7 @@ describe( 'PathToolkit', function(){
         });
         
         it('should allow last segment to process prefix paths and set value', function () {
-            var str = 'accounts.1.checking.<savX';
+            var str = 'accounts.1.checking.^savX';
             var newVal = 'new';
             ptk.set(data, str, newVal);
             expect(data.accounts[1].savX).to.equal(newVal);
@@ -627,7 +629,7 @@ describe( 'PathToolkit', function(){
             ptk.setOptions({
                 'cache': true,
                 'prefixes': {
-                    '^': {
+                    '<': {
                         'exec': 'parent'
                     },
                     '~': {
@@ -666,7 +668,7 @@ describe( 'PathToolkit', function(){
             var str2 = 'accounts[2()]checking!id';
             var val2 = data.accounts[2]();
             expect(ptk.get(data, str2)).to.equal(data.accounts[val2].checking.id);
-            var str3 = 'accounts!0!^1!checking!id';
+            var str3 = 'accounts!0!<1!checking!id';
             expect(ptk.get(data, str3)).to.equal(data.accounts[1].checking.id);
             var str4 = 'accounts!0!ary!0;2';
             var ary4 = [];
@@ -907,7 +909,7 @@ describe( 'PathToolkit', function(){
                 });
                 expect(ptk.get(data, 'accounts.1.checking.~propA')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.checking.#propA')).to.equal(data.propA);
-                expect(ptk.get(data, 'accounts.1.checking.<test1')).to.be.undefined;
+                expect(ptk.get(data, 'accounts.1.checking.^test1')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.checking.%propA')).to.be.undefined;
             });
             
@@ -915,21 +917,21 @@ describe( 'PathToolkit', function(){
                 ptk.setPrefixParent('#');
                 expect(ptk.get(data, 'accounts.1.checking.~propA')).to.equal(data.propA);
                 expect(ptk.get(data, 'accounts.1.checking.#test1')).to.equal(data.accounts[1].test1);
-                expect(ptk.get(data, 'accounts.1.checking.<test1')).to.be.undefined;
+                expect(ptk.get(data, 'accounts.1.checking.^test1')).to.be.undefined;
             });
             
             it('should modify individual prefixes with setPrefixRoot', function(){
                 ptk.setPrefixRoot('#');
                 expect(ptk.get(data, 'accounts.1.checking.~propA')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.checking.#propA')).to.equal(data.propA);
-                expect(ptk.get(data, 'accounts.1.checking.<test1')).to.equal(data.accounts[1].test1);
+                expect(ptk.get(data, 'accounts.1.checking.^test1')).to.equal(data.accounts[1].test1);
             });
             
             it('should modify individual prefixes with setPrefixPlaceholder', function(){
                 ptk.setPrefixPlaceholder('#');
                 expect(ptk.get(data, 'accounts.1.%1.id', 'checking')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.#1.id', 'checking')).to.equal(data.accounts[1].checking.id);
-                expect(ptk.get(data, 'accounts.1.checking.<test1')).to.equal(data.accounts[1].test1);
+                expect(ptk.get(data, 'accounts.1.checking.^test1')).to.equal(data.accounts[1].test1);
             });
             
             it('should modify individual prefixes with setPrefixContext', function(){
@@ -937,7 +939,7 @@ describe( 'PathToolkit', function(){
                 expect(ptk.get(data, 'accounts.1.@1.0', 'checking')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.#1.0', 'checking')).to.equal('c');
                 expect(ptk.get(data, 'accounts.1.%1.id', 'checking')).to.equal(data.accounts[1].checking.id);
-                expect(ptk.get(data, 'accounts.1.checking.<test1')).to.equal(data.accounts[1].test1);
+                expect(ptk.get(data, 'accounts.1.checking.^test1')).to.equal(data.accounts[1].test1);
             });
             
         });

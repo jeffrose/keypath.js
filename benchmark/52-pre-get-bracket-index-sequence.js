@@ -5,6 +5,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     tk = new PathToolkit(),
     
     path = '[2][0,1][0]',
+    tkpath = '[2][0,1][0]',
     data = [
         [ [ 1 ], [ 2 ] ],// 0
         [ [ 3 ], [ 4 ] ],// 1
@@ -13,7 +14,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     ],
     
     kpex = new KeyPathExp( path ),
-    tkTokens = tk.getTokens( path );
+    tkTokens = tk.getTokens( tkpath );
     
 module.exports = {
     name: 'Precompiled:Get:Bracket:Index:Sequence',
@@ -21,10 +22,9 @@ module.exports = {
     tests: {
         'KeyPathExp#get': function(){
             kpex.get( data );
-        }/*, Is this supported?
+        },
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens );
         }
-        */
     }
 };

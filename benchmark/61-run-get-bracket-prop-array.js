@@ -5,6 +5,8 @@ var kp = require( '../dist/kp-umd' ),
     tk = new PathToolkit(),
     
     path = '["foo","bar"]["qux"]["baz"]',
+    tkpath = '["foo","bar"]<["qux"]<["baz"]',
+    tkpathSimplified = 'foo,bar<qux<baz',
     data = {
         foo: {
             qux: {
@@ -16,9 +18,7 @@ var kp = require( '../dist/kp-umd' ),
                 baz: 456
             }
         }
-    },
-
-    tkTokens = tk.getTokens( path );
+    };
 
 module.exports = {
     name: 'Run:Get:Bracket:Property:Array',
@@ -26,10 +26,12 @@ module.exports = {
     tests: {
         'kp': function(){
             kp`["foo","bar"]["qux"]["baz"]`( data );
-        }/*, Is this supported?
-        'tk#get-tokenized': function(){
-            tk.get( data, tkTokens );
+        },
+        'tk#get': function(){
+            tk.get( data, tkpath );
+        },
+        'tk#get-simplified': function(){
+            tk.get( data, tkpathSimplified );
         }
-        */
     }
 };

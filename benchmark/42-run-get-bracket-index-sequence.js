@@ -5,6 +5,7 @@ var kp = require( '../dist/kp-umd' ),
     tk = new PathToolkit(),
     
     path = '[2][0,1][0]',
+    tkpath = '[2][0,1]<[0]',
     data = [
         [ [ 1 ], [ 2 ] ],// 0
         [ [ 3 ], [ 4 ] ],// 1
@@ -18,10 +19,9 @@ module.exports = {
     tests: {
         'kp': function(){
             kp`[2][0,1][0]`( data );
-        }/*, Is this supported?
+        },
         'tk#get': function(){
-            tk.get( data, path );
+            tk.get( data, tkpath );
         }
-        */
     }
 };
