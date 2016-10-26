@@ -78,10 +78,10 @@ describe( 'Lexer', function(){
     } );
     
     it( 'should lex punctuators', function(){
-        tokens = lexer.lex( '.,[]()%' );
+        tokens = lexer.lex( '.,[]()%?' );
         
         expect( tokens ).to.be.an( 'array' );
-        expect( tokens ).to.have.lengthOf( 7 );
+        expect( tokens ).to.have.lengthOf( 8 );
         expect( tokens[ 0 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 0 ] ).to.have.property( 'value', '.' );
         expect( tokens[ 1 ] ).to.have.property( 'type', 'Punctuator' );
@@ -96,6 +96,8 @@ describe( 'Lexer', function(){
         expect( tokens[ 5 ] ).to.have.property( 'value', ')' );
         expect( tokens[ 6 ] ).to.have.property( 'type', 'Punctuator' );
         expect( tokens[ 6 ] ).to.have.property( 'value', '%' );
+        expect( tokens[ 7 ] ).to.have.property( 'type', 'Punctuator' );
+        expect( tokens[ 7 ] ).to.have.property( 'value', '?' );
     } );
     
     it( 'should not permit invalid characters', function(){

@@ -27,7 +27,7 @@ function isNumeric( char ){
  * @returns {external:boolean} Whether or not the character is a punctuator character
  */
 function isPunctuator( char ){
-    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === ',' || char === '%';
+    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === ',' || char === '%' || char === '?' || char === ';';
 }
 
 /**
@@ -92,7 +92,7 @@ Lexer.prototype.lex = function( text ){
     
     var length = this.buffer.length,
         word = '',
-        char, quote;
+        char, token, quote;
     
     while( this.index < length ){
         char = this.buffer[ this.index ];
@@ -103,13 +103,16 @@ Lexer.prototype.lex = function( text ){
                 return !isIdentifier( char ) && !isNumeric( char );
             } );
             
-            word === 'null' ?
-                this.tokens.push( new Token.NullLiteral( word ) ) :
-                this.tokens.push( new Token.Identifier( word ) );
+            token = word === 'null' ?
+                new Token.NullLiteral( word ) :
+                new Token.Identifier( word );
+            this.tokens.push( token );
         
         // Punctuator
         } else if( isPunctuator( char ) ){
-            this.tokens.push( new Token.Punctuator( char ) );
+            token = new Token.Punctuator( char );
+            this.tokens.push( token );
+            
             this.index++;
         
         // Quoted String
@@ -122,7 +125,8 @@ Lexer.prototype.lex = function( text ){
                 return char === quote;
             } );
             
-            this.tokens.push( new Token.StringLiteral( quote + word + quote ) );
+            token = new Token.StringLiteral( quote + word + quote );
+            this.tokens.push( token );
             
             this.index++;
         
@@ -132,7 +136,8 @@ Lexer.prototype.lex = function( text ){
                 return !isNumeric( char );
             } );
             
-            this.tokens.push( new Token.NumericLiteral( word ) );
+            token = new Token.NumericLiteral( word );
+            this.tokens.push( token );
         
         // Whitespace
         } else if( isWhitespace( char ) ){
