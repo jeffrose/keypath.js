@@ -248,7 +248,7 @@ var PathToolkit = function(options){
             pathLength = 0,
             word = '',
             hasWildcard = false,
-            doEach = false,
+            doEach = false, // must remember the "each" operator into the following token
             subpath = '',
             i = 0,
             opener = '',
@@ -393,12 +393,7 @@ var PathToolkit = function(options){
                     }
                     // word is a plain property
                     else {
-                        // if (doEach){
-                        //     word && tokens.push({'w':word, mods:{}, 'doEach':true});
-                        // }
-                        // else {
-                            word && tokens.push(word);
-                        // }
+                        word && tokens.push(word);
                         simplePath &= true;
                     }
                     // If the separator is the "each" separtor, the following word will be evaluated differently.
@@ -602,9 +597,14 @@ var PathToolkit = function(options){
                     // Call resolvePath again with base value as evaluated value so far and
                     // each element of array as the path. Concat all the results together.
                     ret = [];
-                    currLength = curr.length
-                    for (i = 0; i < currLength; i++){
-                        contextProp = resolvePath(context, curr[i], newValue, args, valueStack.slice());
+                    i = 0;
+                    while(typeof curr[i] !== 'undefined'){
+                        if (newValueHere){
+                            contextProp = resolvePath(context, curr[i], newValue, args, valueStack.slice());
+                        }
+                        else {
+                            contextProp = resolvePath(context, curr[i], undefined, args, valueStack.slice());
+                        }
                         if (contextProp === UNDEF) { return undefined; }
 
                         if (newValueHere){
@@ -616,13 +616,12 @@ var PathToolkit = function(options){
                         }
                         else {
                             if (curr[i].t && curr[i].exec === $EVALPROPERTY){
-                                // ret = ret.concat(context[contextProp]);
                                 ret.push(context[contextProp]);
                             } else {
-                                // ret = ret.concat(contextProp);
                                 ret.push(contextProp);
                             }
                         }
+                        i++;
                     }
                 }
                 else if (curr.w){
@@ -646,18 +645,16 @@ var PathToolkit = function(options){
                         // arg of type function, array, or plain object
                         wordCopy = args[placeInt].toString();
                     }
-// console.log('word:', curr.w, curr.doEach, tk[idx+1]);
-                    
+
                     // doEach option means to take all values in context (must be an array), apply
                     // "curr" to each one, and return the new array. Operates like Array.map.
                     if (curr.doEach){
-// console.log('word each');
                         if (!Array.isArray(context)){
                             return undefined;
                         }
                         ret = [];
-                        currLength = context.length;
-                        for (i = 0; i < currLength; i++){
+                        i = 0;
+                        while(typeof context[i] !== 'undefined'){
                             // "context" modifier ("@" by default) replaces current context with a value from
                             // the arguments.
                             if (curr.mods.context){
@@ -665,16 +662,16 @@ var PathToolkit = function(options){
                                 if (args[placeInt] === UNDEF){ return undefined; }
                                 // Force args[placeInt] to String, won't atwordCopyt to process
                                 // arg of type function, array, or plain object
-                                ret[i] = args[placeInt];
+                                ret.push(args[placeInt]);
                             }
                             else {
                                 // Repeat basic string property processing with word and modified context
                                 if (context[i][wordCopy] !== UNDEF) {
                                     if (newValueHere){ context[i][wordCopy] = newValue; }
-                                    ret[i] = context[i][wordCopy];
+                                    ret.push(context[i][wordCopy]);
                                 }
                                 else if (typeof context[i] === 'function'){
-                                    ret[i] = wordCopy;
+                                    ret.push(wordCopy);
                                 }
                                 // Plain property tokens are listed as special word tokens whenever
                                 // a wildcard is found within the property string. A wildcard in a
@@ -682,7 +679,7 @@ var PathToolkit = function(options){
                                 // so loop through all properties and evaluate token for every
                                 // property where `wildCardMatch` returns true.
                                 else if (wildcardRegEx.test(wordCopy)){
-                                    ret[i] = [];
+                                    ret.push([]);
                                     for (prop in context[i]){
                                         if (context[i].hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
                                             if (newValueHere){ context[i][prop] = newValue; }
@@ -692,10 +689,10 @@ var PathToolkit = function(options){
                                 }
                                 else { return undefined; }
                             }
+                            i++;
                         }
                     }
                     else {
-// console.log('word not each');
                         // "context" modifier ("@" by default) replaces current context with a value from
                         // the arguments.
                         if (curr.mods.context){
@@ -706,7 +703,6 @@ var PathToolkit = function(options){
                             ret = args[placeInt];
                         }
                         else {
-// console.log('context[wordcopy]', wordCopy, context);
                             // Repeat basic string property processing with word and modified context
                             if (context[wordCopy] !== UNDEF) {
                                 if (newValueHere){ context[wordCopy] = newValue; }
@@ -742,12 +738,13 @@ var PathToolkit = function(options){
                             return undefined;
                         }
                         ret = [];
-                        currLength = context.length;
-                        for (i = 0; i < currLength; i++){
+                        i = 0;
+                        while(typeof context[i] !== 'undefined'){
                             if (newValueHere){
                                 context[i][resolvePath(context[i], curr, UNDEF, args, valueStack.slice())] = newValue;
                             }
-                            ret[i] = context[i][resolvePath(context[i], curr, UNDEF, args, valueStack.slice())];
+                            ret.push(context[i][resolvePath(context[i], curr, UNDEF, args, valueStack.slice())]);
+                            i++;
                         }
                     }
                     else {
@@ -762,33 +759,30 @@ var PathToolkit = function(options){
                 // set to the context immediately prior to the function in the stack.
                 // For example, "a.b.c.fn()" is equivalent to obj.a.b.c.fn.call(obj.a.b.c)
                 else if (curr.exec === $CALL){
-// console.log('function call');
                     if (curr.doEach){
-// console.log('function call with EACH');
-// console.log('context:', context);
                         if (!Array.isArray(valueStack[valueStackLength - 2])){
                             return undefined;
                         }
                         ret = [];
-                        currLength = valueStack[valueStackLength - 2].length;
-                        for (i = 0; i < currLength; i++){
+                        i = 0;
+                        while(typeof context[i] !== 'undefined'){
                             // If function call has arguments, process those arguments as a new path
                             if (curr.t && curr.t.length){
                                 callArgs = resolvePath(context, curr, UNDEF, args, valueStack.slice());
                                 if (callArgs === UNDEF){
-                                    ret[i] = context[i].apply(valueStack[valueStackLength - 2][i]);
+                                    ret.push(context[i].apply(valueStack[valueStackLength - 2][i]));
                                 }
                                 else if (Array.isArray(callArgs)){
-                                    ret[i] = context[i].apply(valueStack[valueStackLength - 2][i], callArgs);
+                                    ret.push(context[i].apply(valueStack[valueStackLength - 2][i], callArgs));
                                 }
                                 else {
-                                    ret[i] = context[i].call(valueStack[valueStackLength - 2][i], callArgs);
+                                    ret.push(context[i].call(valueStack[valueStackLength - 2][i], callArgs));
                                 }
                             }
                             else {
-// console.log('call result:', i, context[i].call(valueStack[valueStackLength - 2][i]));
-                                ret[i] = context[i].call(valueStack[valueStackLength - 2][i]);
+                                ret.push(context[i].call(valueStack[valueStackLength - 2][i]));
                             }
+                            i++;
                         }
                     }
                     else {
@@ -840,19 +834,8 @@ var PathToolkit = function(options){
             i = 0,
             tkLength = 0;
 
-        // if (opt.useCache){
-        //     if (cache[path]){
-        //         tk = cache[path].t;
-        //     }
-        //     else {
-        //         tk = path.split(propertySeparator);
-        //         cache[path] = {t: tk, simple: true};
-        //     }
-        // }
-        // else {
         tk = path.split(propertySeparator);
         opt.useCache && (cache[path] = {t: tk, simple: true});
-        // }
         tkLength = tk.length;
         while (obj !== UNDEF && i < tkLength){
             if (tk[i] === ''){ return undefined; }

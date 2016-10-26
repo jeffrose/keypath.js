@@ -18,8 +18,9 @@ describe( 'PathToolkit', function(){
             'foo.bar': 'FooBar',
             'blah': 'quoted',
             'John "Johnny" Doe': 'a name',
+            'commonProp': 'common',
             'accounts': [
-                /* 0 */ { 'ary': [9,8,7,6] },
+                /* 0 */ { 'ary': [9,8,7,6], 'common': 'A' },
                 /* 1 */ {
                             'checking': {
                                 'balance': 123.00,
@@ -40,10 +41,11 @@ describe( 'PathToolkit', function(){
                             'savBc': 'bc',
                             'test1': 'propA',
                             'test2': 'propB',
-                            'test3': 'propC'
+                            'test3': 'propC',
+                            'common': 'B'
                         },
                 /* 2 */ function(){ return 1;},
-                /* 3 */ { 'propAry': ['savBa', 'savBb'] }
+                /* 3 */ { 'propAry': ['savBa', 'savBb'], 'common': 'C' }
             ]
         };
         
@@ -63,7 +65,7 @@ describe( 'PathToolkit', function(){
         expect(new PathToolkit()).to.be.an.instanceOf(PathToolkit);
     });
 
-    // xdescribe( 'disable', function(){
+    // describe( 'disable', function(){
     describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -346,6 +348,71 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str3).length).to.equal(ary3.length);
             expect(ptk.get(data, str3).join(',')).to.equal(ary3.join(','));
         } );
+        
+        it('should support "each" operator to return array', function(){
+            var str = 'accounts.0,1,3<common';
+            var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
+            expect(ptk.get(data, str)).to.be.an.array;
+            expect(ptk.get(data, str).length).to.equal(ary.length);
+            expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
+        });
+        
+        it('should support "each" operator to return array', function(){
+            var str = 'accounts.0,1,3<common';
+            var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
+            expect(ptk.get(data, str)).to.be.an.array;
+            expect(ptk.get(data, str).length).to.equal(ary.length);
+            expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
+        });
+        
+        it('should support "each" operator to execute function on each array elememt, return array of results', function(){
+            var str = 'accounts.0,1,3<common<toLowerCase()';
+            var ary = [data.accounts[0].common.toLowerCase(), data.accounts[1].common.toLowerCase(), data.accounts[3].common.toLowerCase()];
+            expect(ptk.get(data, str)).to.be.an.array;
+            expect(ptk.get(data, str).length).to.equal(ary.length);
+            expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
+            
+            var str2 = 'accounts.0,1,3<common<concat(@1)';
+            var ary2 = [data.accounts[0].common.concat("X"), data.accounts[1].common.concat("X"), data.accounts[3].common.concat("X")];
+            expect(ptk.get(data, str2, 'X')).to.be.an.array;
+            expect(ptk.get(data, str2, 'X').length).to.equal(ary2.length);
+            expect(ptk.get(data, str2, 'X').join(',')).to.equal(ary2.join(','));
+            
+            var str2 = 'accounts.0,1,3<common<@1(@2)';
+            var ary2 = [data.accounts[0].common.concat("X"), data.accounts[1].common.concat("X"), data.accounts[3].common.concat("X")];
+            expect(ptk.get(data, str2, String.prototype.concat, 'X')).to.be.an.array;
+            expect(ptk.get(data, str2, String.prototype.concat, 'X').length).to.equal(ary2.length);
+            expect(ptk.get(data, str2, String.prototype.concat, 'X').join(',')).to.equal(ary2.join(','));
+        });
+        
+        it('should support "each" operator with bracket properties', function(){
+            var str = 'accounts[0,1,3]<[common]<toLowerCase()';
+            var ary = [data.accounts[0].common.toLowerCase(), data.accounts[1].common.toLowerCase(), data.accounts[3].common.toLowerCase()];
+            expect(ptk.get(data, str)).to.be.an.array;
+            expect(ptk.get(data, str).length).to.equal(ary.length);
+            expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
+            
+            var str2 = 'accounts[0,1,3]<["common"]<toLowerCase()';
+            expect(ptk.get(data, str2)).to.be.an.array;
+            expect(ptk.get(data, str2).length).to.equal(ary.length);
+            expect(ptk.get(data, str2).join(',')).to.equal(ary.join(','));
+        });
+        
+        it('should support "each" operator with wildcard properties', function(){
+            var str = '[accounts.0],[accounts.1]<comm*';
+            var ary = [data.accounts[0].common, data.accounts[1].common];
+            expect(ptk.get(data, str)).to.be.an.array;
+            expect(ptk.get(data, str).length).to.equal(ary.length);
+            expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
+        });
+        
+        it('should support "each" operator with eval properties', function(){
+            var str = 'accounts.0,1,3<{~commonProp}';
+            var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
+            expect(ptk.get(data, str)).to.be.an.array;
+            expect(ptk.get(data, str).length).to.equal(ary.length);
+            expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
+        });
     });
 
     describe( 'set', function(){
@@ -491,6 +558,30 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, tokens2, key)).to.equal(newVal2);
             expect(data.accounts[1].checking.id).to.equal(newVal2);
         } );
+        
+        it('should support "each" operator set values in array', function(){
+            var str = 'accounts.0,1,3<common';
+            var result = ptk.set(data, str, 'NEW');
+            var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
+            expect(result).to.be.true;
+            expect(ary.join(',')).to.equal('NEW,NEW,NEW');
+        });
+        
+        it('should support "each" operator with wildcard properties', function(){
+            var str = '[accounts.0],[accounts.1]<comm*';
+            var result = ptk.set(data, str, 'BETTER');
+            var ary = [data.accounts[0].common, data.accounts[1].common];
+            expect(result).to.be.true;
+            expect(ary.join(',')).to.equal('BETTER,BETTER');
+        });
+        
+        it('should support "each" operator with eval properties', function(){
+            var str = 'accounts.0,1,3<{~commonProp}';
+            var result = ptk.set(data, str, 'NEW');
+            var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
+            expect(result).to.be.true;
+            expect(ary.join(',')).to.equal('NEW,NEW,NEW');
+        });
     });
 
     describe( 'find', function(){
