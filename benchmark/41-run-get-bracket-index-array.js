@@ -13,7 +13,7 @@ var kp = require( '../dist/kp-umd' ),
     ];
     
 module.exports = {
-    name: 'Run:Get:Bracket:Index:Array',
+    name: 'Runtime:Get:Bracket:Index:Array',
     maxTime: 5,
     tests: {
         'kp': function(){

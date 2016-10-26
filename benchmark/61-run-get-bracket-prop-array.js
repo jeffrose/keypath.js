@@ -21,7 +21,7 @@ var kp = require( '../dist/kp-umd' ),
     tkTokens = tk.getTokens( path );
 
 module.exports = {
-    name: 'Run:Get:Bracket:Property:Array',
+    name: 'Runtime:Get:Bracket:Property:Array',
     maxTime: 5,
     tests: {
         'kp': function(){
