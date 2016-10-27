@@ -46,6 +46,20 @@ describe( 'PathToolkit', function(){
                         },
                 /* 2 */ function(){ return 1;},
                 /* 3 */ { 'propAry': ['savBa', 'savBb'], 'common': 'C' }
+            ],
+            'people': [
+                {
+                    id: 1,
+                    name: 'John'
+                },
+                {
+                    id: 2,
+                    name: 'Jane'
+                },
+                {
+                    id: 3,
+                    name: 'Mary'
+                }
             ]
         };
         
@@ -412,6 +426,21 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str)).to.be.an.array;
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
+        });
+        
+        it('should support "each" for collection maps of collections', function(){
+            var str = 'people.*<id,name';
+            var ary = [];
+            ary.push([data.people[0].id, data.people[0].name]);
+            ary.push([data.people[1].id, data.people[1].name]);
+            ary.push([data.people[2].id, data.people[2].name]);
+            expect(ptk.get(data, str)).to.be.an.array;
+            expect(ptk.get(data, str).length).to.equal(ary.length);
+            expect(ptk.get(data, str)[0]).to.be.an.array;
+            expect(ptk.get(data, str)[0].length).to.equal(ary[0].length);
+            expect(ptk.get(data, str)[0].join(',')).to.equal(ary[0].join(','));
+            expect(ptk.get(data, str)[1].join(',')).to.equal(ary[1].join(','));
+            expect(ptk.get(data, str)[2].join(',')).to.equal(ary[2].join(','));
         });
     });
 
@@ -977,15 +1006,16 @@ describe( 'PathToolkit', function(){
                 expect(ptk.getTokens('a.b.c').t.length).to.equal(1);
                 expect(ptk.getTokens('a#b#c').t.length).to.equal(3);
                 expect(ptk.getTokens('a,b,c').t.length).to.equal(1);
-                expect(ptk.getTokens('a,b,c').t[0].length).to.equal(3);
+                expect(ptk.getTokens('a,b,c').t[0].tt.length).to.equal(3);
+                // expect(ptk.getTokens('a,b,c').t[0].length).to.equal(3);
             });
             
             it('should modify individual separators with setSeparatorCollection', function(){
                 ptk.setSeparatorCollection('#');
                 expect(ptk.getTokens('a.b.c').t.length).to.equal(3);
                 expect(ptk.getTokens('a#b#c').t.length).to.equal(1);
-                expect(ptk.getTokens('a#b#c').t[0]).to.be.an.array;
-                expect(ptk.getTokens('a#b#c').t[0].length).to.equal(3);
+                expect(ptk.getTokens('a#b#c').t[0].tt).to.be.an.array;
+                expect(ptk.getTokens('a#b#c').t[0].tt.length).to.equal(3);
                 expect(ptk.getTokens('a,b,c').t.length).to.equal(1);
                 expect(ptk.getTokens('a,b,c').t[0]).to.be.a.string;
             });

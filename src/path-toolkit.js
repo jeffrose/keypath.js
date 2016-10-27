@@ -313,7 +313,7 @@ var PathToolkit = function(options){
                         recur.exec = closer.exec;
                         recur.doEach = doEach;
                         collection.push(recur);
-                        tokens.push(collection);
+                        tokens.push({'tt':collection, 'doEach':doEach});
                         collection = [];
                         simplePath &= false;
                     }
@@ -382,12 +382,12 @@ var PathToolkit = function(options){
                     // we are gathering a collection, so add last word to collection and then store
                     if (collection[0] !== UNDEF){
                         word && collection.push(word);
-                        if (doEach){
-                            tokens.push({'t':collection, 'doEach':true});
-                        }
-                        else {
-                            tokens.push(collection);
-                        }
+                        // if (doEach){
+                            tokens.push({'tt':collection, 'doEach':doEach});
+                        // }
+                        // else {
+                        //     tokens.push(collection);
+                        // }
                         collection = []; // reset
                         simplePath &= false;
                     }
@@ -474,7 +474,7 @@ var PathToolkit = function(options){
         // We are gathering a collection, so add last word to collection and then store
         if (collection[0] !== UNDEF){
             word && collection.push(word);
-            tokens.push(collection);
+            tokens.push({'tt':collection, 'doEach':doEach});
             simplePath &= false;
         }
         // Word is a plain property
@@ -518,7 +518,7 @@ var PathToolkit = function(options){
             tkLength = 0,
             tkLastIdx = 0,
             valueStackLength = 1,
-            i = 0,
+            i = 0, j = 0,
             prev = obj,
             curr = '',
             currLength = 0,
@@ -593,35 +593,74 @@ var PathToolkit = function(options){
                 if (curr === UNDEF){
                     ret = undefined;
                 }
-                else if (Array.isArray(curr)){
+                else if (curr.tt){
                     // Call resolvePath again with base value as evaluated value so far and
                     // each element of array as the path. Concat all the results together.
                     ret = [];
-                    i = 0;
-                    while(typeof curr[i] !== 'undefined'){
-                        if (newValueHere){
-                            contextProp = resolvePath(context, curr[i], newValue, args, valueStack.slice());
+                    if (curr.doEach){
+                        if (!Array.isArray(context)){
+                            return undefined;
                         }
-                        else {
-                            contextProp = resolvePath(context, curr[i], undefined, args, valueStack.slice());
-                        }
-                        if (contextProp === UNDEF) { return undefined; }
-
-                        if (newValueHere){
-                            if (curr[i].t && curr[i].exec === $EVALPROPERTY){
-                                context[contextProp] = newValue;
-                            } else {
-                                ret.push(contextProp);
+                        j = 0;
+                        while(typeof context[j] !== 'undefined'){
+                            i = 0;
+                            ret.push([]);
+                            while(typeof curr.tt[i] !== 'undefined'){
+                                curr.tt[i].doEach = false; // This is a hack, don't know how else to disable "doEach" for collection members
+                                if (newValueHere){
+                                    contextProp = resolvePath(context[j], curr.tt[i], newValue, args, valueStack.slice());
+                                }
+                                else {
+                                    contextProp = resolvePath(context[j], curr.tt[i], undefined, args, valueStack.slice());
+                                }
+                                if (contextProp === UNDEF) { return undefined; }
+        
+                                if (newValueHere){
+                                    if (curr.tt[i].t && curr.tt[i].exec === $EVALPROPERTY){
+                                        context[j][contextProp] = newValue;
+                                    } else {
+                                        ret[j].push(contextProp);
+                                    }
+                                }
+                                else {
+                                    if (curr.tt[i].t && curr.tt[i].exec === $EVALPROPERTY){
+                                        ret[j].push(context[j][contextProp]);
+                                    } else {
+                                        ret[j].push(contextProp);
+                                    }
+                                }
+                                i++;
                             }
+                            j++;
                         }
-                        else {
-                            if (curr[i].t && curr[i].exec === $EVALPROPERTY){
-                                ret.push(context[contextProp]);
-                            } else {
-                                ret.push(contextProp);
+                    }
+                    else {
+                        i = 0;
+                        while(typeof curr.tt[i] !== 'undefined'){
+                            if (newValueHere){
+                                contextProp = resolvePath(context, curr.tt[i], newValue, args, valueStack.slice());
                             }
+                            else {
+                                contextProp = resolvePath(context, curr.tt[i], undefined, args, valueStack.slice());
+                            }
+                            if (contextProp === UNDEF) { return undefined; }
+    
+                            if (newValueHere){
+                                if (curr.tt[i].t && curr.tt[i].exec === $EVALPROPERTY){
+                                    context[contextProp] = newValue;
+                                } else {
+                                    ret.push(contextProp);
+                                }
+                            }
+                            else {
+                                if (curr.tt[i].t && curr.tt[i].exec === $EVALPROPERTY){
+                                    ret.push(context[contextProp]);
+                                } else {
+                                    ret.push(contextProp);
+                                }
+                            }
+                            i++;
                         }
-                        i++;
                     }
                 }
                 else if (curr.w){
