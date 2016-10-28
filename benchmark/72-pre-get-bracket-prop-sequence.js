@@ -5,7 +5,7 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     tk = new PathToolkit(),
     
     path = '["foo"]["bar","qux"]["baz"]',
-    tkpath = '["foo"]["bar","qux"]<["baz"]',
+    tkpath = '["foo"]"bar","qux"<["baz"]',
     tkpathSimplified = 'foo.bar,qux<baz',
     data = {
         foo: {

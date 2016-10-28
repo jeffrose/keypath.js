@@ -5,7 +5,7 @@ var kp = require( '../dist/kp-umd' ),
     tk = new PathToolkit(),
     
     path = '[1,2][1][0]',
-    tkpath = '[1,2]<[1]<[0]',
+    tkpath = '[1],[2]<[1]<[0]',
     tkpathSimplified = '1,2<1<0',
     data = [
         [ [ 1 ], [ 2 ] ],// 0
@@ -13,7 +13,7 @@ var kp = require( '../dist/kp-umd' ),
         [ [ 5 ], [ 6 ] ],// 2
         [ [ 7 ], [ 8 ] ] // 3
     ];
-    
+
 module.exports = {
     name: 'Run:Get:Bracket:Index:Array',
     maxTime: 5,
