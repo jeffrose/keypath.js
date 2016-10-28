@@ -5,7 +5,7 @@ var KeypathExp = require( '../dist/keypath-exp-umd' ),
     tk = new PathToolkit(),
     
     path = '[1,2][1][0]',
-    tkpath = '[1,2]<[1]<[0]',
+    tkpath = '1,2<[1]<[0]',
     data = [
         [ [ 1 ], [ 2 ] ],// 0
         [ [ 3 ], [ 4 ] ],// 1

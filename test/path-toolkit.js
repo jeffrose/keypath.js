@@ -192,6 +192,12 @@ describe( 'PathToolkit', function(){
         it('should continue to process collection results with further properties', function () {
             var str = 'accounts.1.test1,test2.0';
             expect(ptk.get(data, str)).to.equal(data.accounts[1].test1);
+            var str2 = 'accounts.1.[test1],[test2].0';
+            expect(ptk.get(data, str2)).to.equal(data.accounts[1].test1);
+            var str3 = 'accounts.1."test1","test2".0';
+            expect(ptk.get(data, str3)).to.equal(data.accounts[1].test1);
+            var str4 = 'accounts.1.["test1"],["test2"].0';
+            expect(ptk.get(data, str4)).to.equal(data.accounts[1].test1);
         });
 
         it( 'should allow wildcards inside group', function(){
@@ -338,7 +344,7 @@ describe( 'PathToolkit', function(){
         });
 
         it( 'should allow plain property array notation', function(){
-            var str = 'accounts.0.ary[0,1]';
+            var str = 'accounts.0.ary[0],[1]';
             var ary = [];
             ary.push(data.accounts[0].ary[0]);
             ary.push(data.accounts[0].ary[1]);
@@ -346,7 +352,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
 
-            var str2 = 'accounts.1["test1","test2"]';
+            var str2 = 'accounts.1["test1"],["test2"]';
             var ary2 = [];
             ary2.push(data.accounts[1].test1);
             ary2.push(data.accounts[1].test2);
@@ -354,7 +360,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str2).length).to.equal(ary2.length);
             expect(ptk.get(data, str2).join(',')).to.equal(ary2.join(','));
 
-            var str3 = 'accounts.1[test1,test2]';
+            var str3 = 'accounts.1[test1],[test2]';
             var ary3 = [];
             ary3.push(data.accounts[1].test1);
             ary3.push(data.accounts[1].test2);
@@ -400,20 +406,20 @@ describe( 'PathToolkit', function(){
         });
         
         it('should support "each" operator with bracket properties', function(){
-            var str = 'accounts[0,1,3]<[common]<toLowerCase()';
+            var str = 'accounts.[0],[1],[3]<[common]<toLowerCase()';
             var ary = [data.accounts[0].common.toLowerCase(), data.accounts[1].common.toLowerCase(), data.accounts[3].common.toLowerCase()];
             expect(ptk.get(data, str)).to.be.an.array;
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
             
-            var str2 = 'accounts[0,1,3]<["common"]<toLowerCase()';
+            var str2 = 'accounts.0,1,3<["common"]<toLowerCase()';
             expect(ptk.get(data, str2)).to.be.an.array;
             expect(ptk.get(data, str2).length).to.equal(ary.length);
             expect(ptk.get(data, str2).join(',')).to.equal(ary.join(','));
         });
         
         it('should support "each" operator with wildcard properties', function(){
-            var str = '[accounts.0],[accounts.1]<comm*';
+            var str = 'accounts.0,1<comm*';
             var ary = [data.accounts[0].common, data.accounts[1].common];
             expect(ptk.get(data, str)).to.be.an.array;
             expect(ptk.get(data, str).length).to.equal(ary.length);
@@ -597,7 +603,7 @@ describe( 'PathToolkit', function(){
         });
         
         it('should support "each" operator with wildcard properties', function(){
-            var str = '[accounts.0],[accounts.1]<comm*';
+            var str = 'accounts.0,1<comm*';
             var result = ptk.set(data, str, 'BETTER');
             var ary = [data.accounts[0].common, data.accounts[1].common];
             expect(result).to.be.true;

@@ -123,10 +123,11 @@ var PathToolkit = function(options){
         opt = {},
         prefixList, separatorList, containerList, containerCloseList,
         propertySeparator,
-        singlequote,
+        singlequote, doublequote,
         simplePathChars, simplePathRegEx,
         allSpecials, allSpecialsRegEx,
         escapedNonSpecialsRegEx,
+        escapedQuotes,
         wildcardRegEx;
 
     /**
@@ -145,7 +146,11 @@ var PathToolkit = function(options){
         propertySeparator = '';
         Object.keys(opt.separators).forEach(function(sep){ if (opt.separators[sep].exec === $PROPERTY){ propertySeparator = sep; } });
         singlequote = '';
-        Object.keys(opt.containers).forEach(function(sep){ if (opt.containers[sep].exec === $SINGLEQUOTE){ singlequote = sep; } });
+        doublequote = '';
+        Object.keys(opt.containers).forEach(function(sep){
+            if (opt.containers[sep].exec === $SINGLEQUOTE){ singlequote = sep;}
+            if (opt.containers[sep].exec === $DOUBLEQUOTE){ doublequote = sep;}
+        });
 
         // Find all special characters except property separator (. by default)
         simplePathChars = '[\\\\' + [$WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace('\\'+propertySeparator, '') + ']';
@@ -159,6 +164,12 @@ var PathToolkit = function(options){
         // escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
         // Find all escaped non-special characters, i.e. unnecessary escapes
         escapedNonSpecialsRegEx = new RegExp('\\'+allSpecials.replace(/^\[/,'[^'));
+        if (singlequote || doublequote){
+            escapedQuotes = new RegExp('\\['+singlequote+doublequote+']', 'g');
+        }
+        else {
+            escapedQuotes = '';
+        }
         
         // Find wildcard character
         wildcardRegEx = new RegExp('\\'+$WILDCARD);
@@ -227,6 +238,39 @@ var PathToolkit = function(options){
         };
     };
 
+    /**
+     * Test string to see if it is surrounded by single- or double-quote, using the
+     * current configuration definition for those characters. If no quote container
+     * is defined, this function will return false since it's not possible to quote
+     * the string if there are no quotes in the syntax. Also ignores escaped quote
+     * characters.
+     * @param {String} str The string to test for enclosing quotes
+     * @return {Boolean} true = string is enclosed in quotes; false = not quoted
+     */
+    var isQuoted = function(str){
+        var cleanStr = str.replace(escapedQuotes, '');
+        var strLen = cleanStr.length;
+        if (strLen < 2){ return false; }
+        return  (cleanStr[0] === cleanStr[strLen - 1]) &&
+                (cleanStr[0] === singlequote || cleanStr[0] === doublequote);
+    };
+    
+    /**
+     * Remove enclosing quotes from a string. The isQuoted function will determine
+     * if any change is needed. If the string is quoted, we know the first and last
+     * characters are quote marks, so simply do a string slice. If the input value is
+     * not quoted, return the input value unchanged. Because isQuoted is used, if
+     * no quote marks are defined in the syntax, this function will return the input value.
+     * @param {String} str The string to un-quote
+     * @return {String} The input string without any enclosing quote marks.
+     */
+    var stripQuotes = function(str){
+        if (isQuoted(str)){
+            return str.slice(1, -1);
+        }
+        return str;
+    };
+    
     /**
      * Scan input string from left to right, one character at a time. If a special character
      * is found (one of "separators", "containers", or "prefixes"), either store the accumulated
@@ -300,18 +344,35 @@ var PathToolkit = function(options){
                 else {
                     // Handle subpath "[bar]" in foo.[bar],[baz] - we must process subpath and create a new collection
                     if (i+1 < pathLength && opt.separators[path[i+1]] && opt.separators[path[i+1]].exec === $COLLECTION){
-                        recur = tokenize(subpath);
-                        if (recur === UNDEF){ return undefined; }
-                        recur.exec = closer.exec;
-                        recur.doEach = doEach;
+                        if (subpath.length && closer.exec === $PROPERTY){
+                            recur = stripQuotes(subpath);
+                        }
+                        else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
+                            recur = subpath;
+                        }
+                        else {
+                            recur = tokenize(subpath);
+                            if (recur === UNDEF){ return undefined; }
+                            recur.exec = closer.exec;
+                            recur.doEach = doEach;
+                        }
+                        // collection.push(closer.exec === $PROPERTY ? recur.t[0] : recur);
                         collection.push(recur);
                     }
                     // Handle subpath "[baz]" in foo.[bar],[baz] - we must process subpath and add to collection
                     else if (collection[0]){
-                        recur = tokenize(subpath);
-                        if (recur === UNDEF){ return undefined; }
-                        recur.exec = closer.exec;
-                        recur.doEach = doEach;
+                        if (subpath.length && closer.exec === $PROPERTY){
+                            recur = stripQuotes(subpath);
+                        }
+                        else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
+                            recur = subpath;
+                        }
+                        else {
+                            recur = tokenize(subpath);
+                            if (recur === UNDEF){ return undefined; }
+                            recur.exec = closer.exec;
+                            recur.doEach = doEach;
+                        }
                         collection.push(recur);
                         tokens.push({'tt':collection, 'doEach':doEach});
                         collection = [];
@@ -319,16 +380,15 @@ var PathToolkit = function(options){
                     }
                     // Simple property container is equivalent to dot-separated token. Just add this token to tokens.
                     else if (closer.exec === $PROPERTY){
-                        recur = tokenize(subpath);
-                        if (recur === UNDEF){ return undefined; }
+                        recur = {t:[stripQuotes(subpath)]};
                         if (doEach){
-                            tokens = tokens.concat({'w':recur.t, 'mods':{}, 'doEach':true});
+                            tokens.push({'w':recur.t[0], 'mods':{}, 'doEach':true});
                             simplePath &= false;
                             doEach = false; // reset
                         }
                         else {
-                            tokens = tokens.concat(recur.t);
-                            simplePath &= recur.simple;
+                            tokens.push(recur.t[0]);
+                            simplePath &= true;
                         }
                     }
                     // Quoted subpath is all taken literally without token evaluation. Just add subpath to tokens as-is.
@@ -365,7 +425,7 @@ var PathToolkit = function(options){
             // If the separator is the collection separator, we must either create or add
             // to a collection for this token. For simple separator, we either add the token
             // to the token list or else add to the existing collection if it exists.
-            else if (!escaped && opt.separators.hasOwnProperty(path[i]) && opt.separators[path[i]].exec){
+            else if (!escaped && opt.separators[path[i]] && opt.separators[path[i]].exec){
                 separator = opt.separators[path[i]];
                 if (!word && (mods.has || hasWildcard)){
                     // found a separator, after seeing prefixes, but no token word -> invalid
@@ -382,12 +442,7 @@ var PathToolkit = function(options){
                     // we are gathering a collection, so add last word to collection and then store
                     if (collection[0] !== UNDEF){
                         word && collection.push(word);
-                        // if (doEach){
-                            tokens.push({'tt':collection, 'doEach':doEach});
-                        // }
-                        // else {
-                        //     tokens.push(collection);
-                        // }
+                        tokens.push({'tt':collection, 'doEach':doEach});
                         collection = []; // reset
                         simplePath &= false;
                     }
@@ -415,7 +470,7 @@ var PathToolkit = function(options){
             // merely another entry in the collection, so we don't close off the collection token
             // yet.
             // Set depth value for further processing.
-            else if (!escaped && opt.containers.hasOwnProperty(path[i]) && opt.containers[path[i]].exec){
+            else if (!escaped && opt.containers[path[i]] && opt.containers[path[i]].exec){
                 closer = opt.containers[path[i]];
                 if (word && (mods.has || hasWildcard || doEach)){
                     if (typeof word === 'string'){
@@ -522,6 +577,7 @@ var PathToolkit = function(options){
             prev = obj,
             curr = '',
             currLength = 0,
+            eachLength = 0,
             wordCopy = '',
             contextProp,
             idx = 0,
@@ -579,7 +635,7 @@ var PathToolkit = function(options){
                         if (context[curr] !== newValue){ return undefined; } // new value failed to set
                     }
                     // For earlier tokens, create object properties if "force" is enabled
-                    else if (opt.force && (Array.isArray(prev) ? context[curr] !== UNDEF : !context.hasOwnProperty(curr))) {
+                    else if (opt.force && typeof context[curr] === 'undefined') {
                         context[curr] = {};
                     }
                 }
@@ -602,16 +658,24 @@ var PathToolkit = function(options){
                             return undefined;
                         }
                         j = 0;
-                        while(typeof context[j] !== 'undefined'){
+                        eachLength = context.length;
+                        
+                        // Path like Array->Each->Array requires a nested for loop
+                        // to process the two array layers.
+                        while(j < eachLength){
                             i = 0;
                             ret.push([]);
-                            while(typeof curr.tt[i] !== 'undefined'){
+                            currLength = curr.tt.length;
+                            while(i < currLength){
                                 curr.tt[i].doEach = false; // This is a hack, don't know how else to disable "doEach" for collection members
                                 if (newValueHere){
-                                    contextProp = resolvePath(context[j], curr.tt[i], newValue, args, valueStack.slice());
+                                    contextProp = resolvePath(context[j], curr.tt[i], newValue, args, valueStack);
+                                }
+                                else if (typeof curr.tt[i] === 'string'){
+                                    contextProp = context[j][curr.tt[i]];
                                 }
                                 else {
-                                    contextProp = resolvePath(context[j], curr.tt[i], undefined, args, valueStack.slice());
+                                    contextProp = resolvePath(context[j], curr.tt[i], undefined, args, valueStack);
                                 }
                                 if (contextProp === UNDEF) { return undefined; }
         
@@ -636,12 +700,16 @@ var PathToolkit = function(options){
                     }
                     else {
                         i = 0;
-                        while(typeof curr.tt[i] !== 'undefined'){
+                        currLength = curr.tt.length;
+                        while(i < currLength){
                             if (newValueHere){
-                                contextProp = resolvePath(context, curr.tt[i], newValue, args, valueStack.slice());
+                                contextProp = resolvePath(context, curr.tt[i], newValue, args, valueStack);
+                            }
+                            else if (typeof curr.tt[i] === 'string'){
+                                contextProp = context[curr.tt[i]];
                             }
                             else {
-                                contextProp = resolvePath(context, curr.tt[i], undefined, args, valueStack.slice());
+                                contextProp = resolvePath(context, curr.tt[i], undefined, args, valueStack);
                             }
                             if (contextProp === UNDEF) { return undefined; }
     
@@ -665,24 +733,26 @@ var PathToolkit = function(options){
                 }
                 else if (curr.w){
                     // this word token has modifiers
-                    wordCopy = curr.w + '';
-                    if (curr.mods.parent){
-                        // modify current context, shift upwards in base object one level
-                        context = valueStack[valueStackLength - 1 - curr.mods.parent];
-                        if (context === UNDEF) { return undefined; }
-                    }
-                    if (curr.mods.root){
-                        // Reset context and valueStack, start over at root in this context
-                        context = valueStack[0];
-                        valueStack = [context];
-                        valueStackLength = 1;
-                    }
-                    if (curr.mods.placeholder){
-                        placeInt = wordCopy - 1;
-                        if (args[placeInt] === UNDEF){ return undefined; }
-                        // Force args[placeInt] to String, won't atwordCopyt to process
-                        // arg of type function, array, or plain object
-                        wordCopy = args[placeInt].toString();
+                    wordCopy = curr.w;
+                    if (curr.mods.has){
+                        if (curr.mods.parent){
+                            // modify current context, shift upwards in base object one level
+                            context = valueStack[valueStackLength - 1 - curr.mods.parent];
+                            if (context === UNDEF) { return undefined; }
+                        }
+                        if (curr.mods.root){
+                            // Reset context and valueStack, start over at root in this context
+                            context = valueStack[0];
+                            valueStack = [context];
+                            valueStackLength = 1;
+                        }
+                        if (curr.mods.placeholder){
+                            placeInt = wordCopy - 1;
+                            if (args[placeInt] === UNDEF){ return undefined; }
+                            // Force args[placeInt] to String, won't atwordCopyt to process
+                            // arg of type function, array, or plain object
+                            wordCopy = args[placeInt].toString();
+                        }
                     }
 
                     // doEach option means to take all values in context (must be an array), apply
@@ -693,7 +763,8 @@ var PathToolkit = function(options){
                         }
                         ret = [];
                         i = 0;
-                        while(typeof context[i] !== 'undefined'){
+                        eachLength = context.length;
+                        while(i < eachLength){
                             // "context" modifier ("@" by default) replaces current context with a value from
                             // the arguments.
                             if (curr.mods.context){
@@ -720,7 +791,7 @@ var PathToolkit = function(options){
                                 else if (wildcardRegEx.test(wordCopy)){
                                     ret.push([]);
                                     for (prop in context[i]){
-                                        if (context[i].hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
+                                        if (wildCardMatch(wordCopy, prop)){
                                             if (newValueHere){ context[i][prop] = newValue; }
                                             ret[i].push(context[i][prop]);
                                         }
@@ -759,7 +830,7 @@ var PathToolkit = function(options){
                             else if (wildcardRegEx.test(wordCopy)){
                                 ret = [];
                                 for (prop in context){
-                                    if (context.hasOwnProperty(prop) && wildCardMatch(wordCopy, prop)){
+                                    if (wildCardMatch(wordCopy, prop)){
                                         if (newValueHere){ context[prop] = newValue; }
                                         ret.push(context[prop]);
                                     }
@@ -778,19 +849,36 @@ var PathToolkit = function(options){
                         }
                         ret = [];
                         i = 0;
-                        while(typeof context[i] !== 'undefined'){
-                            if (newValueHere){
-                                context[i][resolvePath(context[i], curr, UNDEF, args, valueStack.slice())] = newValue;
+                        eachLength = context.length;
+                        while(i < eachLength){
+                            if (curr.simple){
+                                if (newValueHere){
+                                    context[i][_this.get(context[i], {t:curr.t, simple:true})] = newValue;
+                                }
+                                ret.push(context[i][_this.get(context[i], {t:curr.t, simple:true})]);
                             }
-                            ret.push(context[i][resolvePath(context[i], curr, UNDEF, args, valueStack.slice())]);
+                            else {
+                                if (newValueHere){
+                                    context[i][resolvePath(context[i], curr, UNDEF, args, valueStack)] = newValue;
+                                }
+                                ret.push(context[i][resolvePath(context[i], curr, UNDEF, args, valueStack)]);
+                            }
                             i++;
                         }
                     }
                     else {
-                        if (newValueHere){
-                            context[resolvePath(context, curr, UNDEF, args, valueStack.slice())] = newValue;
+                        if (curr.simple){
+                            if (newValueHere){
+                                context[_this.get(context, {t: curr.t, simple:true})] = newValue;
+                            }
+                            ret = context[_this.get(context, {t:curr.t, simple:true})];
                         }
-                        ret = context[resolvePath(context, curr, UNDEF, args, valueStack.slice())];
+                        else {
+                            if (newValueHere){
+                                context[resolvePath(context, curr, UNDEF, args, valueStack)] = newValue;
+                            }
+                            ret = context[resolvePath(context, curr, UNDEF, args, valueStack)];
+                        }
                     }
                 }
                 // Functions are called using `call` or `apply`, depending on the state of
@@ -804,10 +892,11 @@ var PathToolkit = function(options){
                         }
                         ret = [];
                         i = 0;
-                        while(typeof context[i] !== 'undefined'){
+                        eachLength = context.length;
+                        while(i < eachLength){
                             // If function call has arguments, process those arguments as a new path
                             if (curr.t && curr.t.length){
-                                callArgs = resolvePath(context, curr, UNDEF, args, valueStack.slice());
+                                callArgs = resolvePath(context, curr, UNDEF, args, valueStack);
                                 if (callArgs === UNDEF){
                                     ret.push(context[i].apply(valueStack[valueStackLength - 2][i]));
                                 }
@@ -827,7 +916,12 @@ var PathToolkit = function(options){
                     else {
                         // If function call has arguments, process those arguments as a new path
                         if (curr.t && curr.t.length){
-                            callArgs = resolvePath(context, curr, UNDEF, args, valueStack.slice());
+                            if (curr.simple){
+                                callArgs = _this.get(context, curr);
+                            }
+                            else {
+                                callArgs = resolvePath(context, curr, UNDEF, args, valueStack);
+                            }
                             if (callArgs === UNDEF){
                                 ret = context.apply(valueStack[valueStackLength - 2]);
                             }
@@ -844,9 +938,14 @@ var PathToolkit = function(options){
                     }
                 }
             }
-            // Add the return value to the stack in case we must loop again
-            valueStack.push(ret);
-            valueStackLength++;
+            // Add the return value to the stack in case we must loop again.
+            // Recursive calls pass the same valueStack array around, but we don't want to
+            // push entries on the stack inside a recursion, so instead use fixed array
+            // index references based on what **this** execution knows the valueStackLength
+            // should be. That way, if a recursion adds new elements, and then we back out,
+            // this context will remember the old stack length and will merely overwrite
+            // those added entries, ignoring that they were there in the first place.
+            valueStack[valueStackLength++] = ret;
             context = ret;
             prev = ret;
             idx++;
@@ -884,7 +983,7 @@ var PathToolkit = function(options){
                 }
                 // For arrays, test current context against undefined to avoid parsing this segment as a number.
                 // For anything else, use hasOwnProperty.
-                else if (opt.force && (Array.isArray(obj) ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+                else if (opt.force && typeof obj[tk[i]] === 'undefined') {
                     obj[tk[i]] = {};
                 }
             }
@@ -917,7 +1016,7 @@ var PathToolkit = function(options){
                 }
                 // For arrays, test current context against undefined to avoid parsing this segment as a number.
                 // For anything else, use hasOwnProperty.
-                else if (opt.force && (Array.isArray(obj) ? obj[tk[i]] !== UNDEF : !obj.hasOwnProperty(tk[i]))) {
+                else if (opt.force && typeof obj[tk[i]] === 'undefined') {
                     obj[tk[i]] = {};
                 }
             }
@@ -1046,7 +1145,7 @@ var PathToolkit = function(options){
             }
         }
         // For array paths (pre-compiled token sets), check for simplicity so we can use the optimized resolver.
-        else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t) && path.simple){
+        else if (Array.isArray(path.t) && path.simple){
             return quickResolveTokenArray(obj, path.t);
         }
         
@@ -1090,7 +1189,7 @@ var PathToolkit = function(options){
                 done |= true;
             }
         }
-        else if (Object.hasOwnProperty.call(path, 't') && Array.isArray(path.t) && path.simple){
+        else if (Array.isArray(path.t) && path.simple){
             ref = quickResolveTokenArray(obj, path.t, val);
             done |= true;
         }
