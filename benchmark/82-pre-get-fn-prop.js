@@ -1,6 +1,6 @@
 'use strict';
 
-var KeyPathExp = require( '../dist/keypath-umd' ),
+var KeypathExp = require( '../dist/keypath-exp-umd' ),
     kp = require( '../dist/kp-umd' ),
     PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
@@ -16,22 +16,22 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
         }
     },
 
-    kpex1 = new KeyPathExp( path1 ),
+    kpex1 = new KeypathExp( path1 ),
     tkTokens1 = tk.getTokens( path1 ),
-    kpex2 = new KeyPathExp( path2 ),
+    kpex2 = new KeypathExp( path2 ),
     tkTokens2 = tk.getTokens( path2 );
 
 module.exports = {
     name: 'Precompiled:Get:FunctionCall:Property',
     maxTime: 5,
     tests: {
-        'KeyPathExp#get()': function(){
+        'KeypathExp#get()': function(){
             kpex1.get( data );
         },
         'tk#get        ()': function(){
             tk.get( data, path1 );
         },
-        'KeyPathExp#get(arg)': function(){
+        'KeypathExp#get(arg)': function(){
             kpex2.get( data );
         },
         'tk#get        (arg)': function(){

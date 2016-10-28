@@ -1,6 +1,6 @@
 'use strict';
 
-var KeyPathExp = require( '../dist/keypath-umd' ),
+var KeypathExp = require( '../dist/keypath-exp-umd' ),
     PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     
@@ -13,14 +13,14 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
         [ [ 7 ], [ 8 ] ] // 3
     ],
     
-    kpex = new KeyPathExp( path ),
+    kpex = new KeypathExp( path ),
     tkTokens = tk.getTokens( tkpath );
     
 module.exports = {
     name: 'Precompiled:Get:Bracket:Index:Array',
     maxTime: 5,
     tests: {
-        'KeyPathExp#get': function(){
+        'KeypathExp#get': function(){
             kpex.get( data );
         },
         'tk#get-tokenized': function(){
