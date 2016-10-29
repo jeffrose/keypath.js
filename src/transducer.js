@@ -1,8 +1,9 @@
 'use strict';
 
 import Null from './null';
+import KeypathExp from './keypath-exp';
 
-export var protocols = new Null();
+var protocols = new Null();
 
 protocols.iterator = typeof Symbol !== 'undefined' ?
     Symbol.iterator :
@@ -15,7 +16,7 @@ protocols.transducer.reduced = '@@transducer/reduced';
 protocols.transducer.result  = '@@transducer/result';
 protocols.transducer.value   = '@@transducer/value';
 
-export default function Transducer( xf ){
+function Transducer( xf ){
     this.xf = xf;
 }
 
@@ -46,3 +47,23 @@ Transducer.prototype.xfStep = function( value, input ){
 Transducer.prototype.xfResult = function( value ){
     return this.xf[ protocols.transducer.result ]( value );
 };
+
+function KeypathTransducer( p, xf ){
+    Transducer.call( this, xf );
+    this.kpex = new KeypathExp( p );
+}
+
+KeypathTransducer.prototype = Object.create( Transducer.prototype );
+
+KeypathTransducer.prototype.constructor = KeypathTransducer;
+
+KeypathTransducer.prototype[ protocols.transducer.step ] = function( value, input ){
+    var computed = this.kpex.get( input );
+    return this.xfStep( value, computed );
+};
+
+export default function keypath( p ){
+    return function( xf ){
+        return new KeypathTransducer( p, xf );
+    };
+}
