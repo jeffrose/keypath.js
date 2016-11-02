@@ -1,7 +1,7 @@
 'use strict';
 
-import Grammar from './grammar';
 import Null from './null';
+import * as Grammar from './grammar';
 
 var tokenId = 0;
 
@@ -36,10 +36,10 @@ Token.prototype.constructor = Token;
  */
 Token.prototype.toJSON = function(){
     var json = new Null();
-    
+
     json.type = this.type;
     json.value = this.value;
-    
+
     return json;
 };
 

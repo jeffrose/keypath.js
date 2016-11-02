@@ -1,7 +1,7 @@
 'use strict';
 
 import Null from './null';
-import Syntax from './syntax';
+import * as Syntax from './syntax';
 
 var nodeId = 0,
     literalTypes = 'boolean number string'.split( ' ' );
@@ -11,12 +11,12 @@ var nodeId = 0,
  * @extends Null
  * @param {external:string} type A node type
  */
-function Node( type ){
-    
+export function Node( type ){
+
     if( typeof type !== 'string' ){
         this.throwError( 'type must be a string', TypeError );
     }
-    
+
     /**
      * @member {external:number} Builder~Node#id
      */
@@ -42,9 +42,9 @@ Node.prototype.throwError = function( message, ErrorClass ){
  */
 Node.prototype.toJSON = function(){
     var json = new Null();
-    
+
     json.type = this.type;
-    
+
     return json;
 };
 
@@ -65,7 +65,7 @@ Node.prototype.valueOf = function(){
  * @extends Builder~Node
  * @param {external:string} expressionType A node type
  */
-function Expression( expressionType ){
+export function Expression( expressionType ){
     Node.call( this, expressionType );
 }
 
@@ -78,18 +78,18 @@ Expression.prototype.constructor = Expression;
  * @extends Builder~Expression
  * @param {external:string|external:number} value The value of the literal
  */
-function Literal( value, raw ){
+export function Literal( value, raw ){
     Expression.call( this, Syntax.Literal );
-    
+
     if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
         this.throwError( 'value must be a boolean, number, string, or null', TypeError );
     }
-    
+
     /**
      * @member {external:string}
      */
     this.raw = raw;
-    
+
     /**
      * @member {external:string|external:number}
      */
@@ -106,10 +106,10 @@ Literal.prototype.constructor = Literal;
  */
 Literal.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
+
     json.raw = this.raw;
     json.value = this.value;
-    
+
     return json;
 };
 
@@ -128,9 +128,9 @@ Literal.prototype.toString = function(){
  * @param {Builder~Expression|Builder~Identifier} property
  * @param {external:boolean} computed=false
  */
-function MemberExpression( object, property, computed ){
+export function MemberExpression( object, property, computed ){
     Expression.call( this, Syntax.MemberExpression );
-    
+
     /**
      * @member {Builder~Expression}
      */
@@ -150,44 +150,16 @@ MemberExpression.prototype = Object.create( Expression.prototype );
 MemberExpression.prototype.constructor = MemberExpression;
 
 /**
- * @class Builder~OperatorExpression
- * @extends Builder~Expression
- * @param {external:string} expressionType
- * @param {external:string} operator
- */
-function OperatorExpression( expressionType, operator ){
-    Expression.call( this, expressionType );
-    
-    this.operator = operator;
-}
-
-OperatorExpression.prototype = Object.create( Expression.prototype );
-
-OperatorExpression.prototype.constructor = OperatorExpression;
-
-/**
- * @function
- * @returns {external:Object} A JSON representation of the operator expression
- */
-OperatorExpression.prototype.toJSON = function(){
-    var json = Node.prototype.toJSON.call( this );
-    
-    json.operator = this.operator;
-    
-    return json;
-};
-
-/**
  * @function
  * @returns {external:Object} A JSON representation of the member expression
  */
 MemberExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
+
     json.object   = this.object.toJSON();
     json.property = this.property.toJSON();
     json.computed = this.computed;
-    
+
     return json;
 };
 
@@ -198,11 +170,11 @@ MemberExpression.prototype.toJSON = function(){
  */
 export function Program( body ){
     Node.call( this, Syntax.Program );
-    
+
     if( !Array.isArray( body ) ){
         throw new TypeError( 'body must be an array' );
     }
-    
+
     /**
      * @member {external:Array<Builder~Statement>}
      */
@@ -220,10 +192,12 @@ Program.prototype.constructor = Program;
  */
 Program.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
-    json.body = this.body.map( ( node ) => node.toJSON() );
+
+    json.body = this.body.map( function( node ){
+        return node.toJSON();
+    } );
     json.sourceType = this.sourceType;
-    
+
     return json;
 };
 
@@ -232,7 +206,7 @@ Program.prototype.toJSON = function(){
  * @extends Builder~Node
  * @param {external:string} statementType A node type
  */
-function Statement( statementType ){
+export function Statement( statementType ){
     Node.call( this, statementType );
 }
 
@@ -247,11 +221,27 @@ Statement.prototype.constructor = Statement;
  */
 export function ArrayExpression( elements ){
     Expression.call( this, Syntax.ArrayExpression );
-    
-    if( !( Array.isArray( elements ) ) && !( elements instanceof RangeExpression ) ){
-        throw new TypeError( 'elements must be a list of expressions or an instance of range expression' );
-    }
-    
+
+    //if( !( Array.isArray( elements ) ) && !( elements instanceof RangeExpression ) ){
+    //    throw new TypeError( 'elements must be a list of expressions or an instance of range expression' );
+    //}
+
+    /*
+    Object.defineProperty( this, 'elements', {
+        get: function(){
+            return this;
+        },
+        set: function( elements ){
+            var index = this.length = elements.length;
+            while( index-- ){
+                this[ index ] = elements[ index ];
+            }
+        },
+        configurable: true,
+        enumerable: false
+    } );
+    */
+
     /**
      * @member {Array<Builder~Expression>|RangeExpression}
      */
@@ -268,7 +258,7 @@ ArrayExpression.prototype.constructor = ArrayExpression;
  */
 ArrayExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
+
     if( Array.isArray( this.elements ) ){
         json.elements = this.elements.map( function( element ){
             return element.toJSON();
@@ -276,7 +266,7 @@ ArrayExpression.prototype.toJSON = function(){
     } else {
         json.elements = this.elements.toJSON();
     }
-    
+
     return json;
 };
 
@@ -288,11 +278,11 @@ ArrayExpression.prototype.toJSON = function(){
  */
 export function CallExpression( callee, args ){
     Expression.call( this, Syntax.CallExpression );
-    
+
     if( !Array.isArray( args ) ){
         throw new TypeError( 'arguments must be an array' );
     }
-    
+
     /**
      * @member {Builder~Expression}
      */
@@ -313,10 +303,12 @@ CallExpression.prototype.constructor = CallExpression;
  */
 CallExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
+
     json.callee    = this.callee.toJSON();
-    json.arguments = this.arguments.map( ( node ) => node.toJSON() );
-    
+    json.arguments = this.arguments.map( function( node ){
+        return node.toJSON();
+    } );
+
     return json;
 };
 
@@ -330,9 +322,9 @@ export function ComputedMemberExpression( object, property ){
     if( !( property instanceof Expression ) ){
         throw new TypeError( 'property must be an expression when computed is true' );
     }
-        
+
     MemberExpression.call( this, object, property, true );
-    
+
     /**
      * @member Builder~ComputedMemberExpression#computed=true
      */
@@ -342,33 +334,17 @@ ComputedMemberExpression.prototype = Object.create( MemberExpression.prototype )
 
 ComputedMemberExpression.prototype.constructor = ComputedMemberExpression;
 
-export function EvalExpression( body ){
-    Expression.call( this, 'EvalExpression' );
-    
-    /*
-    if( !( expression instanceof Expression ) ){
-        throw new TypeError( 'argument must be an expression' );
-    }
-    */
-    
-    this.body = body;
-}
-
-EvalExpression.prototype = Object.create( Expression.prototype );
-
-EvalExpression.prototype.constructor = EvalExpression;
-
 /**
  * @class Builder~ExpressionStatement
  * @extends Builder~Statement
  */
 export function ExpressionStatement( expression ){
     Statement.call( this, Syntax.ExpressionStatement );
-    
+
     if( !( expression instanceof Expression ) ){
         throw new TypeError( 'argument must be an expression' );
     }
-    
+
     /**
      * @member {Builder~Expression}
      */
@@ -385,9 +361,9 @@ ExpressionStatement.prototype.constructor = ExpressionStatement;
  */
 ExpressionStatement.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
+
     json.expression = this.expression.toJSON();
-    
+
     return json;
 };
 
@@ -398,11 +374,11 @@ ExpressionStatement.prototype.toJSON = function(){
  */
 export function Identifier( name ){
     Expression.call( this, Syntax.Identifier );
-    
+
     if( typeof name !== 'string' ){
         throw new TypeError( 'name must be a string' );
     }
-    
+
     /**
      * @member {external:string}
      */
@@ -419,9 +395,9 @@ Identifier.prototype.constructor = Identifier;
  */
 Identifier.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
+
     json.name = this.name;
-    
+
     return json;
 };
 
@@ -429,7 +405,7 @@ export function NullLiteral( raw ){
     if( raw !== 'null' ){
         throw new TypeError( 'raw is not a null literal' );
     }
-    
+
     Literal.call( this, null, raw );
 }
 
@@ -439,107 +415,17 @@ NullLiteral.prototype.constructor = NullLiteral;
 
 export function NumericLiteral( raw ){
     var value = parseFloat( raw );
-    
+
     if( isNaN( value ) ){
         throw new TypeError( 'raw is not a numeric literal' );
     }
-    
+
     Literal.call( this, value, raw );
 }
 
 NumericLiteral.prototype = Object.create( Literal.prototype );
 
 NumericLiteral.prototype.constructor = NumericLiteral;
-
-export function LookupExpression( key ){
-    if( !( key instanceof Literal ) && !( key instanceof Identifier ) && !( key instanceof EvalExpression ) ){
-        throw new TypeError( 'key must be a literal, identifier, or eval expression' );
-    }
-    
-    OperatorExpression.call( this, Syntax.LookupExpression, Syntax.LookupOperator );
-    
-    this.key = key;
-}
-
-LookupExpression.prototype = Object.create( OperatorExpression.prototype );
-
-LookupExpression.prototype.constructor = LookupExpression;
-
-LookupExpression.prototype.toString = function(){
-    return this.operator + this.key;
-};
-
-LookupExpression.prototype.toJSON = function(){
-    var json = OperatorExpression.prototype.toJSON.call( this );
-    
-    json.key = this.key;
-    
-    return json;
-};
-
-/**
- * @class Builder~RangeExpression
- * @extends Builder~OperatorExpression
- * @param {Builder~Expression} left
- * @param {Builder~Expression} right
- */
-export function RangeExpression( left, right ){
-    OperatorExpression.call( this, Syntax.RangeExpression, Syntax.RangeOperator );
-    
-    if( !( left instanceof Literal ) && left !== null ){
-        throw new TypeError( 'left must be an instance of literal or null' );
-    }
-    
-    if( !( right instanceof Literal ) && right !== null ){
-        throw new TypeError( 'right must be an instance of literal or null' );
-    }
-    
-    if( left === null && right === null ){
-        throw new TypeError( 'left and right cannot equal null at the same time' );
-    }
-    
-    /**
-     * @member {Builder~Literal} Builder~RangeExpression#left
-     */
-     /**
-     * @member {Builder~Literal} Builder~RangeExpression#0
-     */
-    this[ 0 ] = this.left = left;
-    
-    /**
-     * @member {Builder~Literal} Builder~RangeExpression#right
-     */
-     /**
-     * @member {Builder~Literal} Builder~RangeExpression#1
-     */
-    this[ 1 ] = this.right = right;
-    
-    /**
-     * @member {external:number} Builder~RangeExpression#length=2
-     */
-    this.length = 2;
-}
-
-RangeExpression.prototype = Object.create( Expression.prototype );
-
-RangeExpression.prototype.constructor = RangeExpression;
-
-RangeExpression.prototype.toJSON = function(){
-    var json = OperatorExpression.prototype.toJSON.call( this );
-    
-    json.left = this.left !== null ?
-        this.left.toJSON() :
-        this.left;
-    json.right = this.right !== null ?
-        this.right.toJSON() :
-        this.right;
-    
-    return json;
-};
-
-RangeExpression.prototype.toString = function(){
-    return this.left.toString() + this.operator + this.right.toString();
-};
 
 /**
  * @class Builder~SequenceExpression
@@ -548,11 +434,27 @@ RangeExpression.prototype.toString = function(){
  */
 export function SequenceExpression( expressions ){
     Expression.call( this, Syntax.SequenceExpression );
-    
-    if( !( Array.isArray( expressions ) ) && !( expressions instanceof RangeExpression ) ){
-        throw new TypeError( 'expressions must be a list of expressions or an instance of range expression' );
-    }
-    
+
+    //if( !( Array.isArray( expressions ) ) && !( expressions instanceof RangeExpression ) ){
+    //    throw new TypeError( 'expressions must be a list of expressions or an instance of range expression' );
+    //}
+
+    /*
+    Object.defineProperty( this, 'expressions', {
+        get: function(){
+            return this;
+        },
+        set: function( expressions ){
+            var index = this.length = expressions.length;
+            while( index-- ){
+                this[ index ] = expressions[ index ];
+            }
+        },
+        configurable: true,
+        enumerable: false
+    } );
+    */
+
     /**
      * @member {Array<Builder~Expression>|RangeExpression}
      */
@@ -569,7 +471,7 @@ SequenceExpression.prototype.constructor = SequenceExpression;
  */
 SequenceExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
-    
+
     if( Array.isArray( this.expressions ) ){
         json.expressions = this.expressions.map( function( expression ){
             return expression.toJSON();
@@ -577,7 +479,7 @@ SequenceExpression.prototype.toJSON = function(){
     } else {
         json.expressions = this.expressions.toJSON();
     }
-    
+
     return json;
 };
 
@@ -588,12 +490,12 @@ SequenceExpression.prototype.toJSON = function(){
  * @param {Builder~Identifier} property
  */
 export function StaticMemberExpression( object, property ){
-    if( !( property instanceof Identifier ) && !( property instanceof LookupExpression ) && !( property instanceof EvalExpression ) ){
-        throw new TypeError( 'property must be an identifier, eval expression, or lookup expression when computed is false' );
-    }
-        
+    //if( !( property instanceof Identifier ) && !( property instanceof LookupExpression ) && !( property instanceof BlockExpression ) ){
+    //    throw new TypeError( 'property must be an identifier, eval expression, or lookup expression when computed is false' );
+    //}
+
     MemberExpression.call( this, object, property, false );
-    
+
     /**
      * @member Builder~StaticMemberExpression#computed=false
      */
@@ -607,9 +509,9 @@ export function StringLiteral( raw ){
     if( raw[ 0 ] !== '"' && raw[ 0 ] !== "'" ){
         throw new TypeError( 'raw is not a string literal' );
     }
-    
+
     var value = raw.substring( 1, raw.length - 1 );
-    
+
     Literal.call( this, value, raw );
 }
 

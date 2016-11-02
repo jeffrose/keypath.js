@@ -1,0 +1,32 @@
+<html>
+<head>
+	<title>Interpreter</title>
+	<script type="text/javascript" src="../dist/lexer-umd.js"></script>
+	<script type="text/javascript" src="../dist/builder-umd.js"></script>
+	<script type="text/javascript" src="../dist/interpreter-umd.js"></script>
+	<script type="text/javascript">
+		var lexer = new Lexer(),
+			builder = new Builder( lexer ),
+			interpreter = new Interpreter( builder );
+			
+		[ 'foo.bar.qux.baz', 'foo.bar.qux["baz"]', 'foo.bar["qux"]["baz"]', 'foo["bar"]["qux"]["baz"]' ].forEach( function( pattern ){
+			var object = {
+					foo: {
+						bar: {
+							qux: {
+								baz: 123
+							}
+						}
+					}
+				},
+				get;
+			
+			get = interpreter.compile( pattern, false );
+			console.log( get( object ) );
+		} );
+		
+	</script>
+</head>
+<body>
+</body>
+</html>

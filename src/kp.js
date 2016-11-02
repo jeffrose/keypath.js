@@ -1,12 +1,12 @@
 'use strict';
 
-import KeyPathExp from './keypath';
+import KeypathExp from './keypath-exp';
 import Null from './null';
 
 var cache = new Null();
 
 /**
- * @typedef {external:Function} KeyPathCallback
+ * @typedef {external:Function} KeypathCallback
  * @param {*} target The object on which the keypath will be executed
  * @param {*} [value] The optional value that will be set at the keypath
  * @returns {*} The value at the end of the keypath or undefined if the value was being set
@@ -17,26 +17,26 @@ var cache = new Null();
  * @function
  * @param {Array<external:string>} literals
  * @param {external:Array} values
- * @returns {KeyPathCallback}
+ * @returns {KeypathCallback}
  * @example
  * const object = { foo: { bar: { qux: { baz: 'fuz' } } } },
  *  getBaz = ( target ) => kp`foo.bar.qux.baz`( target );
- * 
+ *
  * console.log( getBaz( object ) ); // "fuz"
  */
-function kp( literals/*, ...values*/ ){
-    var keypath, kpex, values;
-    
+export default function kp( literals/*, ...values*/ ){
+    var index, keypath, kpex, length, values;
+
     if( arguments.length > 1 ){
-        var index = 0,
-            length = arguments.length - 1;
-        
+        index = 0,
+        length = arguments.length - 1;
+
         values = new Array( length );
-        
+
         for( ; index < length; index++ ){
             values[ index ] = arguments[ index + 1 ];
         }
-        
+
         keypath = literals.reduce( function( accumulator, part, index ){
             return accumulator + values[ index - 1 ] + part;
         } );
@@ -44,16 +44,14 @@ function kp( literals/*, ...values*/ ){
         values = [];
         keypath = literals[ 0 ];
     }
-    
+
     kpex = keypath in cache ?
         cache[ keypath ] :
-        cache[ keypath ] = new KeyPathExp( keypath );
-    
+        cache[ keypath ] = new KeypathExp( keypath );
+
     return function( target, value, lookup ){
         return arguments.length > 1 ?
             kpex.set( target, value, lookup ) :
             kpex.get( target, lookup );
     };
 }
-
-export { kp as default };

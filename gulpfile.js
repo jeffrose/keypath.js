@@ -10,38 +10,55 @@ const gulp = require( 'gulp' ),
     istanbul = require( 'gulp-istanbul' ),
     jsdoc = require( 'gulp-jsdoc-to-markdown' ),
     mocha = require( 'gulp-mocha' ),
-    monitor = require( 'gulp-nodemon' ),
     rename = require( 'gulp-rename' ),
     rollup = require( 'rollup-stream' ),
+    size = require( 'gulp-size' ),
     source = require( 'vinyl-source-stream' ),
     sourcemaps = require( 'gulp-sourcemaps' ),
     mergeStream = require( 'merge-stream' ),
     uglify = require( 'gulp-uglify' ),
     yargs = require( 'yargs' ),
-    
+
     colors = gutil.colors,
     log = gutil.log,
-    
+
     fgrep = yargs.argv.fgrep ?
         `**/*${ yargs.argv.fgrep }*.js` :
         '**',
     tgrep = yargs.argv.tgrep;
 
 gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
-    
+
         rollup( {
-            entry: 'src/keypath.js',
+            entry: 'src/index.js',
             format: 'umd',
-            moduleName: 'KeyPathExp',
+            moduleName: 'KeypathExp',
             sourceMap: true
         } )
-        .pipe( source( 'keypath.js', 'src' ) )
+        .pipe( source( 'index.js', 'src' ) )
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'keypath-umd.js' ) )
-        .pipe( sourcemaps.write( '.' ) )
+        //.pipe( uglify() )
+        //.on( 'error', function( error ){
+        //    log( error.toString() );
+        //} )
+        .pipe( sourcemaps.write() )
+        .pipe( size() )
+        .pipe( gulp.dest( '.' ) ),
+
+        rollup( {
+            entry: 'src/keypath-exp.js',
+            format: 'umd',
+            moduleName: 'KeypathExp',
+            sourceMap: true
+        } )
+        .pipe( source( 'keypath-exp.js', 'src' ) )
+        .pipe( buffer() )
+        .pipe( sourcemaps.init( { loadMaps: true } ) )
+        .pipe( rename( 'keypath-exp-umd.js' ) )
+        .pipe( sourcemaps.write() )
         .pipe( gulp.dest( 'dist' ) ),
-        
+
         rollup( {
             entry: 'src/kp.js',
             format: 'umd',
@@ -52,9 +69,9 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'kp-umd.js' ) )
-        .pipe( sourcemaps.write( '.' ) )
+        .pipe( sourcemaps.write() )
         .pipe( gulp.dest( 'dist' ) ),
-        
+
         rollup( {
             entry: 'src/interpreter.js',
             format: 'umd',
@@ -65,9 +82,9 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'interpreter-umd.js' ) )
-        .pipe( sourcemaps.write( '.' ) )
+        .pipe( sourcemaps.write() )
         .pipe( gulp.dest( 'dist' ) ),
-        
+
         rollup( {
             entry: 'src/builder.js',
             format: 'umd',
@@ -78,9 +95,9 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'builder-umd.js' ) )
-        .pipe( sourcemaps.write( '.' ) )
+        .pipe( sourcemaps.write() )
         .pipe( gulp.dest( 'dist' ) ),
-        
+
         rollup( {
             entry: 'src/lexer.js',
             format: 'umd',
@@ -91,9 +108,9 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'lexer-umd.js' ) )
-        .pipe( sourcemaps.write( '.' ) )
+        .pipe( sourcemaps.write() )
         .pipe( gulp.dest( 'dist' ) ),
-        
+
         // path-toolkit.js does not really need to be bundled
         // but it's easier to just reuse the code
         rollup( {
@@ -106,7 +123,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( buffer() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'path-toolkit-umd.js' ) )
-        .pipe( sourcemaps.write( '.' ) )
+        .pipe( sourcemaps.write() )
         .pipe( gulp.dest( 'dist' ) ),
 
         rollup( {
@@ -120,7 +137,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( uglify() )
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'path-toolkit-min.js' ) )
-        .pipe( sourcemaps.write( '.' ) )
+        .pipe( sourcemaps.write() )
         .pipe( gulp.dest( 'dist' ) )
     )
     .pipe( filter( fgrep ) )
@@ -160,24 +177,6 @@ gulp.task( 'benchmark', [ 'dist' ], () => {
         .pipe( debug( { title: 'Benchmarking' } ) )
         .pipe( benchmark() )
         .pipe( gulp.dest( './benchmark' ) );
-} );
-
-gulp.task( 'monitor', [ 'dist' ], ( done ) => {
-    var started = false;
-    
-    monitor( {
-            script: 'app.js',
-            args: [ '--fgrep', yargs.argv.fgrep ],
-            watch: [ 'src', 'views', 'app.js' ],
-            tasks: [ 'dist' ]
-        } )
-        .on( 'start', () => {
-            // to avoid nodemon being started multiple times
-            if( !started ){
-                done();
-                started = true; 
-            } 
-        } );
 } );
 
 gulp.task( 'default', [ 'path-toolkit-test', 'test' ] );

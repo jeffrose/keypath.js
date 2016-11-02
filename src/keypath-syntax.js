@@ -1,13 +1,8 @@
 'use strict';
 
-import Null from './null';
-
-var KeyPathSyntax = new Null();
-
-KeyPathSyntax.EvalExpression        = 'EvalExpression';
-KeyPathSyntax.LookupExpression      = 'LookupExpression';
-KeyPathSyntax.LookupOperator        = '%';
-KeyPathSyntax.RangeExpression       = 'RangeExpression';
-KeyPathSyntax.RangeOperator         = '..';
-
-export { KeyPathSyntax as default };
+export var BlockExpression       = 'BlockExpression';
+export var ExistentialExpression = 'ExistentialExpression';
+export var LookupExpression      = 'LookupExpression';
+export var RangeExpression       = 'RangeExpression';
+export var RootExpression        = 'RootExpression';
+export var ScopeExpression       = 'ScopeExpression';

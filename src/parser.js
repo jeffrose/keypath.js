@@ -1,6 +1,6 @@
 'use strict';
 
-import KeyPathExp from './keypath';
+import KeypathExp from './keypath';
 import Null from './null';
 
 const cache = new Null();
@@ -16,7 +16,7 @@ Parser.prototype.constructor = Parser;
 Parser.prototype.get = function( keypath, target ){
     const kpex = keypath in cache ?
         cache[ keypath ] :
-        cache[ keypath ] = new KeyPathExp( keypath );
+        cache[ keypath ] = new KeypathExp( keypath );
     
     return kpex.get( target );
 };

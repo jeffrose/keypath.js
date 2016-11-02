@@ -3,6 +3,8 @@
 import Null from './null';
 import * as Token from './token';
 
+var lexerPrototype;
+
 /**
  * @function Lexer~isIdentifier
  * @param {external:string} char
@@ -27,7 +29,7 @@ function isNumeric( char ){
  * @returns {external:boolean} Whether or not the character is a punctuator character
  */
 function isPunctuator( char ){
-    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === ',' || char === '%' || char === '?' || char === ';';
+    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === ',' || char === '%' || char === '?' || char === ';' || char === '~';
 }
 
 /**
@@ -49,33 +51,22 @@ function isWhitespace( char ){
 }
 
 /**
- * @class Lexer~LexerError
- * @extends external:SyntaxError
- * @param {external:string} message The error message
- */
-function LexerError( message ){
-    SyntaxError.call( this, message );    
-}
-
-LexerError.prototype = Object.create( SyntaxError.prototype );
-
-/**
  * @class Lexer
  * @extends Null
  */
-function Lexer(){
+export default function Lexer(){
     this.buffer = '';
 }
 
-Lexer.prototype = new Null();
+lexerPrototype = Lexer.prototype = new Null();
 
-Lexer.prototype.constructor = Lexer;
+lexerPrototype.constructor = Lexer;
 
 /**
  * @function
  * @param {external:string} text
  */
-Lexer.prototype.lex = function( text ){
+lexerPrototype.lex = function( text ){
     /**
      * @member {external:string}
      * @default ''
@@ -89,68 +80,68 @@ Lexer.prototype.lex = function( text ){
      * @member {Array<Lexer~Token>}
      */
     this.tokens = [];
-    
+
     var length = this.buffer.length,
         word = '',
         char, token, quote;
-    
+
     while( this.index < length ){
         char = this.buffer[ this.index ];
-        
+
         // Identifier
         if( isIdentifier( char ) ){
             word = this.read( function( char ){
                 return !isIdentifier( char ) && !isNumeric( char );
             } );
-            
+
             token = word === 'null' ?
                 new Token.NullLiteral( word ) :
                 new Token.Identifier( word );
             this.tokens.push( token );
-        
+
         // Punctuator
         } else if( isPunctuator( char ) ){
             token = new Token.Punctuator( char );
             this.tokens.push( token );
-            
+
             this.index++;
-        
+
         // Quoted String
         } else if( isQuote( char ) ){
             quote = char;
-            
+
             this.index++;
-            
+
             word = this.read( function( char ){
                 return char === quote;
             } );
-            
+
             token = new Token.StringLiteral( quote + word + quote );
             this.tokens.push( token );
-            
+
             this.index++;
-        
+
         // Numeric
         } else if( isNumeric( char ) ){
             word = this.read( function( char ){
                 return !isNumeric( char );
             } );
-            
+
             token = new Token.NumericLiteral( word );
             this.tokens.push( token );
-        
+
         // Whitespace
         } else if( isWhitespace( char ) ){
             this.index++;
-        
+
         // Error
         } else {
-            this.throwError( '"' + char + '" is an invalid character' );
+            throw new SyntaxError( '"' + char + '" is an invalid character' );
         }
-        
+
         word = '';
     }
-    
+
     return this.tokens;
 };
 
@@ -159,43 +150,35 @@ Lexer.prototype.lex = function( text ){
  * @param {external:function} until A condition that when met will stop the reading of the buffer
  * @returns {external:string} The portion of the buffer read
  */
-Lexer.prototype.read = function( until ){
+lexerPrototype.read = function( until ){
     var start = this.index,
         char;
-    
+
     while( this.index < this.buffer.length ){
         char = this.buffer[ this.index ];
-        
+
         if( until( char ) ){
             break;
         }
-        
+
         this.index++;
     }
-    
-    return this.buffer.slice( start, this.index );
-};
 
-/**
- * @function
- * @throws {Lexer~LexerError} When it executes
- */
-Lexer.prototype.throwError = function( message ){
-    throw new LexerError( message );
+    return this.buffer.slice( start, this.index );
 };
 
 /**
  * @function
  * @returns {external:Object} A JSON representation of the lexer
  */
-Lexer.prototype.toJSON = function(){
+lexerPrototype.toJSON = function(){
     var json = new Null();
-    
+
     json.buffer = this.buffer;
     json.tokens = this.tokens.map( function( token ){
         return token.toJSON();
     } );
-    
+
     return json;
 };
 
@@ -203,8 +186,6 @@ Lexer.prototype.toJSON = function(){
  * @function
  * @returns {external:string} A string representation of the lexer
  */
-Lexer.prototype.toString = function(){
+lexerPrototype.toString = function(){
     return this.buffer;
 };
-
-export { Lexer as default };

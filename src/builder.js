@@ -1,15 +1,16 @@
 'use strict';
 
 import Null from './null';
-import Grammar from './grammar';
+import * as Grammar from './grammar';
 import * as Node from './node';
+import * as KeypathNode from './keypath-node';
 
 /**
  * @class Builder
  * @extends Null
  * @param {Lexer} lexer
  */
-function Builder( lexer ){
+export default function Builder( lexer ){
     this.lexer = lexer;
 }
 
@@ -19,15 +20,26 @@ Builder.prototype.constructor = Builder;
 
 Builder.prototype.arrayExpression = function( list ){
     //console.log( 'ARRAY EXPRESSION' );
-    var end = ( Array.isArray( list ) ? list.length ? list[ list.length - 1 ].range[ 1 ] : 1 : list.range[ 1 ] ) + 1,
-        node;
-        
     this.consume( '[' );
-    
-    node = new Node.ArrayExpression( list );
-    node.range = [ this.column, end ];
-    //console.log( '- RANGE', node.range );
-    return node;
+    return new Node.ArrayExpression( list );
+};
+
+Builder.prototype.blockExpression = function( terminator ){
+    var block = [],
+        isolated = false;
+    //console.log( 'BLOCK', terminator );
+    if( !this.peek( terminator ) ){
+        //console.log( '- EXPRESSIONS' );
+        do {
+            block.unshift( this.consume() );
+        } while( !this.peek( terminator ) );
+    }
+    this.consume( terminator );
+    /*if( this.peek( '~' ) ){
+        isolated = true;
+        this.consume( '~' );
+    }*/
+    return new KeypathNode.BlockExpression( block, isolated );
 };
 
 /**
@@ -41,11 +53,11 @@ Builder.prototype.build = function( input ){
          * @member {external:string}
          */
         this.text = input;
-        
+
         if( typeof this.lexer === 'undefined' ){
             this.throwError( 'lexer is not defined' );
         }
-        
+
         /**
          * @member {external:Array<Token>}
          */
@@ -60,13 +72,14 @@ Builder.prototype.build = function( input ){
     //console.log( '- ', this.text.length, 'CHARS', this.text );
     //console.log( '- ', this.tokens.length, 'TOKENS', this.tokens );
     this.column = this.text.length;
-    
+    this.line = 1;
+
     var program = this.program();
-    
+
     if( this.tokens.length ){
         this.throwError( 'Unexpected token ' + this.tokens[ 0 ] + ' remaining' );
     }
-    
+
     return program;
 };
 
@@ -75,22 +88,17 @@ Builder.prototype.build = function( input ){
  * @returns {CallExpression} The call expression node
  */
 Builder.prototype.callExpression = function(){
-    var end = this.column + 1,
-        args = this.list( '(' ),
-        callee, node, start;
-        
+    var args = this.list( '(' ),
+        callee;
+
     this.consume( '(' );
-    
+
     callee = this.expression();
-    
-    start = this.column;
+
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
     //console.log( '- ARGUMENTS', args, args.length );
-    node = new Node.CallExpression( callee, args );
-    node.range = [ start, end ];
-    
-    return node;
+    return new Node.CallExpression( callee, args );
 };
 
 /**
@@ -104,14 +112,20 @@ Builder.prototype.consume = function( expected ){
     if( !this.tokens.length ){
         this.throwError( 'Unexpected end of expression' );
     }
-    
+
     var token = this.expect( expected );
-    
+
     if( !token ){
         this.throwError( 'Unexpected token ' + token.value + ' consumed' );
     }
-    
+
     return token;
+};
+
+Builder.prototype.existentialExpression = function(){
+    var expression = this.expression();
+    //console.log( '- EXIST EXPRESSION', expression );
+    return new KeypathNode.ExistentialExpression( expression );
 };
 
 /**
@@ -125,14 +139,14 @@ Builder.prototype.consume = function( expected ){
  */
 Builder.prototype.expect = function( first, second, third, fourth ){
     var token = this.peek( first, second, third, fourth );
-    
+
     if( token ){
         this.tokens.pop();
         this.column -= token.value.length;
         return token;
     }
-    
-    return undefined;
+
+    return void 0;
 };
 
 /**
@@ -142,8 +156,13 @@ Builder.prototype.expect = function( first, second, third, fourth ){
 Builder.prototype.expression = function(){
     var expression = null,
         list, next, token;
-    
+
+    if( this.expect( ';' ) ){
+        next = this.peek();
+    }
+
     if( next = this.peek() ){
+        //console.log( 'EXPRESSION', next );
         switch( next.type ){
             case Grammar.Punctuator:
                 if( this.expect( ']' ) ){
@@ -161,6 +180,9 @@ Builder.prototype.expression = function(){
                 } else if( next.value === '}' ){
                     expression = this.lookup( next );
                     next = this.peek();
+                } else if( this.expect( '?' ) ){
+                    expression = this.existentialExpression();
+                    next = this.peek();
                 }
                 break;
             case Grammar.NullLiteral:
@@ -174,7 +196,7 @@ Builder.prototype.expression = function(){
                 expression = this.lookup( next );
                 next = this.peek();
                 // Implied member expression. Should only happen after an Identifier.
-                if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' ) ){
+                if( next && next.type === Grammar.Punctuator && ( next.value === ')' || next.value === ']' || next.value === '?' ) ){
                     expression = this.memberExpression( expression, false );
                 }
                 break;
@@ -192,26 +214,7 @@ Builder.prototype.expression = function(){
             }
         }
     }
-    
-    return expression;
-};
 
-Builder.prototype.evalExpression = function( terminator ){
-    var end = this.column,
-        block = [],
-        expression, start;
-    //console.log( 'EVAL', terminator );
-    if( !this.peek( terminator ) ){
-        //console.log( '- EXPRESSIONS' );
-        do {
-            block.unshift( this.consume() );
-        } while( !this.peek( terminator ) );
-    }
-    start = this.column;
-    this.consume( terminator );
-    expression = new Node.EvalExpression( block );
-    expression.range = [ start, end ];
-    //console.log( '- EVAL RESULT', expression );
     return expression;
 };
 
@@ -220,14 +223,11 @@ Builder.prototype.evalExpression = function( terminator ){
  * @returns {ExpressionStatement} An expression statement
  */
 Builder.prototype.expressionStatement = function(){
-    var end = this.column,
-        node = this.expression(),
-        start = this.column,
+    var expression = this.expression(),
         expressionStatement;
-    //console.log( 'EXPRESSION STATEMENT WITH', node );
-    expressionStatement = new Node.ExpressionStatement( node );
-    expressionStatement.range = [ start, end ];
-    
+    //console.log( 'EXPRESSION STATEMENT WITH', expression );
+    expressionStatement = new Node.ExpressionStatement( expression );
+
     return expressionStatement;
 };
 
@@ -237,19 +237,13 @@ Builder.prototype.expressionStatement = function(){
  * @throws {SyntaxError} If the token is not an identifier
  */
 Builder.prototype.identifier = function(){
-    var end = this.column,
-        token = this.consume(),
-        start = this.column,
-        node;
-    
+    var token = this.consume();
+
     if( !( token.type === Grammar.Identifier ) ){
         this.throwError( 'Identifier expected' );
     }
-    
-    node = new Node.Identifier( token.value );
-    node.range = [ start, end ];
-    
-    return node;
+
+    return new Node.Identifier( token.value );
 };
 
 /**
@@ -265,7 +259,7 @@ Builder.prototype.list = function( terminator ){
     if( !this.peek( terminator ) ){
         next = this.peek();
         isNumeric = next.type === Grammar.NumericLiteral;
-        
+
         // Examples: [1..3], [5..], [..7]
         if( ( isNumeric || next.value === '.' ) && this.peekAt( 1, '.' ) ){
             //console.log( '- RANGE EXPRESSION' );
@@ -273,7 +267,7 @@ Builder.prototype.list = function( terminator ){
                 this.lookup( next ) :
                 null;
             list = this.rangeExpression( expression );
-        
+
         // Examples: [1,2,3], ["abc","def"], [foo,bar], [{foo.bar}]
         } else {
             //console.log( '- ARRAY OF EXPRESSIONS' );
@@ -281,7 +275,7 @@ Builder.prototype.list = function( terminator ){
                 expression = this.lookup( next );
                 list.unshift( expression );
             } while( this.expect( ',' ) );
-        } 
+        }
     }
     //console.log( '- LIST RESULT', list );
     return list;
@@ -292,30 +286,25 @@ Builder.prototype.list = function( terminator ){
  * @returns {Literal} The literal node
  */
 Builder.prototype.literal = function(){
-    var end = this.column,
-        token = this.consume(),
-        start = this.column,
-        node, raw;
-    
-    raw = token.value;
-    
+    var token = this.consume(),
+        raw = token.value,
+        expression;
+
     switch( token.type ){
         case Grammar.NumericLiteral:
-            node = new Node.NumericLiteral( raw );
+            expression = new Node.NumericLiteral( raw );
             break;
         case Grammar.StringLiteral:
-            node = new Node.StringLiteral( raw );
+            expression = new Node.StringLiteral( raw );
             break;
         case Grammar.NullLiteral:
-            node = new Node.NullLiteral( raw );
+            expression = new Node.NullLiteral( raw );
             break;
         default:
             this.throwError( 'Literal expected' );
     }
-    
-    node.range = [ start, end ];
-    
-    return node;
+
+    return expression;
 };
 
 Builder.prototype.lookup = function( next ){
@@ -332,33 +321,28 @@ Builder.prototype.lookup = function( next ){
         case Grammar.Punctuator:
             if( next.value === '}' ){
                 this.consume( '}' );
-                expression = this.evalExpression( '{' );
+                expression = this.blockExpression( '{' );
                 break;
             }
         default:
             this.throwError( 'token cannot be a lookup' );
     }
-    
+
     next = this.peek();
-    
+
     if( next && next.value === '%' ){
         expression = this.lookupExpression( expression );
+    }
+    if( next && next.value === '~' ){
+        expression = this.rootExpression( expression );
     }
     //console.log( '- LOOKUP RESULT', expression );
     return expression;
 };
 
 Builder.prototype.lookupExpression = function( key ){
-    var end = key.range[ 1 ],
-        node, start;
-        
     this.consume( '%' );
-    
-    start = this.column;
-    node = new Node.LookupExpression( key );
-    node.range = [ start, end ];
-    
-    return node;
+    return new KeypathNode.LookupExpression( key );
 };
 
 /**
@@ -369,21 +353,19 @@ Builder.prototype.lookupExpression = function( key ){
  */
 Builder.prototype.memberExpression = function( property, computed ){
     //console.log( 'MEMBER', property );
-    var end = property.range[ 1 ] + ( computed ? 1 : 0 ),
-        object = this.expression(),
-        start = this.column,
-        node;
+    var object = this.expression();
     //console.log( 'MEMBER EXPRESSION' );
     //console.log( '- OBJECT', object );
     //console.log( '- PROPERTY', property );
     //console.log( '- COMPUTED', computed );
-    node = computed ?
+    return computed ?
         new Node.ComputedMemberExpression( object, property ) :
         new Node.StaticMemberExpression( object, property );
-    
-    node.range = [ start, end ];
-    
-    return node;
+};
+
+Builder.prototype.parse = function( input ){
+    this.tokens = this.lexer.lex( input );
+    return this.build( this.tokens );
 };
 
 /**
@@ -412,22 +394,22 @@ Builder.prototype.peek = function( first, second, third, fourth ){
 Builder.prototype.peekAt = function( position, first, second, third, fourth ){
     var length = this.tokens.length,
         index, token, value;
-    
+
     if( length && typeof position === 'number' && position > -1 ){
         // Calculate a zero-based index starting from the end of the list
         index = length - position - 1;
-        
+
         if( index > -1 && index < length ){
             token = this.tokens[ index ];
             value = token.value;
-            
+
             if( value === first || value === second || value === third || value === fourth || ( !first && !second && !third && !fourth ) ){
                 return token;
             }
         }
     }
-    
-    return undefined;
+
+    return void 0;
 };
 
 /**
@@ -435,51 +417,37 @@ Builder.prototype.peekAt = function( position, first, second, third, fourth ){
  * @returns {Program} A program node
  */
 Builder.prototype.program = function(){
-    var end = this.column,
-        body = [],
-        node;
+    var body = [];
     //console.log( 'PROGRAM' );
     while( true ){
         if( this.tokens.length ){
             body.unshift( this.expressionStatement() );
         } else {
-            node = new Node.Program( body );
-            node.range = [ this.column, end ];
-            return node;
+            return new Node.Program( body );
         }
     }
 };
 
 Builder.prototype.rangeExpression = function( right ){
-    var end = right !== null ? right.range[ 1 ] : this.column,
-        left, node;
-    
+    var left;
+
     this.expect( '.' );
     this.expect( '.' );
-    
+
     left = this.peek().type === Grammar.NumericLiteral ?
         left = this.literal() :
         null;
-    
-    node = new Node.RangeExpression( left, right );
-    node.range = [ this.column, end ];
-    
-    return node;
+
+    return new KeypathNode.RangeExpression( left, right );
+};
+
+Builder.prototype.rootExpression = function( key ){
+    this.consume( '~' );
+    return new KeypathNode.RootExpression( key );
 };
 
 Builder.prototype.sequenceExpression = function( list ){
-    var end, node;
-    
-    if( Array.isArray( list ) ){
-        end = list[ list.length - 1 ].range[ 1 ];
-    } else if( list instanceof Node.RangeExpression ){
-        end = list.range[ 1 ];
-    }
-    
-    node = new Node.SequenceExpression( list );
-    node.range = [ this.column, end ];
-    
-    return node;
+    return new Node.SequenceExpression( list );
 };
 
 /**
@@ -490,5 +458,3 @@ Builder.prototype.sequenceExpression = function( list ){
 Builder.prototype.throwError = function( message ){
     throw new SyntaxError( message );
 };
-
-export { Builder as default };

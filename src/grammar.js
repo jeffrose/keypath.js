@@ -1,16 +1,7 @@
 'use strict';
 
-import Null from './null';
-
-/**
- * @namespace Lexer~Grammar
- */
-var Grammar = new Null();
-
-Grammar.Identifier      = 'Identifier';
-Grammar.NumericLiteral  = 'Numeric';
-Grammar.NullLiteral     = 'Null';
-Grammar.Punctuator      = 'Punctuator';
-Grammar.StringLiteral   = 'String';
-
-export { Grammar as default };
+export var Identifier      = 'Identifier';
+export var NumericLiteral  = 'Numeric';
+export var NullLiteral     = 'Null';
+export var Punctuator      = 'Punctuator';
+export var StringLiteral   = 'String';

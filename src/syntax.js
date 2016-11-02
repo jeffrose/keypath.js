@@ -1,22 +1,10 @@
 'use strict';
 
-import Null from './null';
-
-var Syntax = new Null();
-
-Syntax.ArrayExpression       = 'ArrayExpression';
-Syntax.CallExpression        = 'CallExpression';
-Syntax.ExpressionStatement   = 'ExpressionStatement';
-Syntax.Identifier            = 'Identifier';
-Syntax.Literal               = 'Literal';
-Syntax.MemberExpression      = 'MemberExpression';
-Syntax.Program               = 'Program';
-Syntax.SequenceExpression    = 'SequenceExpression';
-
-Syntax.EvalExpression        = 'EvalExpression';
-Syntax.LookupExpression      = 'LookupExpression';
-Syntax.LookupOperator        = '%';
-Syntax.RangeExpression       = 'RangeExpression';
-Syntax.RangeOperator         = '..';
-
-export { Syntax as default };
+export var ArrayExpression       = 'ArrayExpression';
+export var CallExpression        = 'CallExpression';
+export var ExpressionStatement   = 'ExpressionStatement';
+export var Identifier            = 'Identifier';
+export var Literal               = 'Literal';
+export var MemberExpression      = 'MemberExpression';
+export var Program               = 'Program';
+export var SequenceExpression    = 'SequenceExpression';

@@ -5,27 +5,28 @@ import Lexer from './lexer';
 import Builder from './builder';
 import Interpreter from './interpreter';
 import hasOwnProperty from './has-own-property';
+import { protocol, Transducer } from './transducer';
 
 var lexer = new Lexer(),
     builder = new Builder( lexer ),
     intrepreter = new Interpreter( builder ),
-    
-    cache = {};
+
+    cache = new Null();
 
 /**
- * @class KeyPathExp
- * @extends Null
+ * @class KeypathExp
+ * @extends Transducer
  * @param {external:string} pattern
  * @param {external:string} flags
  */
-function KeyPathExp( pattern, flags ){
+export default function KeypathExp( pattern, flags ){
     typeof pattern !== 'string' && ( pattern = '' );
     typeof flags !== 'string' && ( flags = '' );
-    
+
     var tokens = hasOwnProperty( cache, pattern ) ?
         cache[ pattern ] :
         cache[ pattern ] = lexer.lex( pattern );
-    
+
     Object.defineProperties( this, {
         'flags': {
             value: flags,
@@ -54,49 +55,62 @@ function KeyPathExp( pattern, flags ){
     } );
 }
 
-KeyPathExp.prototype = new Null();
+KeypathExp.prototype = Object.create( Transducer.prototype );
 
-KeyPathExp.prototype.constructor = KeyPathExp;
+KeypathExp.prototype.constructor = KeypathExp;
 
 /**
  * @function
  */
-KeyPathExp.prototype.get = function( target, lookup ){
+KeypathExp.prototype.get = function( target, lookup ){
     return this.getter( target, undefined, lookup );
 };
 
 /**
  * @function
  */
-KeyPathExp.prototype.has = function( target, lookup ){
+KeypathExp.prototype.has = function( target, lookup ){
     var result = this.getter( target, undefined, lookup );
     return typeof result !== 'undefined';
 };
 
 /**
+ * @function KeypathExp#@@transducer/step
+ */
+KeypathExp.prototype[ protocol.step ] = function( value, input ){
+    return this.xfStep( value, this.get( input ) );
+};
+
+/**
  * @function
  */
-KeyPathExp.prototype.set = function( target, value, lookup ){
+KeypathExp.prototype.set = function( target, value, lookup ){
     return this.setter( target, value, lookup );
 };
 
 /**
  * @function
  */
-KeyPathExp.prototype.toJSON = function(){
+KeypathExp.prototype.toJSON = function(){
     var json = new Null();
-    
+
     json.flags = this.flags;
     json.source = this.source;
-    
+
     return json;
 };
 
 /**
  * @function
  */
-KeyPathExp.prototype.toString = function(){
+KeypathExp.prototype.toString = function(){
     return this.source;
 };
 
-export { KeyPathExp as default };
+KeypathExp.prototype.tr = function(){
+    var kpex = this;
+    return function( xf ){
+        Transducer.call( kpex, xf );
+        return kpex;
+    };
+};

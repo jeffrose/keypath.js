@@ -1,50 +1,47 @@
 ## Classes
 
 <dl>
+<dt><a href="#Null">Null</a> ⇐ <code><a href="#external_null">null</a></code></dt>
+<dd></dd>
+<dt><a href="#Lexer">Lexer</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
 <dt><a href="#Builder">Builder</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
 <dt><a href="#Interpreter">Interpreter</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
-<dt><a href="#KeyPathExp">KeyPathExp</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dt><a href="#Transducer">Transducer</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#KeypathExp">KeypathExp</a> ⇐ <code><a href="#Transducer">Transducer</a></code></dt>
+<dd></dd>
+<dt><a href="#Builder">Builder</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#InterpreterError">InterpreterError</a> ⇐ <code><a href="#external_SyntaxError">SyntaxError</a></code></dt>
+<dd></dd>
+<dt><a href="#Interpreter">Interpreter</a> ⇐ <code><a href="#Null">Null</a></code></dt>
+<dd></dd>
+<dt><a href="#KeypathExp">KeypathExp</a> ⇐ <code><a href="#Transducer">Transducer</a></code></dt>
 <dd></dd>
 <dt><a href="#Lexer">Lexer</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
 <dt><a href="#Null">Null</a> ⇐ <code><a href="#external_null">null</a></code></dt>
 <dd></dd>
-</dl>
-
-## Members
-
-<dl>
-<dt><a href="#object">object</a> : <code><a href="#Builder..Expression">Expression</a></code></dt>
+<dt><a href="#PathToolkit">PathToolkit</a></dt>
 <dd></dd>
-<dt><a href="#property">property</a> : <code><a href="#Builder..Expression">Expression</a></code> | <code><a href="#Builder..Identifier">Identifier</a></code></dt>
+<dt><a href="#Transducer">Transducer</a> ⇐ <code><a href="#Null">Null</a></code></dt>
 <dd></dd>
-<dt><a href="#computed">computed</a> : <code><a href="#external_boolean">boolean</a></code></dt>
-<dd></dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#forEach">forEach(list, callback)</a></dt>
-<dd></dd>
-<dt><a href="#hasOwnProperty">hasOwnProperty(object, property)</a></dt>
-<dd></dd>
-<dt><a href="#kp">kp(literals, values)</a> ⇒ <code><a href="#KeyPathCallback">KeyPathCallback</a></code></dt>
-<dd><p>A template literal tag for keypath processing.</p>
-</dd>
 </dl>
 
 ## Typedefs
 
 <dl>
+<dt><a href="#KeypathCallback">KeypathCallback</a> ⇒ <code>*</code></dt>
+<dd></dd>
+<dt><a href="#ForEachCallback">ForEachCallback</a> : <code><a href="#external_Function">Function</a></code></dt>
+<dd></dd>
 <dt><a href="#Array-Like">Array-Like</a> : <code><a href="#external_Array">Array</a></code> | <code><a href="#external_Arguments">Arguments</a></code> | <code><a href="#external_string">string</a></code></dt>
 <dd><p>JavaScript Array-Like</p>
 </dd>
-<dt><a href="#ForEachCallback">ForEachCallback</a> : <code><a href="#external_Function">Function</a></code></dt>
-<dd></dd>
-<dt><a href="#KeyPathCallback">KeyPathCallback</a> ⇒ <code>*</code></dt>
+<dt><a href="#KeypathCallback">KeypathCallback</a> ⇒ <code>*</code></dt>
 <dd></dd>
 </dl>
 
@@ -92,6 +89,902 @@
 </dd>
 </dl>
 
+<a name="Null"></a>
+
+## Null ⇐ <code>[null](#external_null)</code>
+**Kind**: global class  
+**Extends:** <code>[null](#external_null)</code>  
+
+* [Null](#Null) ⇐ <code>[null](#external_null)</code>
+    * [new Null()](#new_Null_new)
+    * [new Null()](#new_Null_new)
+
+<a name="new_Null_new"></a>
+
+### new Null()
+A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
+
+<a name="new_Null_new"></a>
+
+### new Null()
+A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
+
+<a name="Lexer"></a>
+
+## Lexer ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [Lexer](#Lexer) ⇐ <code>[Null](#Null)</code>
+    * _instance_
+        * [.lex(text)](#Lexer+lex)
+            * [.buffer](#Lexer+lex+buffer) : <code>[string](#external_string)</code>
+            * [.index](#Lexer+lex+index) : <code>[number](#external_number)</code>
+            * [.tokens](#Lexer+lex+tokens) : <code>[Array.&lt;Token&gt;](#Lexer..Token)</code>
+        * [.read(until)](#Lexer+read) ⇒ <code>[string](#external_string)</code>
+        * [.throwError()](#Lexer+throwError)
+        * [.toJSON()](#Lexer+toJSON) ⇒ <code>[Object](#external_Object)</code>
+        * [.toString()](#Lexer+toString) ⇒ <code>[string](#external_string)</code>
+    * _inner_
+        * [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+            * [new Token(type, value)](#new_Lexer..Token_new)
+            * [new Token(type, value)](#new_Lexer..Token_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+        * [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+        * [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+            * [new Token(type, value)](#new_Lexer..Token_new)
+            * [new Token(type, value)](#new_Lexer..Token_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~isIdentifier(char)](#Lexer..isIdentifier) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isNumeric(char)](#Lexer..isNumeric) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isPunctuator(char)](#Lexer..isPunctuator) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isQuote(char)](#Lexer..isQuote) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isWhitespace(char)](#Lexer..isWhitespace) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isIdentifier(char)](#Lexer..isIdentifier) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isNumeric(char)](#Lexer..isNumeric) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isPunctuator(char)](#Lexer..isPunctuator) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isQuote(char)](#Lexer..isQuote) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isWhitespace(char)](#Lexer..isWhitespace) ⇒ <code>[boolean](#external_boolean)</code>
+
+<a name="Lexer+lex"></a>
+
+### lexer.lex(text)
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+
+| Param | Type |
+| --- | --- |
+| text | <code>[string](#external_string)</code> | 
+
+
+* [.lex(text)](#Lexer+lex)
+    * [.buffer](#Lexer+lex+buffer) : <code>[string](#external_string)</code>
+    * [.index](#Lexer+lex+index) : <code>[number](#external_number)</code>
+    * [.tokens](#Lexer+lex+tokens) : <code>[Array.&lt;Token&gt;](#Lexer..Token)</code>
+
+<a name="Lexer+lex+buffer"></a>
+
+#### lex.buffer : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[lex](#Lexer+lex)</code>  
+**Default**: <code>&#x27;&#x27;</code>  
+<a name="Lexer+lex+index"></a>
+
+#### lex.index : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[lex](#Lexer+lex)</code>  
+<a name="Lexer+lex+tokens"></a>
+
+#### lex.tokens : <code>[Array.&lt;Token&gt;](#Lexer..Token)</code>
+**Kind**: instance property of <code>[lex](#Lexer+lex)</code>  
+<a name="Lexer+read"></a>
+
+### lexer.read(until) ⇒ <code>[string](#external_string)</code>
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[string](#external_string)</code> - The portion of the buffer read  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| until | <code>external:function</code> | A condition that when met will stop the reading of the buffer |
+
+<a name="Lexer+throwError"></a>
+
+### lexer.throwError()
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Throws**:
+
+- <code>[LexerError](#Lexer..LexerError)</code> When it executes
+
+<a name="Lexer+toJSON"></a>
+
+### lexer.toJSON() ⇒ <code>[Object](#external_Object)</code>
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[Object](#external_Object)</code> - A JSON representation of the lexer  
+<a name="Lexer+toString"></a>
+
+### lexer.toString() ⇒ <code>[string](#external_string)</code>
+**Kind**: instance method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[string](#external_string)</code> - A string representation of the lexer  
+<a name="Lexer..Token"></a>
+
+### Lexer~Token ⇐ <code>[Null](#Null)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+    * [new Token(type, value)](#new_Lexer..Token_new)
+    * [new Token(type, value)](#new_Lexer..Token_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
+
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
+
+<a name="Lexer..Token+id"></a>
+
+#### token.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### token.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### token.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+id"></a>
+
+#### token.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### token.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### token.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Identifier"></a>
+
+### Lexer~Identifier ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new Identifier(value)](#new_Lexer..Identifier_new)
+    * [new Identifier(value)](#new_Lexer..Identifier_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### identifier.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### identifier.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### identifier.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NumericLiteral"></a>
+
+### Lexer~NumericLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..NumericLiteral_new"></a>
+
+#### new NumericLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NumericLiteral_new"></a>
+
+#### new NumericLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### numericLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### numericLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### numericLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NullLiteral"></a>
+
+### Lexer~NullLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### nullLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### nullLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### nullLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..Punctuator"></a>
+
+### Lexer~Punctuator ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+    * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### punctuator.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### punctuator.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### punctuator.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..StringLiteral"></a>
+
+### Lexer~StringLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### stringLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### stringLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### stringLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..LexerError"></a>
+
+### Lexer~LexerError ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[SyntaxError](#external_SyntaxError)</code>  
+
+* [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Lexer..LexerError"></a>
+
+### Lexer~LexerError ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[SyntaxError](#external_SyntaxError)</code>  
+
+* [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Lexer..Token"></a>
+
+### Lexer~Token ⇐ <code>[Null](#Null)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+    * [new Token(type, value)](#new_Lexer..Token_new)
+    * [new Token(type, value)](#new_Lexer..Token_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
+
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
+
+<a name="Lexer..Token+id"></a>
+
+#### token.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### token.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### token.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+id"></a>
+
+#### token.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### token.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### token.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Identifier"></a>
+
+### Lexer~Identifier ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new Identifier(value)](#new_Lexer..Identifier_new)
+    * [new Identifier(value)](#new_Lexer..Identifier_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### identifier.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### identifier.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### identifier.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NumericLiteral"></a>
+
+### Lexer~NumericLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..NumericLiteral_new"></a>
+
+#### new NumericLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NumericLiteral_new"></a>
+
+#### new NumericLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### numericLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### numericLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### numericLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NullLiteral"></a>
+
+### Lexer~NullLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### nullLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### nullLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### nullLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..Punctuator"></a>
+
+### Lexer~Punctuator ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+    * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### punctuator.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### punctuator.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### punctuator.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..StringLiteral"></a>
+
+### Lexer~StringLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### stringLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### stringLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### stringLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..isIdentifier"></a>
+
+### Lexer~isIdentifier(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is an identifier character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isNumeric"></a>
+
+### Lexer~isNumeric(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a numeric character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isPunctuator"></a>
+
+### Lexer~isPunctuator(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a punctuator character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isQuote"></a>
+
+### Lexer~isQuote(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a quote character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isWhitespace"></a>
+
+### Lexer~isWhitespace(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a whitespace character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isIdentifier"></a>
+
+### Lexer~isIdentifier(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is an identifier character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isNumeric"></a>
+
+### Lexer~isNumeric(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a numeric character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isPunctuator"></a>
+
+### Lexer~isPunctuator(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a punctuator character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isQuote"></a>
+
+### Lexer~isQuote(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a quote character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isWhitespace"></a>
+
+### Lexer~isWhitespace(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a whitespace character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
 <a name="Builder"></a>
 
 ## Builder ⇐ <code>[Null](#Null)</code>
@@ -99,6 +992,7 @@
 **Extends:** <code>[Null](#Null)</code>  
 
 * [Builder](#Builder) ⇐ <code>[Null](#Null)</code>
+    * [new Builder(lexer)](#new_Builder_new)
     * [new Builder(lexer)](#new_Builder_new)
     * _instance_
         * [.build(input)](#Builder+build) ⇒ <code>Program</code>
@@ -110,8 +1004,8 @@
         * [.expression()](#Builder+expression) ⇒ <code>Expression</code>
         * [.expressionStatement()](#Builder+expressionStatement) ⇒ <code>ExpressionStatement</code>
         * [.identifier()](#Builder+identifier) ⇒ <code>Identifier</code>
+        * [.list(terminator)](#Builder+list) ⇒ <code>external:Array.&lt;Expression&gt;</code> &#124; <code>RangeExpression</code>
         * [.literal()](#Builder+literal) ⇒ <code>Literal</code>
-        * [.list(terminator)](#Builder+list) ⇒ <code>external:Array.&lt;Literal&gt;</code>
         * [.memberExpression(property, computed)](#Builder+memberExpression) ⇒ <code>MemberExpression</code>
         * [.peek([first], [second], [third], [fourth])](#Builder+peek) ⇒ <code>[Token](#Lexer..Token)</code>
         * [.peekAt(position, [first], [second], [third], [fourth])](#Builder+peekAt) ⇒ <code>[Token](#Lexer..Token)</code>
@@ -120,38 +1014,50 @@
     * _inner_
         * [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
             * [new Node(type)](#new_Builder..Node_new)
+            * [new Node(type)](#new_Builder..Node_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
             * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new Literal(value)](#new_Builder..Literal_new)
+            * [new Literal(value)](#new_Builder..Literal_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
             * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
-            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
-        * [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
-            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Program(body)](#new_Builder..Program_new)
             * [new Program(body)](#new_Builder..Program_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
             * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [new Statement(statementType)](#new_Builder..Statement_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
             * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
             * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
             * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
             * [.computed](#Builder..ComputedMemberExpression+computed)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
@@ -160,14 +1066,34 @@
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
             * [new Identifier(name)](#new_Builder..Identifier_new)
+            * [new Identifier(name)](#new_Builder..Identifier_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
-        * [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
-            * [new Literal(value)](#new_Builder..Literal_new)
+        * [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+            * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [.computed](#Builder..StaticMemberExpression+computed)
+            * [.computed](#Builder..StaticMemberExpression+computed)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
             * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
             * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
             * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
             * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
@@ -175,15 +1101,103 @@
             * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
+            * [new Node(type)](#new_Builder..Node_new)
+            * [new Node(type)](#new_Builder..Node_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new Literal(value)](#new_Builder..Literal_new)
+            * [new Literal(value)](#new_Builder..Literal_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+            * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Program(body)](#new_Builder..Program_new)
+            * [new Program(body)](#new_Builder..Program_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new Identifier(name)](#new_Builder..Identifier_new)
+            * [new Identifier(name)](#new_Builder..Identifier_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
             * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
         * [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
             * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [.computed](#Builder..StaticMemberExpression+computed)
             * [.computed](#Builder..StaticMemberExpression+computed)
             * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
             * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder_new"></a>
+
+### new Builder(lexer)
+
+| Param | Type |
+| --- | --- |
+| lexer | <code>[Lexer](#Lexer)</code> | 
 
 <a name="new_Builder_new"></a>
 
@@ -271,21 +1285,21 @@ Removes the next token in the token list. If comparisons are provided, the token
 
 - <code>SyntaxError</code> If the token is not an identifier
 
-<a name="Builder+literal"></a>
-
-### builder.literal() ⇒ <code>Literal</code>
-**Kind**: instance method of <code>[Builder](#Builder)</code>  
-**Returns**: <code>Literal</code> - The literal node  
 <a name="Builder+list"></a>
 
-### builder.list(terminator) ⇒ <code>external:Array.&lt;Literal&gt;</code>
+### builder.list(terminator) ⇒ <code>external:Array.&lt;Expression&gt;</code> &#124; <code>RangeExpression</code>
 **Kind**: instance method of <code>[Builder](#Builder)</code>  
-**Returns**: <code>external:Array.&lt;Literal&gt;</code> - The list of literals  
+**Returns**: <code>external:Array.&lt;Expression&gt;</code> &#124; <code>RangeExpression</code> - The list of expressions or range expression  
 
 | Param | Type |
 | --- | --- |
 | terminator | <code>[string](#external_string)</code> | 
 
+<a name="Builder+literal"></a>
+
+### builder.literal() ⇒ <code>Literal</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Literal</code> - The literal node  
 <a name="Builder+memberExpression"></a>
 
 ### builder.memberExpression(property, computed) ⇒ <code>MemberExpression</code>
@@ -354,8 +1368,19 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
     * [new Node(type)](#new_Builder..Node_new)
+    * [new Node(type)](#new_Builder..Node_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Node_new"></a>
+
+#### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | A node type |
 
 <a name="new_Builder..Node_new"></a>
 
@@ -373,6 +1398,14 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### node.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+id"></a>
+
+#### node.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+type"></a>
+
+#### node.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
 <a name="Builder..Expression"></a>
 
 ### Builder~Expression ⇐ <code>[Node](#Builder..Node)</code>
@@ -381,8 +1414,17 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
     * [new Expression(expressionType)](#new_Builder..Expression_new)
+    * [new Expression(expressionType)](#new_Builder..Expression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Expression_new"></a>
+
+#### new Expression(expressionType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressionType | <code>[string](#external_string)</code> | A node type |
 
 <a name="new_Builder..Expression_new"></a>
 
@@ -396,10 +1438,50 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### expression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### expression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Literal"></a>
+
+### Builder~Literal ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="Builder..Node+id"></a>
+
+#### literal.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### literal.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..MemberExpression"></a>
 
 ### Builder~MemberExpression ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -408,8 +1490,19 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+    * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..MemberExpression_new"></a>
+
+#### new MemberExpression(object, property, computed)
+
+| Param | Type | Default |
+| --- | --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> |  | 
+| property | <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code> |  | 
+| computed | <code>[boolean](#external_boolean)</code> | <code>false</code> | 
 
 <a name="new_Builder..MemberExpression_new"></a>
 
@@ -425,38 +1518,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### memberExpression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### memberExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
-<a name="Builder..OperatorExpression"></a>
-
-### Builder~OperatorExpression ⇐ <code>[Expression](#Builder..Expression)</code>
-**Kind**: inner class of <code>[Builder](#Builder)</code>  
-**Extends:** <code>[Expression](#Builder..Expression)</code>  
-
-* [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
-    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
-    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
-    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
-
-<a name="new_Builder..OperatorExpression_new"></a>
-
-#### new OperatorExpression(expressionType, operator)
-
-| Param | Type |
-| --- | --- |
-| expressionType | <code>[string](#external_string)</code> | 
-| operator | <code>[string](#external_string)</code> | 
-
-<a name="Builder..Node+id"></a>
-
-#### operatorExpression.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
-<a name="Builder..Node+type"></a>
-
-#### operatorExpression.type : <code>[string](#external_string)</code>
-**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..Program"></a>
 
 ### Builder~Program ⇐ <code>[Node](#Builder..Node)</code>
@@ -465,8 +1532,17 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
     * [new Program(body)](#new_Builder..Program_new)
+    * [new Program(body)](#new_Builder..Program_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
 
 <a name="new_Builder..Program_new"></a>
 
@@ -480,10 +1556,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### program.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### program.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..Statement"></a>
 
 ### Builder~Statement ⇐ <code>[Node](#Builder..Node)</code>
@@ -492,8 +1570,17 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
     * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [new Statement(statementType)](#new_Builder..Statement_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
 
 <a name="new_Builder..Statement_new"></a>
 
@@ -507,10 +1594,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### statement.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### statement.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..ArrayExpression"></a>
 
 ### Builder~ArrayExpression ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -519,8 +1608,17 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
 
 <a name="new_Builder..ArrayExpression_new"></a>
 
@@ -534,10 +1632,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### arrayExpression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### arrayExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..CallExpression"></a>
 
 ### Builder~CallExpression ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -546,8 +1646,18 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
 
 <a name="new_Builder..CallExpression_new"></a>
 
@@ -562,10 +1672,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### callExpression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### callExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..ComputedMemberExpression"></a>
 
 ### Builder~ComputedMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
@@ -574,9 +1686,20 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
     * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
     * [.computed](#Builder..ComputedMemberExpression+computed)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
 
 <a name="new_Builder..ComputedMemberExpression_new"></a>
 
@@ -591,14 +1714,20 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### computedMemberExpression.computed
 **Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
 <a name="Builder..Node+id"></a>
 
 #### computedMemberExpression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### computedMemberExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..ExpressionStatement"></a>
 
 ### Builder~ExpressionStatement ⇐ <code>[Statement](#Builder..Statement)</code>
@@ -613,10 +1742,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### expressionStatement.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### expressionStatement.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..Identifier"></a>
 
 ### Builder~Identifier ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -625,8 +1756,17 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new Identifier(name)](#new_Builder..Identifier_new)
+    * [new Identifier(name)](#new_Builder..Identifier_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Identifier_new"></a>
+
+#### new Identifier(name)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>[string](#external_string)</code> | The name of the identifier |
 
 <a name="new_Builder..Identifier_new"></a>
 
@@ -640,37 +1780,140 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### identifier.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### identifier.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
-<a name="Builder..Literal"></a>
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..SequenceExpression"></a>
 
-### Builder~Literal ⇐ <code>[Expression](#Builder..Expression)</code>
+### Builder~SequenceExpression ⇐ <code>[Expression](#Builder..Expression)</code>
 **Kind**: inner class of <code>[Builder](#Builder)</code>  
 **Extends:** <code>[Expression](#Builder..Expression)</code>  
 
-* [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
-    * [new Literal(value)](#new_Builder..Literal_new)
+* [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+    * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
 
-<a name="new_Builder..Literal_new"></a>
+<a name="new_Builder..SequenceExpression_new"></a>
 
-#### new Literal(value)
+#### new SequenceExpression(expressions)
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
+
+<a name="new_Builder..SequenceExpression_new"></a>
+
+#### new SequenceExpression(expressions)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
 
 <a name="Builder..Node+id"></a>
 
-#### literal.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+#### sequenceExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
-#### literal.type : <code>[string](#external_string)</code>
-**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+#### sequenceExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..StaticMemberExpression"></a>
+
+### Builder~StaticMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
+
+* [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [.computed](#Builder..StaticMemberExpression+computed)
+    * [.computed](#Builder..StaticMemberExpression+computed)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..StaticMemberExpression_new"></a>
+
+#### new StaticMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
+
+<a name="new_Builder..StaticMemberExpression_new"></a>
+
+#### new StaticMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
+
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+<a name="Builder..Node+id"></a>
+
+#### staticMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### staticMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..OperatorExpression"></a>
+
+### Builder~OperatorExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### operatorExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### operatorExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..RangeExpression"></a>
 
 ### Builder~RangeExpression ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
@@ -679,6 +1922,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
     * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
     * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
     * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
     * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
@@ -686,6 +1935,15 @@ Provides the token at the requested position _without removing it_ from the toke
     * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
 
 <a name="new_Builder..RangeExpression_new"></a>
 
@@ -717,14 +1975,595 @@ Provides the token at the requested position _without removing it_ from the toke
 #### rangeExpression.length : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
 **Default**: <code>2</code>  
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
 <a name="Builder..Node+id"></a>
 
 #### rangeExpression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### rangeExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..OperatorExpression"></a>
+
+### Builder~OperatorExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### operatorExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### operatorExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..RangeExpression"></a>
+
+### Builder~RangeExpression ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+
+* [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
+<a name="Builder..Node+id"></a>
+
+#### rangeExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### rangeExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Node"></a>
+
+### Builder~Node ⇐ <code>[Null](#Null)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
+    * [new Node(type)](#new_Builder..Node_new)
+    * [new Node(type)](#new_Builder..Node_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Node_new"></a>
+
+#### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Node_new"></a>
+
+#### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### node.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+type"></a>
+
+#### node.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+id"></a>
+
+#### node.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+type"></a>
+
+#### node.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Expression"></a>
+
+### Builder~Expression ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Expression(expressionType)](#new_Builder..Expression_new)
+    * [new Expression(expressionType)](#new_Builder..Expression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Expression_new"></a>
+
+#### new Expression(expressionType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressionType | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Expression_new"></a>
+
+#### new Expression(expressionType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressionType | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### expression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### expression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Literal"></a>
+
+### Builder~Literal ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="Builder..Node+id"></a>
+
+#### literal.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### literal.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..MemberExpression"></a>
+
+### Builder~MemberExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+    * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..MemberExpression_new"></a>
+
+#### new MemberExpression(object, property, computed)
+
+| Param | Type | Default |
+| --- | --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> |  | 
+| property | <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code> |  | 
+| computed | <code>[boolean](#external_boolean)</code> | <code>false</code> | 
+
+<a name="new_Builder..MemberExpression_new"></a>
+
+#### new MemberExpression(object, property, computed)
+
+| Param | Type | Default |
+| --- | --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> |  | 
+| property | <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code> |  | 
+| computed | <code>[boolean](#external_boolean)</code> | <code>false</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### memberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### memberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Program"></a>
+
+### Builder~Program ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Program(body)](#new_Builder..Program_new)
+    * [new Program(body)](#new_Builder..Program_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### program.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### program.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Statement"></a>
+
+### Builder~Statement ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### statement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### statement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ArrayExpression"></a>
+
+### Builder~ArrayExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
+
+<a name="Builder..Node+id"></a>
+
+#### arrayExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### arrayExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..CallExpression"></a>
+
+### Builder~CallExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### callExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### callExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ComputedMemberExpression"></a>
+
+### Builder~ComputedMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
+
+* [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..Node+id"></a>
+
+#### computedMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### computedMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ExpressionStatement"></a>
+
+### Builder~ExpressionStatement ⇐ <code>[Statement](#Builder..Statement)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Statement](#Builder..Statement)</code>  
+
+* [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="Builder..Node+id"></a>
+
+#### expressionStatement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### expressionStatement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Identifier"></a>
+
+### Builder~Identifier ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new Identifier(name)](#new_Builder..Identifier_new)
+    * [new Identifier(name)](#new_Builder..Identifier_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Identifier_new"></a>
+
+#### new Identifier(name)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>[string](#external_string)</code> | The name of the identifier |
+
+<a name="new_Builder..Identifier_new"></a>
+
+#### new Identifier(name)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>[string](#external_string)</code> | The name of the identifier |
+
+<a name="Builder..Node+id"></a>
+
+#### identifier.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### identifier.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..SequenceExpression"></a>
 
 ### Builder~SequenceExpression ⇐ <code>[Expression](#Builder..Expression)</code>
@@ -733,8 +2572,17 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
     * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+    * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..SequenceExpression_new"></a>
+
+#### new SequenceExpression(expressions)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
 
 <a name="new_Builder..SequenceExpression_new"></a>
 
@@ -748,10 +2596,12 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### sequenceExpression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### sequenceExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Builder..StaticMemberExpression"></a>
 
 ### Builder~StaticMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
@@ -760,9 +2610,20 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
     * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [.computed](#Builder..StaticMemberExpression+computed)
     * [.computed](#Builder..StaticMemberExpression+computed)
     * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
     * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..StaticMemberExpression_new"></a>
+
+#### new StaticMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
 
 <a name="new_Builder..StaticMemberExpression_new"></a>
 
@@ -777,14 +2638,20 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### staticMemberExpression.computed
 **Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
 <a name="Builder..Node+id"></a>
 
 #### staticMemberExpression.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
 <a name="Builder..Node+type"></a>
 
 #### staticMemberExpression.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
 <a name="Interpreter"></a>
 
 ## Interpreter ⇐ <code>[Null](#Null)</code>
@@ -793,11 +2660,23 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [Interpreter](#Interpreter) ⇐ <code>[Null](#Null)</code>
     * [new Interpreter(builder)](#new_Interpreter_new)
+    * [new Interpreter(builder)](#new_Interpreter_new)
     * _instance_
         * [.builder](#Interpreter+builder) : <code>[Builder](#Builder)</code>
+        * [.builder](#Interpreter+builder) : <code>[Builder](#Builder)</code>
         * [.compile(expression)](#Interpreter+compile)
+        * [.recurse()](#Interpreter+recurse)
     * _inner_
-        * [~intepretList(interpreter, list, context, create)](#Interpreter..intepretList) ⇒ <code>[Array.&lt;Function&gt;](#external_Function)</code>
+        * [~returnZero()](#Interpreter..returnZero) ⇒ <code>[number](#external_number)</code>
+        * [~returnZero()](#Interpreter..returnZero) ⇒ <code>[number](#external_number)</code>
+
+<a name="new_Interpreter_new"></a>
+
+### new Interpreter(builder)
+
+| Param | Type |
+| --- | --- |
+| builder | <code>[Builder](#Builder)</code> | 
 
 <a name="new_Interpreter_new"></a>
 
@@ -811,6 +2690,10 @@ Provides the token at the requested position _without removing it_ from the toke
 
 ### interpreter.builder : <code>[Builder](#Builder)</code>
 **Kind**: instance property of <code>[Interpreter](#Interpreter)</code>  
+<a name="Interpreter+builder"></a>
+
+### interpreter.builder : <code>[Builder](#Builder)</code>
+**Kind**: instance property of <code>[Interpreter](#Interpreter)</code>  
 <a name="Interpreter+compile"></a>
 
 ### interpreter.compile(expression)
@@ -820,62 +2703,2026 @@ Provides the token at the requested position _without removing it_ from the toke
 | --- | --- |
 | expression | <code>[string](#external_string)</code> | 
 
-<a name="Interpreter..intepretList"></a>
+<a name="Interpreter+recurse"></a>
 
-### Interpreter~intepretList(interpreter, list, context, create) ⇒ <code>[Array.&lt;Function&gt;](#external_Function)</code>
+### interpreter.recurse()
+**Kind**: instance method of <code>[Interpreter](#Interpreter)</code>  
+<a name="Interpreter..returnZero"></a>
+
+### Interpreter~returnZero() ⇒ <code>[number](#external_number)</code>
 **Kind**: inner method of <code>[Interpreter](#Interpreter)</code>  
-**Returns**: <code>[Array.&lt;Function&gt;](#external_Function)</code> - The interpreted list  
+**Returns**: <code>[number](#external_number)</code> - zero  
+<a name="Interpreter..returnZero"></a>
 
-| Param | Type |
-| --- | --- |
-| interpreter | <code>[Interpreter](#Interpreter)</code> | 
-| list | <code>[Array-Like](#Array-Like)</code> | 
-| context | <code>[boolean](#external_boolean)</code> | 
-| create | <code>[boolean](#external_boolean)</code> | 
+### Interpreter~returnZero() ⇒ <code>[number](#external_number)</code>
+**Kind**: inner method of <code>[Interpreter](#Interpreter)</code>  
+**Returns**: <code>[number](#external_number)</code> - zero  
+<a name="Transducer"></a>
 
-<a name="KeyPathExp"></a>
-
-## KeyPathExp ⇐ <code>[Null](#Null)</code>
+## Transducer ⇐ <code>[Null](#Null)</code>
 **Kind**: global class  
 **Extends:** <code>[Null](#Null)</code>  
 
-* [KeyPathExp](#KeyPathExp) ⇐ <code>[Null](#Null)</code>
-    * [new KeyPathExp(pattern, flags)](#new_KeyPathExp_new)
-    * [.get()](#KeyPathExp+get)
-    * [.has()](#KeyPathExp+has)
-    * [.set()](#KeyPathExp+set)
-    * [.toJSON()](#KeyPathExp+toJSON)
-    * [.toString()](#KeyPathExp+toString)
+* [Transducer](#Transducer) ⇐ <code>[Null](#Null)</code>
+    * [new Transducer(xf)](#new_Transducer_new)
+    * [new Transducer(xf)](#new_Transducer_new)
+    * [.@@transducer/init()](#Transducer+@@transducer/init)
+    * [.@@transducer/step()](#Transducer+@@transducer/step)
+    * [.@@transducer/result()](#Transducer+@@transducer/result)
+    * [.@@transducer/init()](#Transducer+@@transducer/init)
+    * [.@@transducer/step()](#Transducer+@@transducer/step)
+    * [.@@transducer/result()](#Transducer+@@transducer/result)
+    * [.xfInit()](#Transducer+xfInit)
+    * [.xfStep()](#Transducer+xfStep)
+    * [.xfResult()](#Transducer+xfResult)
 
-<a name="new_KeyPathExp_new"></a>
+<a name="new_Transducer_new"></a>
 
-### new KeyPathExp(pattern, flags)
+### new Transducer(xf)
+
+| Param | Type |
+| --- | --- |
+| xf | <code>[Function](#external_Function)</code> | 
+
+<a name="new_Transducer_new"></a>
+
+### new Transducer(xf)
+
+| Param | Type |
+| --- | --- |
+| xf | <code>[Function](#external_Function)</code> | 
+
+<a name="Transducer+@@transducer/init"></a>
+
+### transducer.@@transducer/init()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/step"></a>
+
+### transducer.@@transducer/step()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/result"></a>
+
+### transducer.@@transducer/result()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/init"></a>
+
+### transducer.@@transducer/init()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/step"></a>
+
+### transducer.@@transducer/step()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/result"></a>
+
+### transducer.@@transducer/result()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+xfInit"></a>
+
+### transducer.xfInit()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+xfStep"></a>
+
+### transducer.xfStep()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+xfResult"></a>
+
+### transducer.xfResult()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="KeypathExp"></a>
+
+## KeypathExp ⇐ <code>[Transducer](#Transducer)</code>
+**Kind**: global class  
+**Extends:** <code>[Transducer](#Transducer)</code>  
+
+* [KeypathExp](#KeypathExp) ⇐ <code>[Transducer](#Transducer)</code>
+    * [new KeypathExp(pattern, flags)](#new_KeypathExp_new)
+    * [new KeypathExp(pattern, flags)](#new_KeypathExp_new)
+    * [.@@transducer/step()](#KeypathExp+@@transducer/step)
+    * [.get()](#KeypathExp+get)
+    * [.has()](#KeypathExp+has)
+    * [.@@transducer/step()](#KeypathExp+@@transducer/step)
+    * [.set()](#KeypathExp+set)
+    * [.toJSON()](#KeypathExp+toJSON)
+    * [.toString()](#KeypathExp+toString)
+    * [.@@transducer/init()](#Transducer+@@transducer/init)
+    * [.@@transducer/result()](#Transducer+@@transducer/result)
+    * [.xfInit()](#Transducer+xfInit)
+    * [.xfStep()](#Transducer+xfStep)
+    * [.xfResult()](#Transducer+xfResult)
+
+<a name="new_KeypathExp_new"></a>
+
+### new KeypathExp(pattern, flags)
 
 | Param | Type |
 | --- | --- |
 | pattern | <code>[string](#external_string)</code> | 
 | flags | <code>[string](#external_string)</code> | 
 
-<a name="KeyPathExp+get"></a>
+<a name="new_KeypathExp_new"></a>
 
-### keyPathExp.get()
-**Kind**: instance method of <code>[KeyPathExp](#KeyPathExp)</code>  
-<a name="KeyPathExp+has"></a>
+### new KeypathExp(pattern, flags)
 
-### keyPathExp.has()
-**Kind**: instance method of <code>[KeyPathExp](#KeyPathExp)</code>  
-<a name="KeyPathExp+set"></a>
+| Param | Type |
+| --- | --- |
+| pattern | <code>[string](#external_string)</code> | 
+| flags | <code>[string](#external_string)</code> | 
 
-### keyPathExp.set()
-**Kind**: instance method of <code>[KeyPathExp](#KeyPathExp)</code>  
-<a name="KeyPathExp+toJSON"></a>
+<a name="KeypathExp+@@transducer/step"></a>
 
-### keyPathExp.toJSON()
-**Kind**: instance method of <code>[KeyPathExp](#KeyPathExp)</code>  
-<a name="KeyPathExp+toString"></a>
+### keypathExp.@@transducer/step()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/step](#Transducer+@@transducer/step)</code>  
+<a name="KeypathExp+get"></a>
 
-### keyPathExp.toString()
-**Kind**: instance method of <code>[KeyPathExp](#KeyPathExp)</code>  
+### keypathExp.get()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+has"></a>
+
+### keypathExp.has()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+@@transducer/step"></a>
+
+### keypathExp.@@transducer/step()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/step](#Transducer+@@transducer/step)</code>  
+<a name="KeypathExp+set"></a>
+
+### keypathExp.set()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+toJSON"></a>
+
+### keypathExp.toJSON()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+toString"></a>
+
+### keypathExp.toString()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="Transducer+@@transducer/init"></a>
+
+### keypathExp.@@transducer/init()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/init](#Transducer+@@transducer/init)</code>  
+<a name="Transducer+@@transducer/result"></a>
+
+### keypathExp.@@transducer/result()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/result](#Transducer+@@transducer/result)</code>  
+<a name="Transducer+xfInit"></a>
+
+### keypathExp.xfInit()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[xfInit](#Transducer+xfInit)</code>  
+<a name="Transducer+xfStep"></a>
+
+### keypathExp.xfStep()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[xfStep](#Transducer+xfStep)</code>  
+<a name="Transducer+xfResult"></a>
+
+### keypathExp.xfResult()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[xfResult](#Transducer+xfResult)</code>  
+<a name="Builder"></a>
+
+## Builder ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [Builder](#Builder) ⇐ <code>[Null](#Null)</code>
+    * [new Builder(lexer)](#new_Builder_new)
+    * [new Builder(lexer)](#new_Builder_new)
+    * _instance_
+        * [.build(input)](#Builder+build) ⇒ <code>Program</code>
+            * [.text](#Builder+build+text) : <code>[string](#external_string)</code>
+            * [.tokens](#Builder+build+tokens) : <code>external:Array.&lt;Token&gt;</code>
+        * [.callExpression()](#Builder+callExpression) ⇒ <code>CallExpression</code>
+        * [.consume([expected])](#Builder+consume) ⇒ <code>Token</code>
+        * [.expect([first], [second], [third], [fourth])](#Builder+expect) ⇒ <code>Token</code>
+        * [.expression()](#Builder+expression) ⇒ <code>Expression</code>
+        * [.expressionStatement()](#Builder+expressionStatement) ⇒ <code>ExpressionStatement</code>
+        * [.identifier()](#Builder+identifier) ⇒ <code>Identifier</code>
+        * [.list(terminator)](#Builder+list) ⇒ <code>external:Array.&lt;Expression&gt;</code> &#124; <code>RangeExpression</code>
+        * [.literal()](#Builder+literal) ⇒ <code>Literal</code>
+        * [.memberExpression(property, computed)](#Builder+memberExpression) ⇒ <code>MemberExpression</code>
+        * [.peek([first], [second], [third], [fourth])](#Builder+peek) ⇒ <code>[Token](#Lexer..Token)</code>
+        * [.peekAt(position, [first], [second], [third], [fourth])](#Builder+peekAt) ⇒ <code>[Token](#Lexer..Token)</code>
+        * [.program()](#Builder+program) ⇒ <code>Program</code>
+        * [.throwError(message)](#Builder+throwError)
+    * _inner_
+        * [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
+            * [new Node(type)](#new_Builder..Node_new)
+            * [new Node(type)](#new_Builder..Node_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new Literal(value)](#new_Builder..Literal_new)
+            * [new Literal(value)](#new_Builder..Literal_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+            * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Program(body)](#new_Builder..Program_new)
+            * [new Program(body)](#new_Builder..Program_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new Identifier(name)](#new_Builder..Identifier_new)
+            * [new Identifier(name)](#new_Builder..Identifier_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+            * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [.computed](#Builder..StaticMemberExpression+computed)
+            * [.computed](#Builder..StaticMemberExpression+computed)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+            * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+            * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+            * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+            * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+            * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
+            * [new Node(type)](#new_Builder..Node_new)
+            * [new Node(type)](#new_Builder..Node_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [new Expression(expressionType)](#new_Builder..Expression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new Literal(value)](#new_Builder..Literal_new)
+            * [new Literal(value)](#new_Builder..Literal_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+            * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Program(body)](#new_Builder..Program_new)
+            * [new Program(body)](#new_Builder..Program_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+            * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [new Statement(statementType)](#new_Builder..Statement_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+            * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
+            * [.computed](#Builder..ComputedMemberExpression+computed)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new Identifier(name)](#new_Builder..Identifier_new)
+            * [new Identifier(name)](#new_Builder..Identifier_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+            * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+            * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+        * [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+            * [.computed](#Builder..StaticMemberExpression+computed)
+            * [.computed](#Builder..StaticMemberExpression+computed)
+            * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+            * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder_new"></a>
+
+### new Builder(lexer)
+
+| Param | Type |
+| --- | --- |
+| lexer | <code>[Lexer](#Lexer)</code> | 
+
+<a name="new_Builder_new"></a>
+
+### new Builder(lexer)
+
+| Param | Type |
+| --- | --- |
+| lexer | <code>[Lexer](#Lexer)</code> | 
+
+<a name="Builder+build"></a>
+
+### builder.build(input) ⇒ <code>Program</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Program</code> - The built abstract syntax tree  
+
+| Param | Type |
+| --- | --- |
+| input | <code>[string](#external_string)</code> &#124; <code>Array.&lt;Builder~Token&gt;</code> | 
+
+
+* [.build(input)](#Builder+build) ⇒ <code>Program</code>
+    * [.text](#Builder+build+text) : <code>[string](#external_string)</code>
+    * [.tokens](#Builder+build+tokens) : <code>external:Array.&lt;Token&gt;</code>
+
+<a name="Builder+build+text"></a>
+
+#### build.text : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[build](#Builder+build)</code>  
+<a name="Builder+build+tokens"></a>
+
+#### build.tokens : <code>external:Array.&lt;Token&gt;</code>
+**Kind**: instance property of <code>[build](#Builder+build)</code>  
+<a name="Builder+callExpression"></a>
+
+### builder.callExpression() ⇒ <code>CallExpression</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>CallExpression</code> - The call expression node  
+<a name="Builder+consume"></a>
+
+### builder.consume([expected]) ⇒ <code>Token</code>
+Removes the next token in the token list. If a comparison is provided, the token will only be returned if the value matches. Otherwise an error is thrown.
+
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Token</code> - The next token in the list  
+**Throws**:
+
+- <code>SyntaxError</code> If token did not exist
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [expected] | <code>[string](#external_string)</code> | An expected comparison value |
+
+<a name="Builder+expect"></a>
+
+### builder.expect([first], [second], [third], [fourth]) ⇒ <code>Token</code>
+Removes the next token in the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Token</code> - The next token in the list or `undefined` if it did not exist  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [first] | <code>[string](#external_string)</code> | The first comparison value |
+| [second] | <code>[string](#external_string)</code> | The second comparison value |
+| [third] | <code>[string](#external_string)</code> | The third comparison value |
+| [fourth] | <code>[string](#external_string)</code> | The fourth comparison value |
+
+<a name="Builder+expression"></a>
+
+### builder.expression() ⇒ <code>Expression</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Expression</code> - An expression node  
+<a name="Builder+expressionStatement"></a>
+
+### builder.expressionStatement() ⇒ <code>ExpressionStatement</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>ExpressionStatement</code> - An expression statement  
+<a name="Builder+identifier"></a>
+
+### builder.identifier() ⇒ <code>Identifier</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Identifier</code> - An identifier  
+**Throws**:
+
+- <code>SyntaxError</code> If the token is not an identifier
+
+<a name="Builder+list"></a>
+
+### builder.list(terminator) ⇒ <code>external:Array.&lt;Expression&gt;</code> &#124; <code>RangeExpression</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>external:Array.&lt;Expression&gt;</code> &#124; <code>RangeExpression</code> - The list of expressions or range expression  
+
+| Param | Type |
+| --- | --- |
+| terminator | <code>[string](#external_string)</code> | 
+
+<a name="Builder+literal"></a>
+
+### builder.literal() ⇒ <code>Literal</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Literal</code> - The literal node  
+<a name="Builder+memberExpression"></a>
+
+### builder.memberExpression(property, computed) ⇒ <code>MemberExpression</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>MemberExpression</code> - The member expression  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| property | <code>Expression</code> | The expression assigned to the property of the member expression |
+| computed | <code>[boolean](#external_boolean)</code> | Whether or not the member expression is computed |
+
+<a name="Builder+peek"></a>
+
+### builder.peek([first], [second], [third], [fourth]) ⇒ <code>[Token](#Lexer..Token)</code>
+Provides the next token in the token list _without removing it_. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>[Token](#Lexer..Token)</code> - The next token in the list or `undefined` if it did not exist  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [first] | <code>[string](#external_string)</code> | The first comparison value |
+| [second] | <code>[string](#external_string)</code> | The second comparison value |
+| [third] | <code>[string](#external_string)</code> | The third comparison value |
+| [fourth] | <code>[string](#external_string)</code> | The fourth comparison value |
+
+<a name="Builder+peekAt"></a>
+
+### builder.peekAt(position, [first], [second], [third], [fourth]) ⇒ <code>[Token](#Lexer..Token)</code>
+Provides the token at the requested position _without removing it_ from the token list. If comparisons are provided, the token will only be returned if the value matches one of the comparisons.
+
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>[Token](#Lexer..Token)</code> - The token at the requested position or `undefined` if it did not exist  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| position | <code>[number](#external_number)</code> | The position where the token will be peeked |
+| [first] | <code>[string](#external_string)</code> | The first comparison value |
+| [second] | <code>[string](#external_string)</code> | The second comparison value |
+| [third] | <code>[string](#external_string)</code> | The third comparison value |
+| [fourth] | <code>[string](#external_string)</code> | The fourth comparison value |
+
+<a name="Builder+program"></a>
+
+### builder.program() ⇒ <code>Program</code>
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Returns**: <code>Program</code> - A program node  
+<a name="Builder+throwError"></a>
+
+### builder.throwError(message)
+**Kind**: instance method of <code>[Builder](#Builder)</code>  
+**Throws**:
+
+- <code>[SyntaxError](#external_SyntaxError)</code> When it executes
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Builder..Node"></a>
+
+### Builder~Node ⇐ <code>[Null](#Null)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
+    * [new Node(type)](#new_Builder..Node_new)
+    * [new Node(type)](#new_Builder..Node_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Node_new"></a>
+
+#### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Node_new"></a>
+
+#### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### node.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+type"></a>
+
+#### node.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+id"></a>
+
+#### node.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+type"></a>
+
+#### node.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Expression"></a>
+
+### Builder~Expression ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Expression(expressionType)](#new_Builder..Expression_new)
+    * [new Expression(expressionType)](#new_Builder..Expression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Expression_new"></a>
+
+#### new Expression(expressionType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressionType | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Expression_new"></a>
+
+#### new Expression(expressionType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressionType | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### expression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### expression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Literal"></a>
+
+### Builder~Literal ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="Builder..Node+id"></a>
+
+#### literal.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### literal.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..MemberExpression"></a>
+
+### Builder~MemberExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+    * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..MemberExpression_new"></a>
+
+#### new MemberExpression(object, property, computed)
+
+| Param | Type | Default |
+| --- | --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> |  | 
+| property | <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code> |  | 
+| computed | <code>[boolean](#external_boolean)</code> | <code>false</code> | 
+
+<a name="new_Builder..MemberExpression_new"></a>
+
+#### new MemberExpression(object, property, computed)
+
+| Param | Type | Default |
+| --- | --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> |  | 
+| property | <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code> |  | 
+| computed | <code>[boolean](#external_boolean)</code> | <code>false</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### memberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### memberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Program"></a>
+
+### Builder~Program ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Program(body)](#new_Builder..Program_new)
+    * [new Program(body)](#new_Builder..Program_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### program.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### program.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Statement"></a>
+
+### Builder~Statement ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### statement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### statement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ArrayExpression"></a>
+
+### Builder~ArrayExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
+
+<a name="Builder..Node+id"></a>
+
+#### arrayExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### arrayExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..CallExpression"></a>
+
+### Builder~CallExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### callExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### callExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ComputedMemberExpression"></a>
+
+### Builder~ComputedMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
+
+* [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..Node+id"></a>
+
+#### computedMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### computedMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ExpressionStatement"></a>
+
+### Builder~ExpressionStatement ⇐ <code>[Statement](#Builder..Statement)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Statement](#Builder..Statement)</code>  
+
+* [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="Builder..Node+id"></a>
+
+#### expressionStatement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### expressionStatement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Identifier"></a>
+
+### Builder~Identifier ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new Identifier(name)](#new_Builder..Identifier_new)
+    * [new Identifier(name)](#new_Builder..Identifier_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Identifier_new"></a>
+
+#### new Identifier(name)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>[string](#external_string)</code> | The name of the identifier |
+
+<a name="new_Builder..Identifier_new"></a>
+
+#### new Identifier(name)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>[string](#external_string)</code> | The name of the identifier |
+
+<a name="Builder..Node+id"></a>
+
+#### identifier.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### identifier.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..SequenceExpression"></a>
+
+### Builder~SequenceExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+    * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..SequenceExpression_new"></a>
+
+#### new SequenceExpression(expressions)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
+
+<a name="new_Builder..SequenceExpression_new"></a>
+
+#### new SequenceExpression(expressions)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
+
+<a name="Builder..Node+id"></a>
+
+#### sequenceExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### sequenceExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..StaticMemberExpression"></a>
+
+### Builder~StaticMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
+
+* [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [.computed](#Builder..StaticMemberExpression+computed)
+    * [.computed](#Builder..StaticMemberExpression+computed)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..StaticMemberExpression_new"></a>
+
+#### new StaticMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
+
+<a name="new_Builder..StaticMemberExpression_new"></a>
+
+#### new StaticMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
+
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+<a name="Builder..Node+id"></a>
+
+#### staticMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### staticMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..OperatorExpression"></a>
+
+### Builder~OperatorExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### operatorExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### operatorExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..RangeExpression"></a>
+
+### Builder~RangeExpression ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+
+* [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
+<a name="Builder..Node+id"></a>
+
+#### rangeExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### rangeExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..OperatorExpression"></a>
+
+### Builder~OperatorExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~OperatorExpression](#Builder..OperatorExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [new OperatorExpression(expressionType, operator)](#new_Builder..OperatorExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="new_Builder..OperatorExpression_new"></a>
+
+#### new OperatorExpression(expressionType, operator)
+
+| Param | Type |
+| --- | --- |
+| expressionType | <code>[string](#external_string)</code> | 
+| operator | <code>[string](#external_string)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### operatorExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### operatorExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..RangeExpression"></a>
+
+### Builder~RangeExpression ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[OperatorExpression](#Builder..OperatorExpression)</code>  
+
+* [~RangeExpression](#Builder..RangeExpression) ⇐ <code>[OperatorExpression](#Builder..OperatorExpression)</code>
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [new RangeExpression(left, right)](#new_Builder..RangeExpression_new)
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+    * [.left](#Builder..RangeExpression+left) : <code>[Literal](#Builder..Literal)</code>
+    * [.0](#Builder..RangeExpression+0) : <code>[Literal](#Builder..Literal)</code>
+    * [.right](#Builder..RangeExpression+right) : <code>[Literal](#Builder..Literal)</code>
+    * [.1](#Builder..RangeExpression+1) : <code>[Literal](#Builder..Literal)</code>
+    * [.length](#Builder..RangeExpression+length) : <code>[number](#external_number)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="new_Builder..RangeExpression_new"></a>
+
+#### new RangeExpression(left, right)
+
+| Param | Type |
+| --- | --- |
+| left | <code>[Expression](#Builder..Expression)</code> | 
+| right | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
+<a name="Builder..RangeExpression+left"></a>
+
+#### rangeExpression.left : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+0"></a>
+
+#### rangeExpression.0 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+right"></a>
+
+#### rangeExpression.right : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+1"></a>
+
+#### rangeExpression.1 : <code>[Literal](#Builder..Literal)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+<a name="Builder..RangeExpression+length"></a>
+
+#### rangeExpression.length : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Default**: <code>2</code>  
+<a name="Builder..Node+id"></a>
+
+#### rangeExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### rangeExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[RangeExpression](#Builder..RangeExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Node"></a>
+
+### Builder~Node ⇐ <code>[Null](#Null)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [~Node](#Builder..Node) ⇐ <code>[Null](#Null)</code>
+    * [new Node(type)](#new_Builder..Node_new)
+    * [new Node(type)](#new_Builder..Node_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Node_new"></a>
+
+#### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Node_new"></a>
+
+#### new Node(type)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### node.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+type"></a>
+
+#### node.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+id"></a>
+
+#### node.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Node+type"></a>
+
+#### node.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Node](#Builder..Node)</code>  
+<a name="Builder..Expression"></a>
+
+### Builder~Expression ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Expression](#Builder..Expression) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Expression(expressionType)](#new_Builder..Expression_new)
+    * [new Expression(expressionType)](#new_Builder..Expression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Expression_new"></a>
+
+#### new Expression(expressionType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressionType | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Expression_new"></a>
+
+#### new Expression(expressionType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressionType | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### expression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### expression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Expression](#Builder..Expression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Literal"></a>
+
+### Builder~Literal ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~Literal](#Builder..Literal) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [new Literal(value)](#new_Builder..Literal_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="new_Builder..Literal_new"></a>
+
+#### new Literal(value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>[string](#external_string)</code> &#124; <code>[number](#external_number)</code> | The value of the literal |
+
+<a name="Builder..Node+id"></a>
+
+#### literal.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### literal.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Literal](#Builder..Literal)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..MemberExpression"></a>
+
+### Builder~MemberExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~MemberExpression](#Builder..MemberExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+    * [new MemberExpression(object, property, computed)](#new_Builder..MemberExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..MemberExpression_new"></a>
+
+#### new MemberExpression(object, property, computed)
+
+| Param | Type | Default |
+| --- | --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> |  | 
+| property | <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code> |  | 
+| computed | <code>[boolean](#external_boolean)</code> | <code>false</code> | 
+
+<a name="new_Builder..MemberExpression_new"></a>
+
+#### new MemberExpression(object, property, computed)
+
+| Param | Type | Default |
+| --- | --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> |  | 
+| property | <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code> |  | 
+| computed | <code>[boolean](#external_boolean)</code> | <code>false</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### memberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### memberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[MemberExpression](#Builder..MemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Program"></a>
+
+### Builder~Program ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Program](#Builder..Program) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Program(body)](#new_Builder..Program_new)
+    * [new Program(body)](#new_Builder..Program_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
+
+<a name="new_Builder..Program_new"></a>
+
+#### new Program(body)
+
+| Param | Type |
+| --- | --- |
+| body | <code>[external:Array.&lt;Statement&gt;](#Builder..Statement)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### program.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### program.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Program](#Builder..Program)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Statement"></a>
+
+### Builder~Statement ⇐ <code>[Node](#Builder..Node)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Node](#Builder..Node)</code>  
+
+* [~Statement](#Builder..Statement) ⇐ <code>[Node](#Builder..Node)</code>
+    * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [new Statement(statementType)](#new_Builder..Statement_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
+
+<a name="new_Builder..Statement_new"></a>
+
+#### new Statement(statementType)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| statementType | <code>[string](#external_string)</code> | A node type |
+
+<a name="Builder..Node+id"></a>
+
+#### statement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### statement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Statement](#Builder..Statement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ArrayExpression"></a>
+
+### Builder~ArrayExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~ArrayExpression](#Builder..ArrayExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [new ArrayExpression(elements)](#new_Builder..ArrayExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
+
+<a name="new_Builder..ArrayExpression_new"></a>
+
+#### new ArrayExpression(elements)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| elements | <code>[external:Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | A list of expressions |
+
+<a name="Builder..Node+id"></a>
+
+#### arrayExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### arrayExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ArrayExpression](#Builder..ArrayExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..CallExpression"></a>
+
+### Builder~CallExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~CallExpression](#Builder..CallExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [new CallExpression(callee, args)](#new_Builder..CallExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
+
+<a name="new_Builder..CallExpression_new"></a>
+
+#### new CallExpression(callee, args)
+
+| Param | Type |
+| --- | --- |
+| callee | <code>[Expression](#Builder..Expression)</code> | 
+| args | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> | 
+
+<a name="Builder..Node+id"></a>
+
+#### callExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### callExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[CallExpression](#Builder..CallExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ComputedMemberExpression"></a>
+
+### Builder~ComputedMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
+
+* [~ComputedMemberExpression](#Builder..ComputedMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [new ComputedMemberExpression(object, property)](#new_Builder..ComputedMemberExpression_new)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
+    * [.computed](#Builder..ComputedMemberExpression+computed)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="new_Builder..ComputedMemberExpression_new"></a>
+
+#### new ComputedMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Expression](#Builder..Expression)</code> | 
+
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..ComputedMemberExpression+computed"></a>
+
+#### computedMemberExpression.computed
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+<a name="Builder..Node+id"></a>
+
+#### computedMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### computedMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ComputedMemberExpression](#Builder..ComputedMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..ExpressionStatement"></a>
+
+### Builder~ExpressionStatement ⇐ <code>[Statement](#Builder..Statement)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Statement](#Builder..Statement)</code>  
+
+* [~ExpressionStatement](#Builder..ExpressionStatement) ⇐ <code>[Statement](#Builder..Statement)</code>
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="Builder..Node+id"></a>
+
+#### expressionStatement.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### expressionStatement.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[ExpressionStatement](#Builder..ExpressionStatement)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..Identifier"></a>
+
+### Builder~Identifier ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~Identifier](#Builder..Identifier) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new Identifier(name)](#new_Builder..Identifier_new)
+    * [new Identifier(name)](#new_Builder..Identifier_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..Identifier_new"></a>
+
+#### new Identifier(name)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>[string](#external_string)</code> | The name of the identifier |
+
+<a name="new_Builder..Identifier_new"></a>
+
+#### new Identifier(name)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>[string](#external_string)</code> | The name of the identifier |
+
+<a name="Builder..Node+id"></a>
+
+#### identifier.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### identifier.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Builder..Identifier)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..SequenceExpression"></a>
+
+### Builder~SequenceExpression ⇐ <code>[Expression](#Builder..Expression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[Expression](#Builder..Expression)</code>  
+
+* [~SequenceExpression](#Builder..SequenceExpression) ⇐ <code>[Expression](#Builder..Expression)</code>
+    * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+    * [new SequenceExpression(expressions)](#new_Builder..SequenceExpression_new)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..SequenceExpression_new"></a>
+
+#### new SequenceExpression(expressions)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
+
+<a name="new_Builder..SequenceExpression_new"></a>
+
+#### new SequenceExpression(expressions)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| expressions | <code>[Array.&lt;Expression&gt;](#Builder..Expression)</code> &#124; <code>RangeExpression</code> | The expressions in the sequence |
+
+<a name="Builder..Node+id"></a>
+
+#### sequenceExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### sequenceExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[SequenceExpression](#Builder..SequenceExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="Builder..StaticMemberExpression"></a>
+
+### Builder~StaticMemberExpression ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+**Kind**: inner class of <code>[Builder](#Builder)</code>  
+**Extends:** <code>[MemberExpression](#Builder..MemberExpression)</code>  
+
+* [~StaticMemberExpression](#Builder..StaticMemberExpression) ⇐ <code>[MemberExpression](#Builder..MemberExpression)</code>
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [new StaticMemberExpression(object, property)](#new_Builder..StaticMemberExpression_new)
+    * [.computed](#Builder..StaticMemberExpression+computed)
+    * [.computed](#Builder..StaticMemberExpression+computed)
+    * [.id](#Builder..Node+id) : <code>[number](#external_number)</code>
+    * [.type](#Builder..Node+type) : <code>[string](#external_string)</code>
+
+<a name="new_Builder..StaticMemberExpression_new"></a>
+
+#### new StaticMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
+
+<a name="new_Builder..StaticMemberExpression_new"></a>
+
+#### new StaticMemberExpression(object, property)
+
+| Param | Type |
+| --- | --- |
+| object | <code>[Expression](#Builder..Expression)</code> | 
+| property | <code>[Identifier](#Builder..Identifier)</code> | 
+
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+<a name="Builder..StaticMemberExpression+computed"></a>
+
+#### staticMemberExpression.computed
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+<a name="Builder..Node+id"></a>
+
+#### staticMemberExpression.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[id](#Builder..Node+id)</code>  
+<a name="Builder..Node+type"></a>
+
+#### staticMemberExpression.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StaticMemberExpression](#Builder..StaticMemberExpression)</code>  
+**Overrides:** <code>[type](#Builder..Node+type)</code>  
+<a name="InterpreterError"></a>
+
+## InterpreterError ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+**Kind**: global class  
+**Extends:** <code>[SyntaxError](#external_SyntaxError)</code>  
+<a name="new_InterpreterError_new"></a>
+
+### new InterpreterError(message)
+
+| Param | Type |
+| --- | --- |
+| message | <code>[string](#external_string)</code> | 
+
+<a name="Interpreter"></a>
+
+## Interpreter ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [Interpreter](#Interpreter) ⇐ <code>[Null](#Null)</code>
+    * [new Interpreter(builder)](#new_Interpreter_new)
+    * [new Interpreter(builder)](#new_Interpreter_new)
+    * _instance_
+        * [.builder](#Interpreter+builder) : <code>[Builder](#Builder)</code>
+        * [.builder](#Interpreter+builder) : <code>[Builder](#Builder)</code>
+        * [.compile(expression)](#Interpreter+compile)
+        * [.recurse()](#Interpreter+recurse)
+    * _inner_
+        * [~returnZero()](#Interpreter..returnZero) ⇒ <code>[number](#external_number)</code>
+        * [~returnZero()](#Interpreter..returnZero) ⇒ <code>[number](#external_number)</code>
+
+<a name="new_Interpreter_new"></a>
+
+### new Interpreter(builder)
+
+| Param | Type |
+| --- | --- |
+| builder | <code>[Builder](#Builder)</code> | 
+
+<a name="new_Interpreter_new"></a>
+
+### new Interpreter(builder)
+
+| Param | Type |
+| --- | --- |
+| builder | <code>[Builder](#Builder)</code> | 
+
+<a name="Interpreter+builder"></a>
+
+### interpreter.builder : <code>[Builder](#Builder)</code>
+**Kind**: instance property of <code>[Interpreter](#Interpreter)</code>  
+<a name="Interpreter+builder"></a>
+
+### interpreter.builder : <code>[Builder](#Builder)</code>
+**Kind**: instance property of <code>[Interpreter](#Interpreter)</code>  
+<a name="Interpreter+compile"></a>
+
+### interpreter.compile(expression)
+**Kind**: instance method of <code>[Interpreter](#Interpreter)</code>  
+
+| Param | Type |
+| --- | --- |
+| expression | <code>[string](#external_string)</code> | 
+
+<a name="Interpreter+recurse"></a>
+
+### interpreter.recurse()
+**Kind**: instance method of <code>[Interpreter](#Interpreter)</code>  
+<a name="Interpreter..returnZero"></a>
+
+### Interpreter~returnZero() ⇒ <code>[number](#external_number)</code>
+**Kind**: inner method of <code>[Interpreter](#Interpreter)</code>  
+**Returns**: <code>[number](#external_number)</code> - zero  
+<a name="Interpreter..returnZero"></a>
+
+### Interpreter~returnZero() ⇒ <code>[number](#external_number)</code>
+**Kind**: inner method of <code>[Interpreter](#Interpreter)</code>  
+**Returns**: <code>[number](#external_number)</code> - zero  
+<a name="KeypathExp"></a>
+
+## KeypathExp ⇐ <code>[Transducer](#Transducer)</code>
+**Kind**: global class  
+**Extends:** <code>[Transducer](#Transducer)</code>  
+
+* [KeypathExp](#KeypathExp) ⇐ <code>[Transducer](#Transducer)</code>
+    * [new KeypathExp(pattern, flags)](#new_KeypathExp_new)
+    * [new KeypathExp(pattern, flags)](#new_KeypathExp_new)
+    * [.@@transducer/step()](#KeypathExp+@@transducer/step)
+    * [.get()](#KeypathExp+get)
+    * [.has()](#KeypathExp+has)
+    * [.@@transducer/step()](#KeypathExp+@@transducer/step)
+    * [.set()](#KeypathExp+set)
+    * [.toJSON()](#KeypathExp+toJSON)
+    * [.toString()](#KeypathExp+toString)
+    * [.@@transducer/init()](#Transducer+@@transducer/init)
+    * [.@@transducer/result()](#Transducer+@@transducer/result)
+    * [.xfInit()](#Transducer+xfInit)
+    * [.xfStep()](#Transducer+xfStep)
+    * [.xfResult()](#Transducer+xfResult)
+
+<a name="new_KeypathExp_new"></a>
+
+### new KeypathExp(pattern, flags)
+
+| Param | Type |
+| --- | --- |
+| pattern | <code>[string](#external_string)</code> | 
+| flags | <code>[string](#external_string)</code> | 
+
+<a name="new_KeypathExp_new"></a>
+
+### new KeypathExp(pattern, flags)
+
+| Param | Type |
+| --- | --- |
+| pattern | <code>[string](#external_string)</code> | 
+| flags | <code>[string](#external_string)</code> | 
+
+<a name="KeypathExp+@@transducer/step"></a>
+
+### keypathExp.@@transducer/step()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/step](#Transducer+@@transducer/step)</code>  
+<a name="KeypathExp+get"></a>
+
+### keypathExp.get()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+has"></a>
+
+### keypathExp.has()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+@@transducer/step"></a>
+
+### keypathExp.@@transducer/step()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/step](#Transducer+@@transducer/step)</code>  
+<a name="KeypathExp+set"></a>
+
+### keypathExp.set()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+toJSON"></a>
+
+### keypathExp.toJSON()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="KeypathExp+toString"></a>
+
+### keypathExp.toString()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+<a name="Transducer+@@transducer/init"></a>
+
+### keypathExp.@@transducer/init()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/init](#Transducer+@@transducer/init)</code>  
+<a name="Transducer+@@transducer/result"></a>
+
+### keypathExp.@@transducer/result()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[@@transducer/result](#Transducer+@@transducer/result)</code>  
+<a name="Transducer+xfInit"></a>
+
+### keypathExp.xfInit()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[xfInit](#Transducer+xfInit)</code>  
+<a name="Transducer+xfStep"></a>
+
+### keypathExp.xfStep()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[xfStep](#Transducer+xfStep)</code>  
+<a name="Transducer+xfResult"></a>
+
+### keypathExp.xfResult()
+**Kind**: instance method of <code>[KeypathExp](#KeypathExp)</code>  
+**Overrides:** <code>[xfResult](#Transducer+xfResult)</code>  
 <a name="Lexer"></a>
 
 ## Lexer ⇐ <code>[Null](#Null)</code>
@@ -893,32 +4740,95 @@ Provides the token at the requested position _without removing it_ from the toke
         * [.toJSON()](#Lexer+toJSON) ⇒ <code>[Object](#external_Object)</code>
         * [.toString()](#Lexer+toString) ⇒ <code>[string](#external_string)</code>
     * _inner_
-        * [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
-            * [new LexerError(message)](#new_Lexer..LexerError_new)
         * [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+            * [new Token(type, value)](#new_Lexer..Token_new)
             * [new Token(type, value)](#new_Lexer..Token_new)
             * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
             * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
             * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-            * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
         * [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
             * [new Identifier(value)](#new_Lexer..Identifier_new)
             * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
             * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
             * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-            * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
-        * [~Literal](#Lexer..Literal) ⇐ <code>[Token](#Lexer..Token)</code>
-            * [new Literal(value)](#new_Lexer..Literal_new)
+        * [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
             * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
             * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
             * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-            * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
+        * [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
         * [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
             * [new Punctuator(value)](#new_Lexer..Punctuator_new)
             * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
             * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
             * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-            * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
+        * [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+        * [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+            * [new LexerError(message)](#new_Lexer..LexerError_new)
+        * [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+            * [new Token(type, value)](#new_Lexer..Token_new)
+            * [new Token(type, value)](#new_Lexer..Token_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
+            * [new Identifier(value)](#new_Lexer..Identifier_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+            * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+            * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+            * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+            * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+            * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+        * [~isIdentifier(char)](#Lexer..isIdentifier) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isNumeric(char)](#Lexer..isNumeric) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isPunctuator(char)](#Lexer..isPunctuator) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isQuote(char)](#Lexer..isQuote) ⇒ <code>[boolean](#external_boolean)</code>
+        * [~isWhitespace(char)](#Lexer..isWhitespace) ⇒ <code>[boolean](#external_boolean)</code>
         * [~isIdentifier(char)](#Lexer..isIdentifier) ⇒ <code>[boolean](#external_boolean)</code>
         * [~isNumeric(char)](#Lexer..isNumeric) ⇒ <code>[boolean](#external_boolean)</code>
         * [~isPunctuator(char)](#Lexer..isPunctuator) ⇒ <code>[boolean](#external_boolean)</code>
@@ -981,19 +4891,6 @@ Provides the token at the requested position _without removing it_ from the toke
 ### lexer.toString() ⇒ <code>[string](#external_string)</code>
 **Kind**: instance method of <code>[Lexer](#Lexer)</code>  
 **Returns**: <code>[string](#external_string)</code> - A string representation of the lexer  
-<a name="Lexer..LexerError"></a>
-
-### Lexer~LexerError ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
-**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
-**Extends:** <code>[SyntaxError](#external_SyntaxError)</code>  
-<a name="new_Lexer..LexerError_new"></a>
-
-#### new LexerError(message)
-
-| Param | Type | Description |
-| --- | --- | --- |
-| message | <code>[string](#external_string)</code> | The error message |
-
 <a name="Lexer..Token"></a>
 
 ### Lexer~Token ⇐ <code>[Null](#Null)</code>
@@ -1002,19 +4899,26 @@ Provides the token at the requested position _without removing it_ from the toke
 
 * [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
     * [new Token(type, value)](#new_Lexer..Token_new)
+    * [new Token(type, value)](#new_Lexer..Token_new)
     * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
     * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
     * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-    * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
 
 <a name="new_Lexer..Token_new"></a>
 
 #### new Token(type, value)
-**Throws**:
 
-- <code>[TypeError](#external_TypeError)</code> If `type` is not a string
-- <code>[TypeError](#external_TypeError)</code> If `value` is not a string
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
 
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1033,11 +4937,17 @@ Provides the token at the requested position _without removing it_ from the toke
 
 #### token.value : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
-<a name="Lexer..Token+length"></a>
+<a name="Lexer..Token+id"></a>
 
-#### token.length : <code>[number](#external_number)</code>
-The length of the token value
+#### token.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+type"></a>
 
+#### token.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### token.value : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
 <a name="Lexer..Identifier"></a>
 
@@ -1047,10 +4957,18 @@ The length of the token value
 
 * [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
     * [new Identifier(value)](#new_Lexer..Identifier_new)
+    * [new Identifier(value)](#new_Lexer..Identifier_new)
     * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
     * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
     * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-    * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
+
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
 
 <a name="new_Lexer..Identifier_new"></a>
 
@@ -1064,36 +4982,41 @@ The length of the token value
 
 #### identifier.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
 <a name="Lexer..Token+type"></a>
 
 #### identifier.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
 <a name="Lexer..Token+value"></a>
 
 #### identifier.value : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
-<a name="Lexer..Token+length"></a>
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NumericLiteral"></a>
 
-#### identifier.length : <code>[number](#external_number)</code>
-The length of the token value
-
-**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
-<a name="Lexer..Literal"></a>
-
-### Lexer~Literal ⇐ <code>[Token](#Lexer..Token)</code>
+### Lexer~NumericLiteral ⇐ <code>[Token](#Lexer..Token)</code>
 **Kind**: inner class of <code>[Lexer](#Lexer)</code>  
 **Extends:** <code>[Token](#Lexer..Token)</code>  
 
-* [~Literal](#Lexer..Literal) ⇐ <code>[Token](#Lexer..Token)</code>
-    * [new Literal(value)](#new_Lexer..Literal_new)
+* [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
     * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
     * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
     * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-    * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
 
-<a name="new_Lexer..Literal_new"></a>
+<a name="new_Lexer..NumericLiteral_new"></a>
 
-#### new Literal(value)
+#### new NumericLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NumericLiteral_new"></a>
+
+#### new NumericLiteral(value)
 
 | Param | Type |
 | --- | --- |
@@ -1101,22 +5024,63 @@ The length of the token value
 
 <a name="Lexer..Token+id"></a>
 
-#### literal.id : <code>[number](#external_number)</code>
-**Kind**: instance property of <code>[Literal](#Lexer..Literal)</code>  
+#### numericLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
 <a name="Lexer..Token+type"></a>
 
-#### literal.type : <code>[string](#external_string)</code>
-**Kind**: instance property of <code>[Literal](#Lexer..Literal)</code>  
+#### numericLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
 <a name="Lexer..Token+value"></a>
 
-#### literal.value : <code>[string](#external_string)</code>
-**Kind**: instance property of <code>[Literal](#Lexer..Literal)</code>  
-<a name="Lexer..Token+length"></a>
+#### numericLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NullLiteral"></a>
 
-#### literal.length : <code>[number](#external_number)</code>
-The length of the token value
+### Lexer~NullLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
 
-**Kind**: instance property of <code>[Literal](#Lexer..Literal)</code>  
+* [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### nullLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### nullLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### nullLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
 <a name="Lexer..Punctuator"></a>
 
 ### Lexer~Punctuator ⇐ <code>[Token](#Lexer..Token)</code>
@@ -1125,10 +5089,18 @@ The length of the token value
 
 * [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
     * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+    * [new Punctuator(value)](#new_Lexer..Punctuator_new)
     * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
     * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
     * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
-    * [.length](#Lexer..Token+length) : <code>[number](#external_number)</code>
+
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
 
 <a name="new_Lexer..Punctuator_new"></a>
 
@@ -1142,20 +5114,441 @@ The length of the token value
 
 #### punctuator.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
 <a name="Lexer..Token+type"></a>
 
 #### punctuator.type : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
 <a name="Lexer..Token+value"></a>
 
 #### punctuator.value : <code>[string](#external_string)</code>
 **Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
-<a name="Lexer..Token+length"></a>
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..StringLiteral"></a>
 
-#### punctuator.length : <code>[number](#external_number)</code>
-The length of the token value
+### Lexer~StringLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
 
+* [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### stringLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### stringLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### stringLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..LexerError"></a>
+
+### Lexer~LexerError ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[SyntaxError](#external_SyntaxError)</code>  
+
+* [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Lexer..LexerError"></a>
+
+### Lexer~LexerError ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[SyntaxError](#external_SyntaxError)</code>  
+
+* [~LexerError](#Lexer..LexerError) ⇐ <code>[SyntaxError](#external_SyntaxError)</code>
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+    * [new LexerError(message)](#new_Lexer..LexerError_new)
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="new_Lexer..LexerError_new"></a>
+
+#### new LexerError(message)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>[string](#external_string)</code> | The error message |
+
+<a name="Lexer..Token"></a>
+
+### Lexer~Token ⇐ <code>[Null](#Null)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [~Token](#Lexer..Token) ⇐ <code>[Null](#Null)</code>
+    * [new Token(type, value)](#new_Lexer..Token_new)
+    * [new Token(type, value)](#new_Lexer..Token_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
+
+<a name="new_Lexer..Token_new"></a>
+
+#### new Token(type, value)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>[string](#external_string)</code> | The type of the token |
+| value | <code>[string](#external_string)</code> | The value of the token |
+
+<a name="Lexer..Token+id"></a>
+
+#### token.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### token.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### token.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+id"></a>
+
+#### token.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### token.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### token.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Token](#Lexer..Token)</code>  
+<a name="Lexer..Identifier"></a>
+
+### Lexer~Identifier ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~Identifier](#Lexer..Identifier) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new Identifier(value)](#new_Lexer..Identifier_new)
+    * [new Identifier(value)](#new_Lexer..Identifier_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..Identifier_new"></a>
+
+#### new Identifier(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### identifier.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### identifier.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### identifier.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Identifier](#Lexer..Identifier)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NumericLiteral"></a>
+
+### Lexer~NumericLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~NumericLiteral](#Lexer..NumericLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+    * [new NumericLiteral(value)](#new_Lexer..NumericLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..NumericLiteral_new"></a>
+
+#### new NumericLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NumericLiteral_new"></a>
+
+#### new NumericLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### numericLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### numericLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### numericLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NumericLiteral](#Lexer..NumericLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..NullLiteral"></a>
+
+### Lexer~NullLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~NullLiteral](#Lexer..NullLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [new NullLiteral(value)](#new_Lexer..NullLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..NullLiteral_new"></a>
+
+#### new NullLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### nullLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### nullLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### nullLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[NullLiteral](#Lexer..NullLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..Punctuator"></a>
+
+### Lexer~Punctuator ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~Punctuator](#Lexer..Punctuator) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+    * [new Punctuator(value)](#new_Lexer..Punctuator_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..Punctuator_new"></a>
+
+#### new Punctuator(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### punctuator.id : <code>[number](#external_number)</code>
 **Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### punctuator.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### punctuator.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[Punctuator](#Lexer..Punctuator)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..StringLiteral"></a>
+
+### Lexer~StringLiteral ⇐ <code>[Token](#Lexer..Token)</code>
+**Kind**: inner class of <code>[Lexer](#Lexer)</code>  
+**Extends:** <code>[Token](#Lexer..Token)</code>  
+
+* [~StringLiteral](#Lexer..StringLiteral) ⇐ <code>[Token](#Lexer..Token)</code>
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [new StringLiteral(value)](#new_Lexer..StringLiteral_new)
+    * [.id](#Lexer..Token+id) : <code>[number](#external_number)</code>
+    * [.type](#Lexer..Token+type) : <code>[string](#external_string)</code>
+    * [.value](#Lexer..Token+value) : <code>[string](#external_string)</code>
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="new_Lexer..StringLiteral_new"></a>
+
+#### new StringLiteral(value)
+
+| Param | Type |
+| --- | --- |
+| value | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..Token+id"></a>
+
+#### stringLiteral.id : <code>[number](#external_number)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[id](#Lexer..Token+id)</code>  
+<a name="Lexer..Token+type"></a>
+
+#### stringLiteral.type : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[type](#Lexer..Token+type)</code>  
+<a name="Lexer..Token+value"></a>
+
+#### stringLiteral.value : <code>[string](#external_string)</code>
+**Kind**: instance property of <code>[StringLiteral](#Lexer..StringLiteral)</code>  
+**Overrides:** <code>[value](#Lexer..Token+value)</code>  
+<a name="Lexer..isIdentifier"></a>
+
+### Lexer~isIdentifier(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is an identifier character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isNumeric"></a>
+
+### Lexer~isNumeric(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a numeric character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isPunctuator"></a>
+
+### Lexer~isPunctuator(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a punctuator character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isQuote"></a>
+
+### Lexer~isQuote(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a quote character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
+<a name="Lexer..isWhitespace"></a>
+
+### Lexer~isWhitespace(char) ⇒ <code>[boolean](#external_boolean)</code>
+**Kind**: inner method of <code>[Lexer](#Lexer)</code>  
+**Returns**: <code>[boolean](#external_boolean)</code> - Whether or not the character is a whitespace character  
+
+| Param | Type |
+| --- | --- |
+| char | <code>[string](#external_string)</code> | 
+
 <a name="Lexer..isIdentifier"></a>
 
 ### Lexer~isIdentifier(char) ⇒ <code>[boolean](#external_boolean)</code>
@@ -1211,69 +5604,158 @@ The length of the token value
 ## Null ⇐ <code>[null](#external_null)</code>
 **Kind**: global class  
 **Extends:** <code>[null](#external_null)</code>  
+
+* [Null](#Null) ⇐ <code>[null](#external_null)</code>
+    * [new Null()](#new_Null_new)
+    * [new Null()](#new_Null_new)
+
 <a name="new_Null_new"></a>
 
 ### new Null()
 A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
 
-<a name="object"></a>
+<a name="new_Null_new"></a>
 
-## object : <code>[Expression](#Builder..Expression)</code>
-**Kind**: global variable  
-<a name="property"></a>
+### new Null()
+A "clean", empty container. Instantiating this is faster than explicitly calling `Object.create( null )`.
 
-## property : <code>[Expression](#Builder..Expression)</code> &#124; <code>[Identifier](#Builder..Identifier)</code>
-**Kind**: global variable  
-<a name="computed"></a>
+<a name="PathToolkit"></a>
 
-## computed : <code>[boolean](#external_boolean)</code>
-**Kind**: global variable  
-<a name="forEach"></a>
+## PathToolkit
+**Kind**: global class  
+**Properties**
 
-## forEach(list, callback)
-**Kind**: global function  
+| Name | Type | Description |
+| --- | --- | --- |
+| options | <code>Object</code> | Optional. Collection of configuration settings for this instance of PathToolkit. See `setOptions` function below for detailed documentation. |
+
+
+* [PathToolkit](#PathToolkit)
+    * [new PathToolkit()](#new_PathToolkit_new)
+    * [~isQuoted(str)](#PathToolkit..isQuoted) ⇒ <code>Boolean</code>
+    * [~stripQuotes(str)](#PathToolkit..stripQuotes) ⇒ <code>String</code>
+
+<a name="new_PathToolkit_new"></a>
+
+### new PathToolkit()
+PathToolkit base object. Includes all instance-specific data (options, cache)
+as local variables. May be passed an options hash to pre-configure the
+instance prior to use.
+
+<a name="PathToolkit..isQuoted"></a>
+
+### PathToolkit~isQuoted(str) ⇒ <code>Boolean</code>
+Test string to see if it is surrounded by single- or double-quote, using the
+current configuration definition for those characters. If no quote container
+is defined, this function will return false since it's not possible to quote
+the string if there are no quotes in the syntax. Also ignores escaped quote
+characters.
+
+**Kind**: inner method of <code>[PathToolkit](#PathToolkit)</code>  
+**Returns**: <code>Boolean</code> - true = string is enclosed in quotes; false = not quoted  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>String</code> | The string to test for enclosing quotes |
+
+<a name="PathToolkit..stripQuotes"></a>
+
+### PathToolkit~stripQuotes(str) ⇒ <code>String</code>
+Remove enclosing quotes from a string. The isQuoted function will determine
+if any change is needed. If the string is quoted, we know the first and last
+characters are quote marks, so simply do a string slice. If the input value is
+not quoted, return the input value unchanged. Because isQuoted is used, if
+no quote marks are defined in the syntax, this function will return the input value.
+
+**Kind**: inner method of <code>[PathToolkit](#PathToolkit)</code>  
+**Returns**: <code>String</code> - The input string without any enclosing quote marks.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| str | <code>String</code> | The string to un-quote |
+
+<a name="Transducer"></a>
+
+## Transducer ⇐ <code>[Null](#Null)</code>
+**Kind**: global class  
+**Extends:** <code>[Null](#Null)</code>  
+
+* [Transducer](#Transducer) ⇐ <code>[Null](#Null)</code>
+    * [new Transducer(xf)](#new_Transducer_new)
+    * [new Transducer(xf)](#new_Transducer_new)
+    * [.@@transducer/init()](#Transducer+@@transducer/init)
+    * [.@@transducer/step()](#Transducer+@@transducer/step)
+    * [.@@transducer/result()](#Transducer+@@transducer/result)
+    * [.@@transducer/init()](#Transducer+@@transducer/init)
+    * [.@@transducer/step()](#Transducer+@@transducer/step)
+    * [.@@transducer/result()](#Transducer+@@transducer/result)
+    * [.xfInit()](#Transducer+xfInit)
+    * [.xfStep()](#Transducer+xfStep)
+    * [.xfResult()](#Transducer+xfResult)
+
+<a name="new_Transducer_new"></a>
+
+### new Transducer(xf)
 
 | Param | Type |
 | --- | --- |
-| list | <code>[Array-Like](#Array-Like)</code> | 
-| callback | <code>[ForEachCallback](#ForEachCallback)</code> | 
+| xf | <code>[Function](#external_Function)</code> | 
 
-<a name="hasOwnProperty"></a>
+<a name="new_Transducer_new"></a>
 
-## hasOwnProperty(object, property)
-**Kind**: global function  
+### new Transducer(xf)
 
 | Param | Type |
 | --- | --- |
-| object | <code>\*</code> | 
-| property | <code>[string](#external_string)</code> | 
+| xf | <code>[Function](#external_Function)</code> | 
 
-<a name="kp"></a>
+<a name="Transducer+@@transducer/init"></a>
 
-## kp(literals, values) ⇒ <code>[KeyPathCallback](#KeyPathCallback)</code>
-A template literal tag for keypath processing.
+### transducer.@@transducer/init()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/step"></a>
 
-**Kind**: global function  
+### transducer.@@transducer/step()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/result"></a>
 
-| Param | Type |
-| --- | --- |
-| literals | <code>[Array.&lt;string&gt;](#external_string)</code> | 
-| values | <code>[Array](#external_Array)</code> | 
+### transducer.@@transducer/result()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/init"></a>
 
-**Example**  
-```js
-const object = { foo: { bar: { qux: { baz: 'fuz' } } } },
- getBaz = ( target ) => kp`foo.bar.qux.baz`( target );
+### transducer.@@transducer/init()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/step"></a>
 
-console.log( getBaz( object ) ); // "fuz"
-```
-<a name="Array-Like"></a>
+### transducer.@@transducer/step()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+@@transducer/result"></a>
 
-## Array-Like : <code>[Array](#external_Array)</code> &#124; <code>[Arguments](#external_Arguments)</code> &#124; <code>[string](#external_string)</code>
-JavaScript Array-Like
+### transducer.@@transducer/result()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+xfInit"></a>
 
+### transducer.xfInit()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+xfStep"></a>
+
+### transducer.xfStep()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="Transducer+xfResult"></a>
+
+### transducer.xfResult()
+**Kind**: instance method of <code>[Transducer](#Transducer)</code>  
+<a name="KeypathCallback"></a>
+
+## KeypathCallback ⇒ <code>\*</code>
 **Kind**: global typedef  
-**See**: [http://www.2ality.com/2013/05/quirk-array-like-objects.html](http://www.2ality.com/2013/05/quirk-array-like-objects.html)  
+**Returns**: <code>\*</code> - The value at the end of the keypath or undefined if the value was being set  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| target | <code>\*</code> | The object on which the keypath will be executed |
+| [value] | <code>\*</code> | The optional value that will be set at the keypath |
+
 <a name="ForEachCallback"></a>
 
 ## ForEachCallback : <code>[Function](#external_Function)</code>
@@ -1284,9 +5766,16 @@ JavaScript Array-Like
 | item | <code>\*</code> | 
 | index | <code>[number](#external_number)</code> | 
 
-<a name="KeyPathCallback"></a>
+<a name="Array-Like"></a>
 
-## KeyPathCallback ⇒ <code>\*</code>
+## Array-Like : <code>[Array](#external_Array)</code> &#124; <code>[Arguments](#external_Arguments)</code> &#124; <code>[string](#external_string)</code>
+JavaScript Array-Like
+
+**Kind**: global typedef  
+**See**: [http://www.2ality.com/2013/05/quirk-array-like-objects.html](http://www.2ality.com/2013/05/quirk-array-like-objects.html)  
+<a name="KeypathCallback"></a>
+
+## KeypathCallback ⇒ <code>\*</code>
 **Kind**: global typedef  
 **Returns**: <code>\*</code> - The value at the end of the keypath or undefined if the value was being set  
 
