@@ -1,54 +1,10 @@
 'use strict';
 
+import Character from './character';
 import Null from './null';
 import * as Token from './token';
 
 var lexerPrototype;
-
-/**
- * @function Lexer~isIdentifier
- * @param {external:string} char
- * @returns {external:boolean} Whether or not the character is an identifier character
- */
-function isIdentifier( char ){
-    return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || '_' === char || char === '$';
-}
-
-/**
- * @function Lexer~isNumeric
- * @param {external:string} char
- * @returns {external:boolean} Whether or not the character is a numeric character
- */
-function isNumeric( char ){
-    return '0' <= char && char <= '9';
-}
-
-/**
- * @function Lexer~isPunctuator
- * @param {external:string} char
- * @returns {external:boolean} Whether or not the character is a punctuator character
- */
-function isPunctuator( char ){
-    return char === '.' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === ',' || char === '%' || char === '?' || char === ';' || char === '~';
-}
-
-/**
- * @function Lexer~isQuote
- * @param {external:string} char
- * @returns {external:boolean} Whether or not the character is a quote character
- */
-function isQuote( char ){
-    return char === '"' || char === "'";
-}
-
-/**
- * @function Lexer~isWhitespace
- * @param {external:string} char
- * @returns {external:boolean} Whether or not the character is a whitespace character
- */
-function isWhitespace( char ){
-    return char === ' ' || char === '\r' || char === '\t' || char === '\n' || char === '\v' || char === '\u00A0';
-}
 
 /**
  * @class Lexer
@@ -89,9 +45,9 @@ lexerPrototype.lex = function( text ){
         char = this.buffer[ this.index ];
 
         // Identifier
-        if( isIdentifier( char ) ){
+        if( Character.isIdentifierStart( char ) ){
             word = this.read( function( char ){
-                return !isIdentifier( char ) && !isNumeric( char );
+                return !Character.isIdentifierPart( char );
             } );
 
             token = word === 'null' ?
@@ -100,14 +56,14 @@ lexerPrototype.lex = function( text ){
             this.tokens.push( token );
 
         // Punctuator
-        } else if( isPunctuator( char ) ){
+        } else if( Character.isPunctuator( char ) ){
             token = new Token.Punctuator( char );
             this.tokens.push( token );
 
             this.index++;
 
         // Quoted String
-        } else if( isQuote( char ) ){
+        } else if( Character.isQuote( char ) ){
             quote = char;
 
             this.index++;
@@ -122,16 +78,16 @@ lexerPrototype.lex = function( text ){
             this.index++;
 
         // Numeric
-        } else if( isNumeric( char ) ){
+        } else if( Character.isNumeric( char ) ){
             word = this.read( function( char ){
-                return !isNumeric( char );
+                return !Character.isNumeric( char );
             } );
 
             token = new Token.NumericLiteral( word );
             this.tokens.push( token );
 
         // Whitespace
-        } else if( isWhitespace( char ) ){
+        } else if( Character.isWhitespace( char ) ){
             this.index++;
 
         // Error
