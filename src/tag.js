@@ -1,6 +1,6 @@
 'use strict';
 
-import KeypathExp from './keypath-exp';
+import KeypathExp from './exp';
 import Null from './null';
 
 var cache = new Null();

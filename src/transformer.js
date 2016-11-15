@@ -1,5 +1,5 @@
 import Null from './null';
-import KeypathExp from './keypath-exp';
+import KeypathExp from './exp';
 
 var protocol = new Null();
 
