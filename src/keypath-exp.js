@@ -5,7 +5,6 @@ import Lexer from './lexer';
 import Builder from './builder';
 import Interpreter from './interpreter';
 import hasOwnProperty from './has-own-property';
-import { protocol, Transducer } from './transducer';
 
 var lexer = new Lexer(),
     builder = new Builder( lexer ),
@@ -55,7 +54,7 @@ export default function KeypathExp( pattern, flags ){
     } );
 }
 
-KeypathExp.prototype = Object.create( Transducer.prototype );
+KeypathExp.prototype = new Null();
 
 KeypathExp.prototype.constructor = KeypathExp;
 
@@ -72,13 +71,6 @@ KeypathExp.prototype.get = function( target, lookup ){
 KeypathExp.prototype.has = function( target, lookup ){
     var result = this.getter( target, undefined, lookup );
     return typeof result !== 'undefined';
-};
-
-/**
- * @function KeypathExp#@@transducer/step
- */
-KeypathExp.prototype[ protocol.step ] = function( value, input ){
-    return this.xfStep( value, this.get( input ) );
 };
 
 /**
@@ -105,12 +97,4 @@ KeypathExp.prototype.toJSON = function(){
  */
 KeypathExp.prototype.toString = function(){
     return this.source;
-};
-
-KeypathExp.prototype.tr = function(){
-    var kpex = this;
-    return function( xf ){
-        Transducer.call( kpex, xf );
-        return kpex;
-    };
 };
