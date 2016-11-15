@@ -6,17 +6,16 @@ const gulp = require( 'gulp' ),
     concat = require( 'gulp-concat' ),
     debug = require( 'gulp-debug' ),
     filter = require( 'gulp-filter' ),
+    flatmap = require( 'gulp-flatmap' ),
     gutil = require( 'gulp-util' ),
     istanbul = require( 'gulp-istanbul' ),
     jsdoc = require( 'gulp-jsdoc-to-markdown' ),
     mocha = require( 'gulp-mocha' ),
-    rename = require( 'gulp-rename' ),
+    path = require( 'path' ),
     rollup = require( 'rollup-stream' ),
     size = require( 'gulp-size' ),
     source = require( 'vinyl-source-stream' ),
     sourcemaps = require( 'gulp-sourcemaps' ),
-    mergeStream = require( 'merge-stream' ),
-    uglify = require( 'gulp-uglify' ),
     yargs = require( 'yargs' ),
 
     colors = gutil.colors,
@@ -27,122 +26,41 @@ const gulp = require( 'gulp' ),
         '**',
     tgrep = yargs.argv.tgrep;
 
-gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
+gulp.task( 'dist', () => {
+    var distributions = 'builder exp index interpreter lexer path-toolkit tag transformer'.split( ' ' ).map( ( name ) => `**/${ name }.js` ),
+        moduleNames = {
+            builder     : 'KeypathBuilder',
+            exp         : 'KeypathExp',
+            interpreter : 'KeypathInterpreter',
+            lexer       : 'KeypathLexer',
+            'path-toolkit'  : 'PathToolkit',
+            tag         : 'kp',
+            transformer : 'KeypathTransformer'
+        },
+        dgrep = filter( distributions );
 
-        rollup( {
-            entry: 'src/index.js',
-            format: 'umd',
-            moduleName: 'KeypathExp',
-            sourceMap: true
-        } )
-        .pipe( source( 'index.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        //.pipe( uglify() )
-        //.on( 'error', function( error ){
-        //    log( error.toString() );
-        //} )
-        .pipe( sourcemaps.write() )
-        .pipe( size() )
-        .pipe( gulp.dest( '.' ) ),
+    return gulp.src( 'src/*.js' )
+        .pipe( dgrep )
+        .pipe( debug( { title: 'Distributing' } ) )
+        .pipe( flatmap( ( stream, file ) => {
+            var parsed = path.parse( file.path ),
+                fileName = parsed.name,
+                moduleName = moduleNames[ fileName ];
 
-        rollup( {
-            entry: 'src/keypath-exp.js',
-            format: 'umd',
-            moduleName: 'KeypathExp',
-            sourceMap: true
-        } )
-        .pipe( source( 'keypath-exp.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'keypath-exp-umd.js' ) )
-        .pipe( sourcemaps.write() )
-        .pipe( gulp.dest( 'dist' ) ),
-
-        rollup( {
-            entry: 'src/kp.js',
-            format: 'umd',
-            moduleName: 'kp',
-            sourceMap: true
-        } )
-        .pipe( source( 'kp.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'kp-umd.js' ) )
-        .pipe( sourcemaps.write() )
-        .pipe( gulp.dest( 'dist' ) ),
-
-        rollup( {
-            entry: 'src/interpreter.js',
-            format: 'umd',
-            moduleName: 'Interpreter',
-            sourceMap: true
-        } )
-        .pipe( source( 'interpreter.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'interpreter-umd.js' ) )
-        .pipe( sourcemaps.write() )
-        .pipe( gulp.dest( 'dist' ) ),
-
-        rollup( {
-            entry: 'src/builder.js',
-            format: 'umd',
-            moduleName: 'Builder',
-            sourceMap: true
-        } )
-        .pipe( source( 'builder.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'builder-umd.js' ) )
-        .pipe( sourcemaps.write() )
-        .pipe( gulp.dest( 'dist' ) ),
-
-        rollup( {
-            entry: 'src/lexer.js',
-            format: 'umd',
-            moduleName: 'Lexer',
-            sourceMap: true
-        } )
-        .pipe( source( 'lexer.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'lexer-umd.js' ) )
-        .pipe( sourcemaps.write() )
-        .pipe( gulp.dest( 'dist' ) ),
-
-        // path-toolkit.js does not really need to be bundled
-        // but it's easier to just reuse the code
-        rollup( {
-            entry: 'src/path-toolkit.js',
-            format: 'umd',
-            moduleName: 'PathToolkit',
-            sourceMap: true
-        } )
-        .pipe( source( 'path-toolkit.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'path-toolkit-umd.js' ) )
-        .pipe( sourcemaps.write() )
-        .pipe( gulp.dest( 'dist' ) ),
-
-        rollup( {
-            entry: 'src/path-toolkit.js',
-            format: 'umd',
-            moduleName: 'PathToolkit',
-            sourceMap: true
-        } )
-        .pipe( source( 'path-toolkit.js', 'src' ) )
-        .pipe( buffer() )
-        .pipe( uglify() )
-        .pipe( sourcemaps.init( { loadMaps: true } ) )
-        .pipe( rename( 'path-toolkit-min.js' ) )
-        .pipe( sourcemaps.write() )
-        .pipe( gulp.dest( 'dist' ) )
-    )
-    .pipe( filter( fgrep ) )
-    .pipe( debug( { title: 'Distributing' } ) )
-);
+            return rollup( {
+                entry: file.path,
+                format: 'umd',
+                moduleName: moduleName,
+                sourceMap: true
+            } )
+            .pipe( source( parsed.base, parsed.dir ) )
+            .pipe( buffer() )
+            .pipe( sourcemaps.init( { loadMaps: true } ) )
+            .pipe( sourcemaps.write() )
+            .pipe( size( { title: fileName } ) );
+        } ) )
+        .pipe( gulp.dest( 'dist' ) );
+} );
 
 gulp.task( 'docs', () => {
     return gulp.src( [ 'index.js', 'src/**/*.js' ] )
