@@ -1,8 +1,6 @@
-'use strict';
-
 import { ComputedMemberExpression, Expression, Identifier, Node, Literal } from './node';
 import * as KeypathSyntax from './keypath-syntax';
-import hasOwnProperty from './has-own-property'
+import hasOwnProperty from './has-own-property';
 
 /**
  * @class Builder~OperatorExpression

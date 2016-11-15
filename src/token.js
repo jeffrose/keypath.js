@@ -1,5 +1,3 @@
-'use strict';
-
 import Null from './null';
 import * as Grammar from './grammar';
 

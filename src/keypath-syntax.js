@@ -1,5 +1,3 @@
-'use strict';
-
 export var BlockExpression       = 'BlockExpression';
 export var ExistentialExpression = 'ExistentialExpression';
 export var LookupExpression      = 'LookupExpression';

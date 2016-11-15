@@ -1,5 +1,3 @@
-'use strict';
-
 export var Identifier      = 'Identifier';
 export var NumericLiteral  = 'Numeric';
 export var NullLiteral     = 'Null';

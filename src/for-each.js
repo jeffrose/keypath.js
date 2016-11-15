@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @typedef {external:Function} ForEachCallback
  * @param {*} item

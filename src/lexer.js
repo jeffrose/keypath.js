@@ -1,7 +1,5 @@
-'use strict';
-
-import Character from './character';
 import Null from './null';
+import * as Character from './character';
 import * as Token from './token';
 
 var lexerPrototype;
@@ -11,7 +9,23 @@ var lexerPrototype;
  * @extends Null
  */
 export default function Lexer(){
-    this.buffer = '';
+    /**
+     * @member {external:string}
+     * @default ''
+     */
+    this.source = '';
+    /**
+     * @member {external:number}
+     */
+    this.index = 0;
+    /**
+     * @member {external:number}
+     */
+    this.length = 0;
+    /**
+     * @member {Array<Lexer~Token>}
+     */
+    this.tokens = [];
 }
 
 lexerPrototype = Lexer.prototype = new Null();
@@ -23,26 +37,20 @@ lexerPrototype.constructor = Lexer;
  * @param {external:string} text
  */
 lexerPrototype.lex = function( text ){
-    /**
-     * @member {external:string}
-     * @default ''
-     */
-    this.buffer = text;
-    /**
-     * @member {external:number}
-     */
-    this.index = 0;
-    /**
-     * @member {Array<Lexer~Token>}
-     */
-    this.tokens = [];
+    // Reset the index and tokens
+    if( this.index ){
+        this.index = 0;
+        this.tokens = [];
+    }
 
-    var length = this.buffer.length,
-        word = '',
+    this.source = text;
+    this.length = text.length;
+
+    var word = '',
         char, token, quote;
 
-    while( this.index < length ){
-        char = this.buffer[ this.index ];
+    while( !this.eol() ){
+        char = this.source[ this.index ];
 
         // Identifier
         if( Character.isIdentifierStart( char ) ){
@@ -103,6 +111,14 @@ lexerPrototype.lex = function( text ){
 
 /**
  * @function
+ * @returns {external:boolean} Whether or not the lexer is at the end of the line
+ */
+lexerPrototype.eol = function(){
+    return this.index >= this.length;
+};
+
+/**
+ * @function
  * @param {external:function} until A condition that when met will stop the reading of the buffer
  * @returns {external:string} The portion of the buffer read
  */
@@ -110,8 +126,8 @@ lexerPrototype.read = function( until ){
     var start = this.index,
         char;
 
-    while( this.index < this.buffer.length ){
-        char = this.buffer[ this.index ];
+    while( !this.eol() ){
+        char = this.source[ this.index ];
 
         if( until( char ) ){
             break;
@@ -120,7 +136,7 @@ lexerPrototype.read = function( until ){
         this.index++;
     }
 
-    return this.buffer.slice( start, this.index );
+    return this.source.slice( start, this.index );
 };
 
 /**
@@ -130,7 +146,7 @@ lexerPrototype.read = function( until ){
 lexerPrototype.toJSON = function(){
     var json = new Null();
 
-    json.buffer = this.buffer;
+    json.source = this.source;
     json.tokens = this.tokens.map( function( token ){
         return token.toJSON();
     } );
@@ -143,5 +159,5 @@ lexerPrototype.toJSON = function(){
  * @returns {external:string} A string representation of the lexer
  */
 lexerPrototype.toString = function(){
-    return this.buffer;
+    return this.source;
 };

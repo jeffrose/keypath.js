@@ -1,5 +1,3 @@
-'use strict';
-
 import forEach from './for-each';
 import Null from './null';
 
@@ -29,13 +27,13 @@ Compiler.prototype.constructor = Compiler;
 Compiler.prototype.compile = function( expression ){
     var ast = this.builder.build( expression ),
         fn;
-    
+
     this.recurse( ast, function( program ){
         fn = generate( program );
     } );
-    
+
     console.log( fn );
-    
+
     return new Function( fn );
 };
 
@@ -56,7 +54,7 @@ Compiler.prototype.nonComputedMember = function( left, right ){
 Compiler.prototype.recurse = function( node, callback = noop ){
     let compiler = this,
         args;
-        
+
     switch( node.type ){
         case 'CallExpression':
             args = [];

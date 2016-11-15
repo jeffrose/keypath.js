@@ -1,5 +1,3 @@
-'use strict';
-
 import KeypathExp from './exp';
 import Null from './null';
 

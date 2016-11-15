@@ -1,5 +1,3 @@
-'use strict';
-
 export var ArrayExpression       = 'ArrayExpression';
 export var CallExpression        = 'CallExpression';
 export var ExpressionStatement   = 'ExpressionStatement';

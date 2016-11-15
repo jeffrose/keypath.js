@@ -133,7 +133,7 @@ describe( 'Lexer', function(){
 
         const json = lexer.toJSON();
 
-        expect( json ).to.have.property( 'buffer', 'abc' );
+        expect( json ).to.have.property( 'source', 'abc' );
         expect( json ).to.have.property( 'tokens' );
     } );
 } );

@@ -1,5 +1,3 @@
-'use strict';
-
 import hasOwnProperty from './has-own-property';
 import Null from './null';
 import * as Syntax from './syntax';

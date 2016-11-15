@@ -1,5 +1,3 @@
-'use strict';
-
 var _hasOwnProperty = Object.prototype.hasOwnProperty;
 
 /**
