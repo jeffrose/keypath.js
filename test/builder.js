@@ -1,8 +1,8 @@
 'use strict';
 
 var chai        = require( 'chai' ),
-    Builder     = require( '../dist/builder-umd' ),
-    Lexer       = require( '../dist/lexer-umd' ),
+    Builder     = require( '../dist/builder' ),
+    Lexer       = require( '../dist/lexer' ),
 
     expect      = chai.expect;
 

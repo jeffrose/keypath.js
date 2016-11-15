@@ -1,7 +1,7 @@
 'use strict';
 
 var chai        = require( 'chai' ),
-    PathToolkit = require( '../dist/path-toolkit-umd' ),
+    PathToolkit = require( '../dist/path-toolkit' ),
     expect      = chai.expect;
 
 var ptk = new PathToolkit();
@@ -62,7 +62,7 @@ describe( 'PathToolkit', function(){
                 }
             ]
         };
-        
+
         other = {
             'x': 'propA',
             'y': 'propB',
@@ -107,19 +107,19 @@ describe( 'PathToolkit', function(){
             var tmp = data.accounts[2]();
             expect(ptk.get(data, str)).to.equal(data.accounts[tmp].checking.fn());
         } );
-        
+
         it( 'should execute functions defined on base types', function(){
             var str = 'accounts.0.ary.sort()';
             expect(ptk.get(data, str)).to.equal(data.accounts[0].ary.sort());
         } );
-        
+
         it( 'should allow wildcard * for array indices, resolved as array of values', function(){
             var str = 'accounts.0.ary.*';
             expect(ptk.get(data, str)).to.be.an.array;
             expect(ptk.get(data, str).length).to.equal(data.accounts[0].ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(data.accounts[0].ary.join(','));
         } );
-        
+
         it( 'should allow wildcards for properties, resulting array may be further evaluated', function(){
             var str = 'accounts.1.sav*.sort().0';
             var ary = [];
@@ -130,7 +130,7 @@ describe( 'PathToolkit', function(){
             }
             expect(ptk.get(data, str)).to.equal(ary.sort()[0]);
         } );
-        
+
         it( 'should allow interior wildcards', function(){
             var str = 'accounts.1.sav*a';
             var ary = [];
@@ -148,17 +148,17 @@ describe( 'PathToolkit', function(){
             var str = 'accounts.0.^1.checking.id';
             expect(ptk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
-        
+
         it('should allow root prefix to shift context within object', function () {
             var str = 'accounts.0.~accounts.1.checking.id';
             expect(ptk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
-        
+
         it('should allow multiple prefixes in one word', function () {
             var str = 'accounts.3.propAry.^^1.checking.id';
             expect(ptk.get(data, str)).to.equal(data.accounts[1].checking.id);
         });
-        
+
         it('should allow container to leave outer context alone while processing internal prefix paths', function () {
             var str = 'accounts.1.{^3.propAry.0}';
             var str2 = 'accounts.1.{~accounts.3.propAry.0}';
@@ -166,7 +166,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str)).to.equal(val);
             expect(ptk.get(data, str2)).to.equal(val);
         });
-        
+
         it('should allow parent prefix to shift context for all wildcard props', function () {
             var str = 'accounts.1.checking.^test*.sort()';
             var ary = [];
@@ -188,7 +188,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
-        
+
         it('should continue to process collection results with further properties', function () {
             var str = 'accounts.1.test1,test2.0';
             expect(ptk.get(data, str)).to.equal(data.accounts[1].test1);
@@ -214,7 +214,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
-        
+
         it( 'should allow container inside group', function(){
             var str = 'accounts.1.{^3.propAry.0},savA*';
             var ary = [];
@@ -229,7 +229,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         } );
-        
+
         it( 'should allow path of only a comma group', function(){
             var str = '{accounts.1.test1},{accounts.1.test2}';
             var ary = [];
@@ -245,7 +245,7 @@ describe( 'PathToolkit', function(){
             var key = 'savX';
             expect(ptk.get(data, str, 1, key)).to.equal(data.accounts[1].savX);
         });
-        
+
         it( 'should call functions with placeholder arg', function(){
             var str = 'accounts.1.checking.fnArg(%1)';
             var key = 'hello';
@@ -329,12 +329,12 @@ describe( 'PathToolkit', function(){
             var str = '{@1.x}';
             expect(ptk.get(data, str, other)).to.equal(data[other.x]);
         });
-        
+
         it( 'should switch processing from base data to new object if context placeholder is used as path segment', function(){
             var str = 'accounts.1.@1.x';
             expect(ptk.get(data, str, other)).to.equal(other.x);
         });
-        
+
         it( 'should preserve use of context stack when handling context placeholders', function(){
             var str = 'accounts.1{@1.z}id';
             var fn = function(x){ return x; }
@@ -368,7 +368,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str3).length).to.equal(ary3.length);
             expect(ptk.get(data, str3).join(',')).to.equal(ary3.join(','));
         } );
-        
+
         it('should support "each" operator to return array', function(){
             var str = 'accounts.0,1,3<common';
             var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
@@ -376,7 +376,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         });
-        
+
         it('should support "each" operator to return array', function(){
             var str = 'accounts.0,1,3<common';
             var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
@@ -384,40 +384,40 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         });
-        
+
         it('should support "each" operator to execute function on each array elememt, return array of results', function(){
             var str = 'accounts.0,1,3<common<toLowerCase()';
             var ary = [data.accounts[0].common.toLowerCase(), data.accounts[1].common.toLowerCase(), data.accounts[3].common.toLowerCase()];
             expect(ptk.get(data, str)).to.be.an.array;
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
-            
+
             var str2 = 'accounts.0,1,3<common<concat(@1)';
             var ary2 = [data.accounts[0].common.concat("X"), data.accounts[1].common.concat("X"), data.accounts[3].common.concat("X")];
             expect(ptk.get(data, str2, 'X')).to.be.an.array;
             expect(ptk.get(data, str2, 'X').length).to.equal(ary2.length);
             expect(ptk.get(data, str2, 'X').join(',')).to.equal(ary2.join(','));
-            
+
             var str2 = 'accounts.0,1,3<common<@1(@2)';
             var ary2 = [data.accounts[0].common.concat("X"), data.accounts[1].common.concat("X"), data.accounts[3].common.concat("X")];
             expect(ptk.get(data, str2, String.prototype.concat, 'X')).to.be.an.array;
             expect(ptk.get(data, str2, String.prototype.concat, 'X').length).to.equal(ary2.length);
             expect(ptk.get(data, str2, String.prototype.concat, 'X').join(',')).to.equal(ary2.join(','));
         });
-        
+
         it('should support "each" operator with bracket properties', function(){
             var str = 'accounts.[0],[1],[3]<[common]<toLowerCase()';
             var ary = [data.accounts[0].common.toLowerCase(), data.accounts[1].common.toLowerCase(), data.accounts[3].common.toLowerCase()];
             expect(ptk.get(data, str)).to.be.an.array;
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
-            
+
             var str2 = 'accounts.0,1,3<["common"]<toLowerCase()';
             expect(ptk.get(data, str2)).to.be.an.array;
             expect(ptk.get(data, str2).length).to.equal(ary.length);
             expect(ptk.get(data, str2).join(',')).to.equal(ary.join(','));
         });
-        
+
         it('should support "each" operator with wildcard properties', function(){
             var str = 'accounts.0,1<comm*';
             var ary = [data.accounts[0].common, data.accounts[1].common];
@@ -425,7 +425,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         });
-        
+
         it('should support "each" operator with eval properties', function(){
             var str = 'accounts.0,1,3<{~commonProp}';
             var ary = [data.accounts[0].common, data.accounts[1].common, data.accounts[3].common];
@@ -433,7 +433,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str).length).to.equal(ary.length);
             expect(ptk.get(data, str).join(',')).to.equal(ary.join(','));
         });
-        
+
         it('should support "each" for collection maps of collections', function(){
             var str = 'people.*<id,name';
             var ary = [];
@@ -563,7 +563,7 @@ describe( 'PathToolkit', function(){
             ptk.set(data, str2, newVal2);
             expect(data.accounts[1][ data.accounts[3].propAry[0] ]).to.equal(newVal2);
         });
-        
+
         it('should allow last segment to process prefix paths and set value', function () {
             var str = 'accounts.1.checking.^savX';
             var newVal = 'new';
@@ -593,7 +593,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, tokens2, key)).to.equal(newVal2);
             expect(data.accounts[1].checking.id).to.equal(newVal2);
         } );
-        
+
         it('should support "each" operator set values in array', function(){
             var str = 'accounts.0,1,3<common';
             var result = ptk.set(data, str, 'NEW');
@@ -601,7 +601,7 @@ describe( 'PathToolkit', function(){
             expect(result).to.be.true;
             expect(ary.join(',')).to.equal('NEW,NEW,NEW');
         });
-        
+
         it('should support "each" operator with wildcard properties', function(){
             var str = 'accounts.0,1<comm*';
             var result = ptk.set(data, str, 'BETTER');
@@ -609,7 +609,7 @@ describe( 'PathToolkit', function(){
             expect(result).to.be.true;
             expect(ary.join(',')).to.equal('BETTER,BETTER');
         });
-        
+
         it('should support "each" operator with eval properties', function(){
             var str = 'accounts.0,1,3<{~commonProp}';
             var result = ptk.set(data, str, 'NEW');
@@ -702,7 +702,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.escape('accounts{{a()},{b.c,d}}')).to.equal('accounts\\{\\{a\\(\\)\\}\\,\\{b\\.c\\,d\\}\\}');
         });
     });
-    
+
     describe('setOptions and resetOptions', function(){
         it('requires setCacheOn/Off to work for testing', function(){
             var path = 'x.y.z';
@@ -739,18 +739,18 @@ describe( 'PathToolkit', function(){
             });
             expect(ptk.getTokens('a.b.c').t.length).to.equal(1);
             expect(ptk.getTokens('a#b#c').t.length).to.equal(3);
-            
+
             ptk.resetOptions();
             expect(ptk.getTokens('a.b.c').t.length).to.equal(3);
             expect(ptk.getTokens('a#b#c').t.length).to.equal(1);
         });
     });
-    
+
     describe('setOptions', function(){
         afterEach(function(){
             ptk.resetOptions();
         });
-        
+
         it('should allow special characters to be re-defined', function () {
             ptk.setOptions({
                 'cache': true,
@@ -805,7 +805,7 @@ describe( 'PathToolkit', function(){
             expect(ptk.get(data, str4).join(',')).to.equal(ary4.join(','));
         });
     });
-    
+
     describe('options', function(){
         afterEach(function(){
             ptk.resetOptions();
@@ -817,19 +817,19 @@ describe( 'PathToolkit', function(){
                 var newVal = 'new';
                 var result;
                 ptk.setOptions({force:true});
-                
+
                 result = ptk.set(data, str, newVal);
                 expect(ptk.get(data, str)).to.equal(newVal);
                 expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
                 expect(result).to.be.true;
-                
+
                 str = 'accounts.1["new.PropC"]newPropD';
                 var newVal2 = 'new2';
                 result = ptk.set(data, str, newVal2);
                 expect(ptk.get(data, str)).to.equal(newVal2);
                 expect(data.accounts[1]['new.PropC'].newPropD).to.equal(newVal2);
                 expect(result).to.be.true;
-                
+
                 var tokens = {t:['accounts','1','newPropE','newPropF']};
                 var newVal3 = 'new3';
                 result = ptk.set(data, tokens, newVal3);
@@ -837,7 +837,7 @@ describe( 'PathToolkit', function(){
                 expect(data.accounts[1].newPropE.newPropF).to.equal(newVal3);
                 expect(result).to.be.true;
            });
-           
+
            it('should work with setForceOn()', function(){
                 var str = 'accounts.1.newPropA.newPropB';
                 var newVal = 'new';
@@ -847,14 +847,14 @@ describe( 'PathToolkit', function(){
                 expect(ptk.get(data, str)).to.equal(newVal);
                 expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
                 expect(result).to.be.true;
-                
+
                 str = 'accounts.1["new.PropA"]newPropB';
                 result = ptk.set(data, str, newVal);
                 expect(ptk.get(data, str)).to.equal(newVal);
                 expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
                 expect(result).to.be.true;
            });
-           
+
            it('should work with setForce(true)', function(){
                 var str = 'accounts.1.newPropA.newPropB';
                 var newVal = 'new';
@@ -864,14 +864,14 @@ describe( 'PathToolkit', function(){
                 expect(ptk.get(data, str)).to.equal(newVal);
                 expect(data.accounts[1].newPropA.newPropB).to.equal(newVal);
                 expect(result).to.be.true;
-                
+
                 str = 'accounts.1["new.PropA"]newPropB';
                 result = ptk.set(data, str, newVal);
                 expect(ptk.get(data, str)).to.equal(newVal);
                 expect(data.accounts[1]['new.PropA'].newPropB).to.equal(newVal);
                 expect(result).to.be.true;
            });
-           
+
            it('should NOT create intermediate properties if force is off', function(){
                 var str = 'accounts.1.newPropA.newPropB';
                 var newVal = 'new';
@@ -881,120 +881,120 @@ describe( 'PathToolkit', function(){
                 expect(ptk.get(data, str)).to.be.undefined;
                 expect(result).to.be.false;
            });
-           
+
         });
-        
+
         describe('simple', function(){
            it('"true" should still process simple dot-separated string paths', function(){
                 var str = 'accounts.1.checking.id';
                 var val = data.accounts[1].checking.id;
                 ptk.setOptions({simple:true});
-                
+
                 expect(ptk.get(data, str)).to.equal(val);
            });
-           
+
            it('"true" should disable use of other special characters', function(){
                 var str = 'accounts.1.checking.id';
                 var val = data.accounts[1].checking.id;
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setOptions({simple:true});
-                
+
                 expect(ptk.get(data, 'accounts.1.checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
            });
-           
+
            it('should work with setSimpleOn()', function(){
                 var str = 'accounts.1.checking.id';
                 var val = data.accounts[1].checking.id;
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setSimpleOn();
-                
+
                 expect(ptk.get(data, 'accounts.1.checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
            });
-           
+
            it('should be able to declare a different separator with setSimpleOn(separator)', function(){
                 var str = 'accounts.1.checking.id';
                 var val = data.accounts[1].checking.id;
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setSimpleOn(',');
-                
+
                 expect(ptk.get(data, 'accounts,1,checking,id')).to.equal(val);
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
            });
-           
+
            it('should work with setSimple(true)', function(){
                 var str = 'accounts.1.checking.id';
                 var val = data.accounts[1].checking.id;
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setSimple(true);
-                
+
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
            });
-           
+
            it('should be able to declare a different separator with setSimple(true, separator)', function(){
                 var str = 'accounts.1.checking.id';
                 var val = data.accounts[1].checking.id;
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setSimple(true, ',');
-                
+
                 expect(ptk.get(data, 'accounts,1,checking,id')).to.equal(val);
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
            });
-           
+
            it('"false" should restore full suite of path features', function(){
                 var str = 'accounts.1.checking.id';
                 var val = data.accounts[1].checking.id;
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setSimpleOn();
-                
+
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
-                
+
                 ptk.setSimpleOff();
-                
+
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setSimple(true);
-                
+
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
-                
+
                 ptk.setSimple(false);
-                
+
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
-                
+
                 ptk.setOptions({simple:true});
-                
+
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.be.undefined;
-                
+
                 ptk.setOptions({simple:false});
-                
+
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(val);
                 expect(ptk.get(data, 'accounts.%1.checking.id', '1')).to.equal(val);
            });
         });
-        
+
         describe('separators', function(){
             it('should allow all separators to be changed at once', function(){
                 ptk.setOptions({
@@ -1006,7 +1006,7 @@ describe( 'PathToolkit', function(){
                 expect(ptk.getTokens('a#b#c').t.length).to.equal(3);
                 expect(ptk.getTokens('a,b,c').t.length).to.equal(1);
             });
-            
+
             it('should modify individual separators with setSeparatorProperty', function(){
                 ptk.setSeparatorProperty('#');
                 expect(ptk.getTokens('a.b.c').t.length).to.equal(1);
@@ -1015,7 +1015,7 @@ describe( 'PathToolkit', function(){
                 expect(ptk.getTokens('a,b,c').t[0].tt.length).to.equal(3);
                 // expect(ptk.getTokens('a,b,c').t[0].length).to.equal(3);
             });
-            
+
             it('should modify individual separators with setSeparatorCollection', function(){
                 ptk.setSeparatorCollection('#');
                 expect(ptk.getTokens('a.b.c').t.length).to.equal(3);
@@ -1026,7 +1026,7 @@ describe( 'PathToolkit', function(){
                 expect(ptk.getTokens('a,b,c').t[0]).to.be.a.string;
             });
         });
-        
+
         describe('prefixes', function(){
             it('should allow all prefixes to be changed at once', function(){
                 ptk.setOptions({
@@ -1039,28 +1039,28 @@ describe( 'PathToolkit', function(){
                 expect(ptk.get(data, 'accounts.1.checking.^test1')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.checking.%propA')).to.be.undefined;
             });
-            
+
             it('should modify individual prefixes with setPrefixParent', function(){
                 ptk.setPrefixParent('#');
                 expect(ptk.get(data, 'accounts.1.checking.~propA')).to.equal(data.propA);
                 expect(ptk.get(data, 'accounts.1.checking.#test1')).to.equal(data.accounts[1].test1);
                 expect(ptk.get(data, 'accounts.1.checking.^test1')).to.be.undefined;
             });
-            
+
             it('should modify individual prefixes with setPrefixRoot', function(){
                 ptk.setPrefixRoot('#');
                 expect(ptk.get(data, 'accounts.1.checking.~propA')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.checking.#propA')).to.equal(data.propA);
                 expect(ptk.get(data, 'accounts.1.checking.^test1')).to.equal(data.accounts[1].test1);
             });
-            
+
             it('should modify individual prefixes with setPrefixPlaceholder', function(){
                 ptk.setPrefixPlaceholder('#');
                 expect(ptk.get(data, 'accounts.1.%1.id', 'checking')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.1.#1.id', 'checking')).to.equal(data.accounts[1].checking.id);
                 expect(ptk.get(data, 'accounts.1.checking.^test1')).to.equal(data.accounts[1].test1);
             });
-            
+
             it('should modify individual prefixes with setPrefixContext', function(){
                 ptk.setPrefixContext('#');
                 expect(ptk.get(data, 'accounts.1.@1.0', 'checking')).to.be.undefined;
@@ -1068,9 +1068,9 @@ describe( 'PathToolkit', function(){
                 expect(ptk.get(data, 'accounts.1.%1.id', 'checking')).to.equal(data.accounts[1].checking.id);
                 expect(ptk.get(data, 'accounts.1.checking.^test1')).to.equal(data.accounts[1].test1);
             });
-            
+
         });
-        
+
         describe('containers', function(){
             it('should allow all containers to be changed at once', function(){
                 ptk.setOptions({
@@ -1084,100 +1084,100 @@ describe( 'PathToolkit', function(){
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
             });
-            
+
             it('should modify individual containers with setContainerProperty', function(){
                 ptk.setContainerProperty('|', '|');
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
             });
-            
+
             it('should modify individual containers with setContainerEvalProperty', function(){
                 ptk.setContainerEvalProperty('|', '|');
                 expect(ptk.get(data, 'accounts[1]checking.id')).to.equal(data.accounts[1].checking.id);
                 expect(ptk.get(data, '{accounts.1.test1}')).to.be.undefined;
                 expect(ptk.get(data, '|accounts.1.test1|')).to.equal(data[data.accounts[1].test1]);
             });
-            
+
             it('should modify individual containers with setContainerSinglequote', function(){
                 ptk.setContainerSinglequote('|', '|');
                 expect(ptk.get(data, 'accounts.\'1\'.checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
                 expect(ptk.get(data, 'accounts."1".checking.id')).to.equal(data.accounts[1].checking.id);
             });
-            
+
             it('should modify individual containers with setContainerDoublequote', function(){
                 ptk.setContainerDoublequote('|', '|');
                 expect(ptk.get(data, 'accounts."1".checking.id')).to.be.undefined;
                 expect(ptk.get(data, 'accounts|1|checking.id')).to.equal(data.accounts[1].checking.id);
                 expect(ptk.get(data, 'accounts.\'1\'.checking.id')).to.equal(data.accounts[1].checking.id);
             });
-            
+
             it('should modify individual containers with setContainerCall', function(){
                 ptk.setContainerCall('|', '|');
                 expect(ptk.get(data, 'accounts.0.ary.sort().0')).to.be.undefined;
                 expect(ptk.get(data, 'accounts.0.ary.sort||.0')).to.equal(data.accounts[0].ary.sort()[0]);
                 expect(ptk.get(data, 'accounts."1".checking.id')).to.equal(data.accounts[1].checking.id);
             });
-            
+
         });
-        
+
         describe('errors', function(){
             it('should throw error when new character is missing', function(){
                 expect(function(){ptk.setSeparatorProperty();}).to.throw(/invalid value/);
                 expect(function(){ptk.setSeparatorProperty('');}).to.throw(/invalid value/);
                 expect(function(){ptk.setSeparatorProperty('..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setSeparatorCollection();}).to.throw(/invalid value/);
                 expect(function(){ptk.setSeparatorCollection('');}).to.throw(/invalid value/);
                 expect(function(){ptk.setSeparatorCollection('..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setPrefixParent();}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixParent('');}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixParent('..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setPrefixRoot();}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixRoot('');}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixRoot('..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setPrefixPlaceholder();}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixPlaceholder('');}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixPlaceholder('..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setPrefixContext();}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixContext('');}).to.throw(/invalid value/);
                 expect(function(){ptk.setPrefixContext('..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setContainerProperty();}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerProperty('','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerProperty('|','');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerProperty('..','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerProperty('|','..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setContainerSinglequote();}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerSinglequote('','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerSinglequote('|','');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerSinglequote('..','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerSinglequote('|','..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setContainerDoublequote();}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerDoublequote('','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerDoublequote('|','');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerDoublequote('..','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerDoublequote('|','..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setContainerCall();}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerCall('','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerCall('|','');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerCall('..','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerCall('|','..');}).to.throw(/invalid value/);
-                
+
                 expect(function(){ptk.setContainerEvalProperty();}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerEvalProperty('','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerEvalProperty('|','');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerEvalProperty('..','|');}).to.throw(/invalid value/);
                 expect(function(){ptk.setContainerEvalProperty('|','..');}).to.throw(/invalid value/);
             });
-            
+
             it('should throw error when is in use for another purpose', function(){
                 expect(function(){ptk.setSeparatorProperty(',');}).to.throw(/value already in use/);
                 expect(function(){ptk.setSeparatorProperty('*');}).to.throw(/value already in use/);

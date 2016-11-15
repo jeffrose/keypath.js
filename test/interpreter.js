@@ -2,9 +2,9 @@
 
 var chai             = require( 'chai' ),
     chai_as_promised = require( 'chai-as-promised' ),
-    Builder          = require( '../dist/builder-umd' ),
-    Interpreter      = require( '../dist/interpreter-umd' ),
-    Lexer            = require( '../dist/lexer-umd' ),
+    Builder          = require( '../dist/builder' ),
+    Interpreter      = require( '../dist/interpreter' ),
+    Lexer            = require( '../dist/lexer' ),
 
     expect           = chai.expect;
 

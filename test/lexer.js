@@ -1,7 +1,7 @@
 'use strict';
 
 var chai   = require( 'chai' ),
-    Lexer  = require( '../dist/lexer-umd' ),
+    Lexer  = require( '../dist/lexer' ),
 
     expect = chai.expect;
 
