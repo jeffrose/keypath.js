@@ -14,14 +14,14 @@ function printStatus( fn ){
 
 const
     chalk = require( 'chalk' ),
-    Builder     = require( '../dist/builder-umd' ),
-    Interpreter = require( '../dist/interpreter-umd' ),
-    Lexer       = require( '../dist/lexer-umd' ),
-    
+    Builder     = require( '../dist/builder' ),
+    Interpreter = require( '../dist/interpreter' ),
+    Lexer       = require( '../dist/lexer' ),
+
     lexer = new Lexer(),
     builder = new Builder( lexer ),
     interpreter = new Interpreter( builder ),
-    
+
     path = 'foo.bar.qux.baz',
     data = {
         foo: {

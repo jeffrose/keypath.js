@@ -83,3 +83,6 @@
   * @typedef {external:Array|external:Arguments|external:string} Array-Like
   * @see {@link http://www.2ality.com/2013/05/quirk-array-like-objects.html}
   */
+
+'use strict';
+module.exports = require( 'dist/exp' );

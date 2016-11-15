@@ -14,8 +14,8 @@ function printStatus( fn ){
 
 const
     chalk = require( 'chalk' ),
-    tk    = require( '../dist/tk-umd' ),
-    
+    tk    = new ( require( '../dist/path-toolkit' ) )(),
+
     path = 'foo.bar.qux.baz',
     data = {
         foo: {
