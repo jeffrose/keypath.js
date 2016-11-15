@@ -2,8 +2,8 @@
 
 var acorn = require( 'acorn' ),
     esprima = require( 'esprima' ),
-    Lexer = require( '../dist/lexer-umd' ),
-    Builder = require( '../dist/builder-umd' ),
+    Lexer = require( '../dist/lexer' ),
+    Builder = require( '../dist/builder' ),
     
     lexer = new Lexer(),
     builder = new Builder( lexer ),

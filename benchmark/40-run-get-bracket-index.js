@@ -1,12 +1,12 @@
 'use strict';
 
-var KeypathExp = require( '../dist/keypath-exp-umd' ),
-    kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var KeypathExp = require( '../dist/exp' ),
+    kp = require( '../dist/tag' ),
+    PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
-    
+
     path = '[2][0][1][0]',
     data = [ 'a', 'b',
         [
@@ -14,7 +14,7 @@ var KeypathExp = require( '../dist/keypath-exp-umd' ),
             [ [ 123, 4 ], [ 456, 5 ], [ 789, 6 ] ]
         ]
     ];
-    
+
 module.exports = {
     name: 'Runtime:Get:Bracket:Index',
     maxTime: 5,

@@ -1,8 +1,8 @@
 'use strict';
 
-var KeypathExp = require( '../dist/keypath-exp-umd' ),
-    kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var KeypathExp = require( '../dist/exp' ),
+    kp = require( '../dist/tag' ),
+    PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
     tkNoCache = new PathToolkit({cache:false}),
     loget = require( 'lodash.get' ),

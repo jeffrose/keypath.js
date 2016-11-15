@@ -1,8 +1,8 @@
 'use strict';
 
 var esprima = require( 'esprima' ),
-    Lexer = require( '../dist/lexer-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+    Lexer = require( '../dist/lexer' ),
+    PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
     
     lexer = new Lexer(),

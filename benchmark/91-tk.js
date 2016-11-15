@@ -1,6 +1,6 @@
 'use strict';
 
-var PathToolkit = require( '../dist/path-toolkit-min' ),
+var PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
     
     data = {
