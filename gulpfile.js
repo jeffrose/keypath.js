@@ -27,7 +27,7 @@ const gulp = require( 'gulp' ),
     tgrep = yargs.argv.tgrep;
 
 gulp.task( 'dist', () => {
-    var distributions = 'builder exp interpreter lexer path-toolkit tag transformer'.split( ' ' ).map( ( name ) => `**/${ name }.js` ),
+    var distributions = 'builder exp interpreter lexer path-toolkit tag tokens transformer'.split( ' ' ).map( ( name ) => `**/${ name }.js` ),
         moduleNames = {
             builder     : 'KeypathBuilder',
             exp         : 'KeypathExp',
@@ -35,6 +35,7 @@ gulp.task( 'dist', () => {
             lexer       : 'KeypathLexer',
             'path-toolkit'  : 'PathToolkit',
             tag         : 'kp',
+            tokens      : 'Tokens',
             transformer : 'KeypathTransformer'
         },
         dgrep = filter( distributions );

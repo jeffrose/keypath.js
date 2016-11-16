@@ -10,11 +10,10 @@
  * @param {ForEachCallback} callback
  */
 export default function forEach( list, callback ){
-    var index = list.length,
-        item;
+    var index = 0,
+        length = list.length;
 
-    while( index-- ){
-        item = list[ index ];
-        callback( item, index );
+    for( ; index < length; index++ ){
+        callback( list[ index ], index, list );
     }
 }
