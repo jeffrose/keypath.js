@@ -436,7 +436,7 @@ describe( 'Builder', function(){
             expect( expression.computed ).to.equal( false );
             expect( expression ).to.have.property( 'object' );
             expect( expression ).to.have.property( 'property' );
-            expect( expression.object.type ).to.equal( 'ExistentialExpression' )
+            expect( expression.object.type ).to.equal( 'ExistentialExpression' );
         } );
 
         it( 'should not consume non-existent tokens', function(){

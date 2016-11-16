@@ -4,12 +4,12 @@ var acorn = require( 'acorn' ),
     esprima = require( 'esprima' ),
     Lexer = require( '../dist/lexer' ),
     Builder = require( '../dist/builder' ),
-    
+
     lexer = new Lexer(),
     builder = new Builder( lexer ),
-    
+
     path = 'foo.bar.qux.baz',
-    
+
     tokens = lexer.lex( path );
 
 module.exports = {

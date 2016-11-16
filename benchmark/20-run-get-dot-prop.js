@@ -1,13 +1,12 @@
 'use strict';
 
-var KeypathExp = require( '../dist/exp' ),
-    kp = require( '../dist/tag' ),
+var kp = require( '../dist/tag' ),
     PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
     tkNoCache = new PathToolkit({cache:false}),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
-    
+
     path = 'foo.bar.qux.baz',
     data = {
         foo: {
