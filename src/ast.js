@@ -3,28 +3,28 @@ import * as Grammar from './grammar';
 import * as Node from './node';
 import * as KeypathNode from './keypath-node';
 
-var builderPrototype;
+var astPrototype;
 
 /**
- * @class Builder
+ * @class AST
  * @extends Null
- * @param {Lexer} lexer
+ * @param {Tokens} tokens
  */
-export default function Builder( lexer ){
-    this.lexer = lexer;
+export default function AST( tokens ){
+    this.tokens = tokens;
 }
 
-builderPrototype = Builder.prototype = new Null();
+astPrototype = AST.prototype = new Null();
 
-builderPrototype.constructor = Builder;
+astPrototype.constructor = AST;
 
-builderPrototype.arrayExpression = function( list ){
+astPrototype.arrayExpression = function( list ){
     //console.log( 'ARRAY EXPRESSION' );
     this.consume( '[' );
     return new Node.ArrayExpression( list );
 };
 
-builderPrototype.blockExpression = function( terminator ){
+astPrototype.blockExpression = function( terminator ){
     var block = [],
         isolated = false;
     //console.log( 'BLOCK', terminator );
@@ -44,10 +44,10 @@ builderPrototype.blockExpression = function( terminator ){
 
 /**
  * @function
- * @param {external:string|Array<Builder~Token>} input
+ * @param {external:string|Array<AST~Token>} input
  * @returns {Program} The built abstract syntax tree
  */
-builderPrototype.build = function( input ){
+astPrototype.build = function( input ){
     if( typeof input === 'string' ){
         /**
          * @member {external:string}
@@ -87,7 +87,7 @@ builderPrototype.build = function( input ){
  * @function
  * @returns {CallExpression} The call expression node
  */
-builderPrototype.callExpression = function(){
+astPrototype.callExpression = function(){
     var args = this.list( '(' ),
         callee;
 
@@ -108,7 +108,7 @@ builderPrototype.callExpression = function(){
  * @returns {Token} The next token in the list
  * @throws {SyntaxError} If token did not exist
  */
-builderPrototype.consume = function( expected ){
+astPrototype.consume = function( expected ){
     if( !this.tokens.length ){
         this.throwError( 'Unexpected end of expression' );
     }
@@ -122,7 +122,7 @@ builderPrototype.consume = function( expected ){
     return token;
 };
 
-builderPrototype.existentialExpression = function(){
+astPrototype.existentialExpression = function(){
     var expression = this.expression();
     //console.log( '- EXIST EXPRESSION', expression );
     return new KeypathNode.ExistentialExpression( expression );
@@ -137,7 +137,7 @@ builderPrototype.existentialExpression = function(){
  * @param {external:string} [fourth] The fourth comparison value
  * @returns {Token} The next token in the list or `undefined` if it did not exist
  */
-builderPrototype.expect = function( first, second, third, fourth ){
+astPrototype.expect = function( first, second, third, fourth ){
     var token = this.peek( first, second, third, fourth );
 
     if( token ){
@@ -153,7 +153,7 @@ builderPrototype.expect = function( first, second, third, fourth ){
  * @function
  * @returns {Expression} An expression node
  */
-builderPrototype.expression = function(){
+astPrototype.expression = function(){
     var expression = null,
         list, next, token;
 
@@ -222,7 +222,7 @@ builderPrototype.expression = function(){
  * @function
  * @returns {ExpressionStatement} An expression statement
  */
-builderPrototype.expressionStatement = function(){
+astPrototype.expressionStatement = function(){
     var expression = this.expression(),
         expressionStatement;
     //console.log( 'EXPRESSION STATEMENT WITH', expression );
@@ -236,7 +236,7 @@ builderPrototype.expressionStatement = function(){
  * @returns {Identifier} An identifier
  * @throws {SyntaxError} If the token is not an identifier
  */
-builderPrototype.identifier = function(){
+astPrototype.identifier = function(){
     var token = this.consume();
 
     if( !( token.type === Grammar.Identifier ) ){
@@ -251,7 +251,7 @@ builderPrototype.identifier = function(){
  * @param {external:string} terminator
  * @returns {external:Array<Expression>|RangeExpression} The list of expressions or range expression
  */
-builderPrototype.list = function( terminator ){
+astPrototype.list = function( terminator ){
     var list = [],
         isNumeric = false,
         expression, next;
@@ -285,7 +285,7 @@ builderPrototype.list = function( terminator ){
  * @function
  * @returns {Literal} The literal node
  */
-builderPrototype.literal = function(){
+astPrototype.literal = function(){
     var token = this.consume(),
         raw = token.value,
         expression;
@@ -307,7 +307,7 @@ builderPrototype.literal = function(){
     return expression;
 };
 
-builderPrototype.lookup = function( next ){
+astPrototype.lookup = function( next ){
     var expression;
     //console.log( 'LOOKUP', next );
     switch( next.type ){
@@ -340,7 +340,7 @@ builderPrototype.lookup = function( next ){
     return expression;
 };
 
-builderPrototype.lookupExpression = function( key ){
+astPrototype.lookupExpression = function( key ){
     this.consume( '%' );
     return new KeypathNode.LookupExpression( key );
 };
@@ -351,7 +351,7 @@ builderPrototype.lookupExpression = function( key ){
  * @param {external:boolean} computed Whether or not the member expression is computed
  * @returns {MemberExpression} The member expression
  */
-builderPrototype.memberExpression = function( property, computed ){
+astPrototype.memberExpression = function( property, computed ){
     //console.log( 'MEMBER', property );
     var object = this.expression();
     //console.log( 'MEMBER EXPRESSION' );
@@ -363,7 +363,7 @@ builderPrototype.memberExpression = function( property, computed ){
         new Node.StaticMemberExpression( object, property );
 };
 
-builderPrototype.parse = function( input ){
+astPrototype.parse = function( input ){
     this.tokens = this.lexer.lex( input );
     return this.build( this.tokens );
 };
@@ -377,7 +377,7 @@ builderPrototype.parse = function( input ){
  * @param {external:string} [fourth] The fourth comparison value
  * @returns {Lexer~Token} The next token in the list or `undefined` if it did not exist
  */
-builderPrototype.peek = function( first, second, third, fourth ){
+astPrototype.peek = function( first, second, third, fourth ){
     return this.peekAt( 0, first, second, third, fourth );
 };
 
@@ -391,7 +391,7 @@ builderPrototype.peek = function( first, second, third, fourth ){
  * @param {external:string} [fourth] The fourth comparison value
  * @returns {Lexer~Token} The token at the requested position or `undefined` if it did not exist
  */
-builderPrototype.peekAt = function( position, first, second, third, fourth ){
+astPrototype.peekAt = function( position, first, second, third, fourth ){
     var length = this.tokens.length,
         index, token, value;
 
@@ -416,7 +416,7 @@ builderPrototype.peekAt = function( position, first, second, third, fourth ){
  * @function
  * @returns {Program} A program node
  */
-builderPrototype.program = function(){
+astPrototype.program = function(){
     var body = [];
     //console.log( 'PROGRAM' );
     while( true ){
@@ -428,7 +428,7 @@ builderPrototype.program = function(){
     }
 };
 
-builderPrototype.rangeExpression = function( right ){
+astPrototype.rangeExpression = function( right ){
     var left;
 
     this.expect( '.' );
@@ -441,12 +441,12 @@ builderPrototype.rangeExpression = function( right ){
     return new KeypathNode.RangeExpression( left, right );
 };
 
-builderPrototype.rootExpression = function( key ){
+astPrototype.rootExpression = function( key ){
     this.consume( '~' );
     return new KeypathNode.RootExpression( key );
 };
 
-builderPrototype.sequenceExpression = function( list ){
+astPrototype.sequenceExpression = function( list ){
     return new Node.SequenceExpression( list );
 };
 
@@ -455,6 +455,6 @@ builderPrototype.sequenceExpression = function( list ){
  * @param {external:string} message The error message
  * @throws {external:SyntaxError} When it executes
  */
-builderPrototype.throwError = function( message ){
+astPrototype.throwError = function( message ){
     throw new SyntaxError( message );
 };

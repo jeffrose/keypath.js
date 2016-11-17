@@ -14,8 +14,26 @@ export default function map( list, callback ){
         length = list.length,
         result = new Array( length );
 
-    for( ; index < length; index++ ){
-        result[ index ] = callback( list[ index ], index, list );
+    switch( length ){
+        case 0:
+            break;
+        case 1:
+            result[ 0 ] = callback( list[ 0 ], 0, list );
+            break;
+        case 2:
+            result[ 0 ] = callback( list[ 0 ], 0, list );
+            result[ 1 ] = callback( list[ 1 ], 1, list );
+            break;
+        case 3:
+            result[ 0 ] = callback( list[ 0 ], 0, list );
+            result[ 1 ] = callback( list[ 1 ], 1, list );
+            result[ 2 ] = callback( list[ 2 ], 2, list );
+            break;
+        default:
+            for( ; index < length; index++ ){
+                result[ index ] = callback( list[ index ], index, list );
+            }
+            break;
     }
 
     return result;
