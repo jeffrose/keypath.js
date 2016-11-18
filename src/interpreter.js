@@ -368,21 +368,20 @@ Interpreter.prototype.literal = function( value, context ){
 
 Interpreter.prototype.lookupExpression = function( key, resolve, context, assign ){
     //console.log( 'Composing LOOKUP EXPRESSION', key );
-    var isLeftFunction = false,
+    var isComputed = false,
         lhs = {},
         left;
 
     switch( key.type ){
         case Syntax.Identifier:
             left = this.identifier( key.name, true, assign );
-            isLeftFunction = true;
             break;
         case Syntax.Literal:
+            isComputed = true;
             lhs.value = left = key.value;
             break;
         default:
             left = this.recurse( key, true, assign );
-            isLeftFunction = true;
             break;
     }
 
@@ -390,7 +389,7 @@ Interpreter.prototype.lookupExpression = function( key, resolve, context, assign
         //console.log( 'Executing LOOKUP EXPRESSION' );
         //console.log( '- executeLookupExpression LEFT', left.name || left );
         var result;
-        if( isLeftFunction ){
+        if( !isComputed ){
             lhs = left( lookup, value, scope );
             result = lhs.value;
         } else {
@@ -561,7 +560,7 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
     //console.log( 'Composing STATIC MEMBER EXPRESSION', object.type, property.type );
     var interpreter = this,
         depth = this.depth,
-        isRightFunction = false,
+        isComputed = false,
         isSafe = false,
         left, rhs, right;
 
@@ -577,35 +576,34 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
 
     switch( property.type ){
         case Syntax.Identifier:
+            isComputed = true;
             rhs = right = property.name;
             break;
         default:
-            isRightFunction = true;
             right = this.recurse( property, false, assign );
     }
 
-    return function executeStaticMemberExpression( scope, value, lookup ){
+    return function executeStaticMemberExpression( scope, assignment, lookup ){
         //console.log( 'Executing STATIC MEMBER EXPRESSION' );
         //console.log( '- executeStaticMemberExpression LEFT', left.name );
         //console.log( '- executeStaticMemberExpression RIGHT', rhs || right.name );
-        var lhs = left( scope, value, lookup ),
-            index, result;
+        var lhs = left( scope, assignment, lookup ),
+            value = !depth ? assignment : {},
+            result;
 
         if( !isSafe || lhs ){
-            if( isRightFunction ){
-                rhs = right( property.type === KeypathSyntax.RootExpression ? scope : lhs, value, lookup );
+            if( !isComputed ){
+                rhs = right( property.type === KeypathSyntax.RootExpression ? scope : lhs, assignment, lookup );
             }
             //console.log( '- executeStaticMemberExpression LHS', lhs );
             //console.log( '- executeStaticMemberExpression RHS', rhs );
             //console.log( '- executeStaticMemberExpression DEPTH', depth );
             if( interpreter.isSplit && Array.isArray( lhs ) ){
-                index = lhs.length;
-                result = new Array( index );
-                while( index-- ){
-                    result[ index ] = assign( lhs[ index ], rhs, !depth ? value : {} );
-                }
+                result = map( lhs, function( object ){
+                    return assign( object, rhs, value );
+                } );
             } else {
-                result = assign( lhs, rhs, !depth ? value : {} );
+                result = assign( lhs, rhs, value );
             }
         }
         //console.log( '- executeStaticMemberExpression RESULT', result );
