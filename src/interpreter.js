@@ -180,27 +180,22 @@ Interpreter.prototype.blockExpression = function( tokens, context, assign ){
 
 Interpreter.prototype.callExpression = function( callee, args, context, assign ){
     //console.log( 'Composing CALL EXPRESSION' );
-    //console.log( '- DEPTH', this.depth );
-    var interpreter = this,
-        depth = this.depth,
-        isSetting = assign === setter,
+    var isSetting = assign === setter,
         left = this.recurse( callee, true, assign ),
-        list = this.listExpression( args, false, assign ),
-        fn;
+        list = this.listExpression( args, false, assign );
 
-    return fn = function executeCallExpression( scope, value, lookup ){
+    return function executeCallExpression( scope, value, lookup ){
         //console.log( 'Executing CALL EXPRESSION' );
-        //console.log( `- ${ fn.name } args`, args.length );
+        //console.log( `- executeCallExpression args`, args.length );
         var lhs = left( scope, value, lookup ),
             values = executeList( list, scope, value, lookup ),
             result;
-        //console.log( `- ${ fn.name } LHS`, lhs );
-        //console.log( `- ${ fn.name } DEPTH`, depth );
+        //console.log( `- executeCallExpression LHS`, lhs );
         result = lhs.value.apply( lhs.context, values );
         if( isSetting && typeof lhs.value === 'undefined' ){
             throw new Error( 'cannot create call expressions' );
         }
-        //console.log( `- ${ fn.name } RESULT`, result );
+        //console.log( `- executeCallExpression RESULT`, result );
         return context ?
             { value: result }:
             result;
@@ -269,25 +264,23 @@ Interpreter.prototype.compile = function( expression, create ){
 
 Interpreter.prototype.computedMemberExpression = function( object, property, context, assign ){
     //console.log( 'Composing COMPUTED MEMBER EXPRESSION', object.type, property.type );
-    //console.log( '- DEPTH', this.depth );
     var depth = this.depth,
         interpreter = this,
         isSafe = object.type === KeypathSyntax.ExistentialExpression,
         left = this.recurse( object, false, assign ),
-        right = this.recurse( property, false, assign ),
-        fn;
+        right = this.recurse( property, false, assign );
 
-    return fn = function executeComputedMemberExpression( scope, value, lookup ){
+    return function executeComputedMemberExpression( scope, value, lookup ){
         //console.log( 'Executing COMPUTED MEMBER EXPRESSION' );
-        //console.log( `- ${ fn.name } LEFT `, left.name );
-        //console.log( `- ${ fn.name } RIGHT`, right.name );
+        //console.log( `- executeComputedMemberExpression LEFT `, left.name );
+        //console.log( `- executeComputedMemberExpression RIGHT`, right.name );
         var lhs = left( scope, value, lookup ),
             index, length, position, result, rhs;
         if( !isSafe || ( lhs !== void 0 && lhs !== null ) ){
             rhs = right( scope, value, lookup );
-            //console.log( `- ${ fn.name } DEPTH`, depth );
-            //console.log( `- ${ fn.name } LHS`, lhs );
-            //console.log( `- ${ fn.name } RHS`, rhs );
+            //console.log( `- executeComputedMemberExpression DEPTH`, depth );
+            //console.log( `- executeComputedMemberExpression LHS`, lhs );
+            //console.log( `- executeComputedMemberExpression RHS`, rhs );
             if( Array.isArray( rhs ) ){
                 if( ( interpreter.isLeftList ) && Array.isArray( lhs ) ){
                     length = rhs.length;
@@ -316,7 +309,7 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
                 result = assign( lhs, rhs, !depth ? value : {} );
             }
         }
-        //console.log( `- ${ fn.name } RESULT`, result );
+        //console.log( `- executeComputedMemberExpression RESULT`, result );
         return context ?
             { context: lhs, name: rhs, value: result } :
             result;
@@ -325,13 +318,12 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
 
 Interpreter.prototype.existentialExpression = function( expression, context, assign ){
     //console.log( 'Composing EXISTENTIAL EXPRESSION', expression.type );
-    //console.log( '- DEPTH', this.depth );
-    var left = this.recurse( expression, false, assign ),
-        fn;
-    return fn = function executeExistentialExpression( scope, value, lookup ){
+    var left = this.recurse( expression, false, assign );
+
+    return function executeExistentialExpression( scope, value, lookup ){
         var result;
         //console.log( 'Executing EXISTENTIAL EXPRESSION' );
-        //console.log( `- ${ fn.name } LEFT`, left.name );
+        //console.log( `- executeExistentialExpression LEFT`, left.name );
         if( scope !== void 0 && scope !== null ){
             try {
                 result = left( scope, value, lookup );
@@ -339,7 +331,7 @@ Interpreter.prototype.existentialExpression = function( expression, context, ass
                 result = void 0;
             }
         }
-        //console.log( `- ${ fn.name } RESULT`, result );
+        //console.log( `- executeExistentialExpression RESULT`, result );
         return context ?
             { value: result } :
             result;
@@ -348,16 +340,14 @@ Interpreter.prototype.existentialExpression = function( expression, context, ass
 
 Interpreter.prototype.identifier = function( name, context, assign ){
     //console.log( 'Composing IDENTIFIER', name );
-    //console.log( '- DEPTH', this.depth );
-    var depth = this.depth,
-        fn;
-    return fn = function executeIdentifier( scope, value, lookup ){
+    var depth = this.depth;
+
+    return function executeIdentifier( scope, value, lookup ){
         //console.log( 'Executing IDENTIFIER' );
-        //console.log( `- ${ fn.name } NAME`, name );
-        //console.log( `- ${ fn.name } DEPTH`, depth );
-        //console.log( `- ${ fn.name } VALUE`, value );
+        //console.log( `- executeIdentifier NAME`, name );
+        //console.log( `- executeIdentifier VALUE`, value );
         var result = assign( scope, name, !depth ? value : {} );
-        //console.log( `- ${ fn.name } RESULT`, result );
+        //console.log( `- executeIdentifier RESULT`, result );
         return context ?
             { context: scope, name: name, value: result } :
             result;
@@ -400,13 +390,9 @@ Interpreter.prototype.listExpressionElement = function( element, context, assign
 
 Interpreter.prototype.literal = function( value, context ){
     //console.log( 'Composing LITERAL', value );
-    //console.log( '- DEPTH', this.depth );
-    var depth = this.depth,
-        fn;
-    return fn = function executeLiteral(){
+    return function executeLiteral(){
         //console.log( 'Executing LITERAL' );
-        //console.log( `- ${ fn.name } DEPTH`, depth );
-        //console.log( `- ${ fn.name } RESULT`, value );
+        //console.log( `- executeLiteral RESULT`, value );
         return context ?
             { context: void 0, name: void 0, value: value } :
             value;
@@ -415,11 +401,9 @@ Interpreter.prototype.literal = function( value, context ){
 
 Interpreter.prototype.lookupExpression = function( key, resolve, context, assign ){
     //console.log( 'Composing LOOKUP EXPRESSION', key );
-    //console.log( '- DEPTH', this.depth );
     var isLeftFunction = false,
-        depth = this.depth,
         lhs = {},
-        fn, left;
+        left;
 
     switch( key.type ){
         case Syntax.Identifier:
@@ -435,9 +419,9 @@ Interpreter.prototype.lookupExpression = function( key, resolve, context, assign
             break;
     }
 
-    return fn = function executeLookupExpression( scope, value, lookup ){
+    return function executeLookupExpression( scope, value, lookup ){
         //console.log( 'Executing LOOKUP EXPRESSION' );
-        //console.log( `- ${ fn.name } LEFT`, left.name || left );
+        //console.log( `- executeLookupExpression LEFT`, left.name || left );
         var result;
         if( isLeftFunction ){
             lhs = left( lookup, value, scope );
@@ -449,9 +433,8 @@ Interpreter.prototype.lookupExpression = function( key, resolve, context, assign
         if( resolve ){
             result = assign( scope, result, void 0 );
         }
-        //console.log( `- ${ fn.name } LHS`, lhs );
-        //console.log( `- ${ fn.name } DEPTH`, depth );
-        //console.log( `- ${ fn.name } RESULT`, result  );
+        //console.log( `- executeLookupExpression LHS`, lhs );
+        //console.log( `- executeLookupExpression RESULT`, result  );
         return context ?
             { context: lookup, name: lhs.value, value: result } :
             result;
@@ -460,28 +443,25 @@ Interpreter.prototype.lookupExpression = function( key, resolve, context, assign
 
 Interpreter.prototype.rangeExpression = function( nl, nr, context, assign ){
     //console.log( 'Composing RANGE EXPRESSION' );
-    //console.log( '- DEPTH', this.depth );
     var interpreter = this,
-        depth = this.depth,
         left = nl !== null ?
             interpreter.recurse( nl, false, assign ) :
             returnZero,
         right = nr !== null ?
             interpreter.recurse( nr, false, assign ) :
             returnZero,
-        fn, index, lhs, middle, result, rhs;
+        index, lhs, middle, result, rhs;
 
-    return fn = function executeRangeExpression( scope, value, lookup ){
+    return function executeRangeExpression( scope, value, lookup ){
         //console.log( 'Executing RANGE EXPRESSION' );
-        //console.log( `- ${ fn.name } LEFT`, left.name );
-        //console.log( `- ${ fn.name } RIGHT`, right.name );
+        //console.log( `- executeRangeExpression LEFT`, left.name );
+        //console.log( `- executeRangeExpression RIGHT`, right.name );
         lhs = left( scope, value, lookup );
         rhs = right( scope, value, lookup );
         result = [];
         index = 1;
-        //console.log( `- ${ fn.name } LHS`, lhs );
-        //console.log( `- ${ fn.name } RHS`, rhs );
-        //console.log( `- ${ fn.name } DEPTH`, depth );
+        //console.log( `- executeRangeExpression LHS`, lhs );
+        //console.log( `- executeRangeExpression RHS`, rhs );
         result[ 0 ] = lhs;
         if( lhs < rhs ){
             middle = lhs + 1;
@@ -495,7 +475,7 @@ Interpreter.prototype.rangeExpression = function( nl, nr, context, assign ){
             }
         }
         result[ result.length ] = rhs;
-        //console.log( `- ${ fn.name } RESULT`, result );
+        //console.log( `- executeRangeExpression RESULT`, result );
         return context ?
             { value: result } :
             result;
@@ -506,8 +486,9 @@ Interpreter.prototype.rangeExpression = function( nl, nr, context, assign ){
  * @function
  */
 Interpreter.prototype.recurse = function( node, context, assign ){
-    //console.log( 'Recursing', node.type, node.range );
+    //console.log( 'Recursing', node.type );
     var expression = null;
+
     this.depth++;
 
     switch( node.type ){
@@ -551,26 +532,24 @@ Interpreter.prototype.recurse = function( node, context, assign ){
         default:
             throw new SyntaxError( 'Unknown node type: ' + node.type );
     }
+
     this.depth--;
+
     return expression;
 };
 
 Interpreter.prototype.rootExpression = function( key, context, assign ){
     //console.log( 'Composing ROOT EXPRESSION' );
-    //console.log( '- DEPTH', this.depth );
-    var left = this.recurse( key, false, assign ),
-        depth = this.depth,
-        fn;
+    var left = this.recurse( key, false, assign );
 
-    return fn = function executeRootExpression( scope, value, lookup ){
+    return function executeRootExpression( scope, value, lookup ){
         //console.log( 'Executing ROOT EXPRESSION' );
-        //console.log( `- ${ fn.name } LEFT`, left.name || left );
-        //console.log( `- ${ fn.name } SCOPE`, scope );
+        //console.log( `- executeRootExpression LEFT`, left.name || left );
+        //console.log( `- executeRootExpression SCOPE`, scope );
         var lhs, result;
         result = lhs = left( scope, value, lookup );
-        //console.log( `- ${ fn.name } LHS`, lhs );
-        //console.log( `- ${ fn.name } DEPTH`, depth );
-        //console.log( `- ${ fn.name } RESULT`, result  );
+        //console.log( `- executeRootExpression LHS`, lhs );
+        //console.log( `- executeRootExpression RESULT`, result  );
         return context ?
             { context: lookup, name: lhs.value, value: result } :
             result;
@@ -578,19 +557,16 @@ Interpreter.prototype.rootExpression = function( key, context, assign ){
 };
 
 Interpreter.prototype.sequenceExpression = function( expressions, context, assign ){
-    var depth = this.depth,
-        fn, list;
+    var fn, list;
     //console.log( 'Composing SEQUENCE EXPRESSION' );
-    //console.log( '- DEPTH', this.depth );
     if( Array.isArray( expressions ) ){
         list = this.listExpression( expressions, false, assign );
 
         fn = function executeSequenceExpression( scope, value, lookup ){
             //console.log( 'Executing SEQUENCE EXPRESSION' );
-            //console.log( `- ${ fn.name } LIST`, list );
-            //console.log( `- ${ fn.name } DEPTH`, depth );
+            //console.log( `- executeSequenceExpression LIST`, list );
             var result = executeList( list, scope, value, lookup );
-            //console.log( `- ${ fn.name } RESULT`, result );
+            //console.log( `- executeSequenceExpression RESULT`, result );
             return context ?
                 { value: result } :
                 result;
@@ -600,10 +576,9 @@ Interpreter.prototype.sequenceExpression = function( expressions, context, assig
 
         fn = function executeSequenceExpressionWithExpressionRange( scope, value, lookup ){
             //console.log( 'Executing SEQUENCE EXPRESSION' );
-            //console.log( `- ${ fn.name } LIST`, list.name );
-            //console.log( `- ${ fn.name } DEPTH`, depth );
+            //console.log( `- executeSequenceExpressionWithExpressionRange LIST`, list.name );
             var result = list( scope, value, lookup );
-            //console.log( `- ${ fn.name } RESULT`, result );
+            //console.log( `- executeSequenceExpressionWithExpressionRange RESULT`, result );
             return context ?
                 { value: result } :
                 result;
@@ -615,12 +590,11 @@ Interpreter.prototype.sequenceExpression = function( expressions, context, assig
 
 Interpreter.prototype.staticMemberExpression = function( object, property, context, assign ){
     //console.log( 'Composing STATIC MEMBER EXPRESSION', object.type, property.type );
-    //console.log( '- DEPTH', this.depth );
     var interpreter = this,
         depth = this.depth,
         isRightFunction = false,
         isSafe = object.type === KeypathSyntax.ExistentialExpression,
-        fn, left, rhs, right;
+        left, rhs, right;
 
     switch( object.type ){
         case KeypathSyntax.LookupExpression:
@@ -628,7 +602,6 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
             break;
         default:
             left = this.recurse( object, false, assign );
-            break;
     }
 
     switch( property.type ){
@@ -640,10 +613,10 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
             isRightFunction = true;
     }
 
-    return fn = function executeStaticMemberExpression( scope, value, lookup ){
+    return function executeStaticMemberExpression( scope, value, lookup ){
         //console.log( 'Executing STATIC MEMBER EXPRESSION' );
-        //console.log( `- ${ fn.name } LEFT`, left.name );
-        //console.log( `- ${ fn.name } RIGHT`, rhs || right.name );
+        //console.log( `- executeStaticMemberExpression LEFT`, left.name );
+        //console.log( `- executeStaticMemberExpression RIGHT`, rhs || right.name );
         var lhs = left( scope, value, lookup ),
             index, result;
 
@@ -651,9 +624,9 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
             if( isRightFunction ){
                 rhs = right( property.type === KeypathSyntax.RootExpression ? scope : lhs, value, lookup );
             }
-            //console.log( `- ${ fn.name } LHS`, lhs );
-            //console.log( `- ${ fn.name } RHS`, rhs );
-            //console.log( `- ${ fn.name } DEPTH`, depth );
+            //console.log( `- executeStaticMemberExpression LHS`, lhs );
+            //console.log( `- executeStaticMemberExpression RHS`, rhs );
+            //console.log( `- executeStaticMemberExpression DEPTH`, depth );
             if( ( interpreter.isLeftList || interpreter.isRightList ) && Array.isArray( lhs ) ){
                 index = lhs.length;
                 result = new Array( index );
@@ -664,7 +637,7 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
                 result = assign( lhs, rhs, !depth ? value : {} );
             }
         }
-        //console.log( `- ${ fn.name } RESULT`, result );
+        //console.log( `- executeStaticMemberExpression RESULT`, result );
         return context ?
             { context: lhs, name: rhs, value: result } :
             result;
