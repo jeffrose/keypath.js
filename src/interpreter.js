@@ -66,10 +66,13 @@ Interpreter.prototype.constructor = Interpreter;
 
 Interpreter.prototype.arrayExpression = function( elements, context, assign ){
     //console.log( 'Composing ARRAY EXPRESSION', elements.length );
-    var depth = this.depth,
+    var interpreter = this,
+        depth = interpreter.depth,
         fn, list;
     if( Array.isArray( elements ) ){
-        list = this.listExpression( elements, false, assign );
+        list = map( elements, function( element ){
+            return interpreter.listExpressionElement( element, false, assign );
+        } );
 
         fn = function executeArrayExpression( scope, value, lookup ){
             //console.log( 'Executing ARRAY EXPRESSION' );
@@ -148,9 +151,12 @@ Interpreter.prototype.blockExpression = function( tokens, context, assign ){
 
 Interpreter.prototype.callExpression = function( callee, args, context, assign ){
     //console.log( 'Composing CALL EXPRESSION' );
-    var isSetting = assign === setter,
-        left = this.recurse( callee, true, assign ),
-        list = this.listExpression( args, false, assign );
+    var interpreter = this,
+        isSetting = assign === setter,
+        left = interpreter.recurse( callee, true, assign ),
+        list = map( args, function( arg ){
+            return interpreter.listExpressionElement( arg, false, assign );
+        } );
 
     return function executeCallExpression( scope, value, lookup ){
         //console.log( 'Executing CALL EXPRESSION' );
@@ -370,25 +376,6 @@ Interpreter.prototype.identifier = function( name, context, assign ){
     };
 };
 
-Interpreter.prototype.listExpression = function( items, context, assign ){
-    var index = items.length,
-        list = new Array( index );
-
-    switch( index ){
-        case 0:
-            break;
-        case 1:
-            list[ 0 ] = this.listExpressionElement( items[ 0 ], context, assign );
-            break;
-        default:
-            while( index-- ){
-                list[ index ] = this.listExpressionElement( items[ index ], context, assign );
-            }
-    }
-
-    return list;
-};
-
 Interpreter.prototype.listExpressionElement = function( element, context, assign ){
     switch( element.type ){
         case Syntax.Literal:
@@ -572,10 +559,13 @@ Interpreter.prototype.rootExpression = function( key, context, assign ){
 };
 
 Interpreter.prototype.sequenceExpression = function( expressions, context, assign ){
-    var fn, list;
+    var interpreter = this,
+        fn, list;
     //console.log( 'Composing SEQUENCE EXPRESSION' );
     if( Array.isArray( expressions ) ){
-        list = this.listExpression( expressions, false, assign );
+        list = map( expressions, function( expression ){
+            return interpreter.listExpressionElement( expression, false, assign );
+        } );
 
         fn = function executeSequenceExpression( scope, value, lookup ){
             //console.log( 'Executing SEQUENCE EXPRESSION' );
