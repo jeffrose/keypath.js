@@ -3,6 +3,8 @@ import * as Grammar from './grammar';
 import * as Node from './node';
 import * as KeypathNode from './keypath-node';
 
+var builderPrototype;
+
 /**
  * @class Builder
  * @extends Null
@@ -12,17 +14,17 @@ export default function Builder( lexer ){
     this.lexer = lexer;
 }
 
-Builder.prototype = new Null();
+builderPrototype = Builder.prototype = new Null();
 
-Builder.prototype.constructor = Builder;
+builderPrototype.constructor = Builder;
 
-Builder.prototype.arrayExpression = function( list ){
+builderPrototype.arrayExpression = function( list ){
     //console.log( 'ARRAY EXPRESSION' );
     this.consume( '[' );
     return new Node.ArrayExpression( list );
 };
 
-Builder.prototype.blockExpression = function( terminator ){
+builderPrototype.blockExpression = function( terminator ){
     var block = [],
         isolated = false;
     //console.log( 'BLOCK', terminator );
@@ -45,7 +47,7 @@ Builder.prototype.blockExpression = function( terminator ){
  * @param {external:string|Array<Builder~Token>} input
  * @returns {Program} The built abstract syntax tree
  */
-Builder.prototype.build = function( input ){
+builderPrototype.build = function( input ){
     if( typeof input === 'string' ){
         /**
          * @member {external:string}
@@ -53,7 +55,7 @@ Builder.prototype.build = function( input ){
         this.text = input;
 
         if( typeof this.lexer === 'undefined' ){
-            this.throwError( 'lexer is not defined' );
+            throw new TypeError( 'lexer is not defined' );
         }
 
         /**
@@ -64,7 +66,7 @@ Builder.prototype.build = function( input ){
         this.tokens = input.slice();
         this.text = input.join( '' );
     } else {
-        this.throwError( 'invalid input' );
+        throw new TypeError( 'invalid input' );
     }
     //console.log( 'BUILD' );
     //console.log( '- ', this.text.length, 'CHARS', this.text );
@@ -75,7 +77,7 @@ Builder.prototype.build = function( input ){
     var program = this.program();
 
     if( this.tokens.length ){
-        this.throwError( 'Unexpected token ' + this.tokens[ 0 ] + ' remaining' );
+        throw new SyntaxError( 'Unexpected token ' + this.tokens[ 0 ] + ' remaining' );
     }
 
     return program;
@@ -85,14 +87,13 @@ Builder.prototype.build = function( input ){
  * @function
  * @returns {CallExpression} The call expression node
  */
-Builder.prototype.callExpression = function(){
+builderPrototype.callExpression = function(){
     var args = this.list( '(' ),
         callee;
 
     this.consume( '(' );
 
     callee = this.expression();
-
     //console.log( 'CALL EXPRESSION' );
     //console.log( '- CALLEE', callee );
     //console.log( '- ARGUMENTS', args, args.length );
@@ -106,21 +107,21 @@ Builder.prototype.callExpression = function(){
  * @returns {Token} The next token in the list
  * @throws {SyntaxError} If token did not exist
  */
-Builder.prototype.consume = function( expected ){
+builderPrototype.consume = function( expected ){
     if( !this.tokens.length ){
-        this.throwError( 'Unexpected end of expression' );
+        throw new SyntaxError( 'Unexpected end of expression' );
     }
 
     var token = this.expect( expected );
 
     if( !token ){
-        this.throwError( 'Unexpected token ' + token.value + ' consumed' );
+        throw new SyntaxError( 'Unexpected token ' + token.value + ' consumed' );
     }
 
     return token;
 };
 
-Builder.prototype.existentialExpression = function(){
+builderPrototype.existentialExpression = function(){
     var expression = this.expression();
     //console.log( '- EXIST EXPRESSION', expression );
     return new KeypathNode.ExistentialExpression( expression );
@@ -135,7 +136,7 @@ Builder.prototype.existentialExpression = function(){
  * @param {external:string} [fourth] The fourth comparison value
  * @returns {Token} The next token in the list or `undefined` if it did not exist
  */
-Builder.prototype.expect = function( first, second, third, fourth ){
+builderPrototype.expect = function( first, second, third, fourth ){
     var token = this.peek( first, second, third, fourth );
 
     if( token ){
@@ -151,7 +152,7 @@ Builder.prototype.expect = function( first, second, third, fourth ){
  * @function
  * @returns {Expression} An expression node
  */
-Builder.prototype.expression = function(){
+builderPrototype.expression = function(){
     var expression = null,
         list, next, token;
 
@@ -208,7 +209,7 @@ Builder.prototype.expression = function(){
             } else if( token.value === '.' ){
                 expression = this.memberExpression( expression, false );
             } else {
-                this.throwError( 'Unexpected token ' + token );
+                throw new SyntaxError( 'Unexpected token: ' + token );
             }
         }
     }
@@ -220,7 +221,7 @@ Builder.prototype.expression = function(){
  * @function
  * @returns {ExpressionStatement} An expression statement
  */
-Builder.prototype.expressionStatement = function(){
+builderPrototype.expressionStatement = function(){
     var expression = this.expression(),
         expressionStatement;
     //console.log( 'EXPRESSION STATEMENT WITH', expression );
@@ -234,11 +235,11 @@ Builder.prototype.expressionStatement = function(){
  * @returns {Identifier} An identifier
  * @throws {SyntaxError} If the token is not an identifier
  */
-Builder.prototype.identifier = function(){
+builderPrototype.identifier = function(){
     var token = this.consume();
 
     if( !( token.type === Grammar.Identifier ) ){
-        this.throwError( 'Identifier expected' );
+        throw new TypeError( 'Identifier expected' );
     }
 
     return new Node.Identifier( token.value );
@@ -249,7 +250,7 @@ Builder.prototype.identifier = function(){
  * @param {external:string} terminator
  * @returns {external:Array<Expression>|RangeExpression} The list of expressions or range expression
  */
-Builder.prototype.list = function( terminator ){
+builderPrototype.list = function( terminator ){
     var list = [],
         isNumeric = false,
         expression, next;
@@ -283,29 +284,23 @@ Builder.prototype.list = function( terminator ){
  * @function
  * @returns {Literal} The literal node
  */
-Builder.prototype.literal = function(){
+builderPrototype.literal = function(){
     var token = this.consume(),
-        raw = token.value,
-        expression;
+        raw = token.value;
 
     switch( token.type ){
         case Grammar.NumericLiteral:
-            expression = new Node.NumericLiteral( raw );
-            break;
+            return new Node.NumericLiteral( raw );
         case Grammar.StringLiteral:
-            expression = new Node.StringLiteral( raw );
-            break;
+            return new Node.StringLiteral( raw );
         case Grammar.NullLiteral:
-            expression = new Node.NullLiteral( raw );
-            break;
+            return new Node.NullLiteral( raw );
         default:
-            this.throwError( 'Literal expected' );
+            throw new TypeError( 'Literal expected' );
     }
-
-    return expression;
 };
 
-Builder.prototype.lookup = function( next ){
+builderPrototype.lookup = function( next ){
     var expression;
     //console.log( 'LOOKUP', next );
     switch( next.type ){
@@ -323,7 +318,7 @@ Builder.prototype.lookup = function( next ){
                 break;
             }
         default:
-            this.throwError( 'token cannot be a lookup' );
+            throw new SyntaxError( 'token cannot be a lookup' );
     }
 
     next = this.peek();
@@ -338,7 +333,7 @@ Builder.prototype.lookup = function( next ){
     return expression;
 };
 
-Builder.prototype.lookupExpression = function( key ){
+builderPrototype.lookupExpression = function( key ){
     this.consume( '%' );
     return new KeypathNode.LookupExpression( key );
 };
@@ -349,7 +344,7 @@ Builder.prototype.lookupExpression = function( key ){
  * @param {external:boolean} computed Whether or not the member expression is computed
  * @returns {MemberExpression} The member expression
  */
-Builder.prototype.memberExpression = function( property, computed ){
+builderPrototype.memberExpression = function( property, computed ){
     //console.log( 'MEMBER', property );
     var object = this.expression();
     //console.log( 'MEMBER EXPRESSION' );
@@ -361,7 +356,7 @@ Builder.prototype.memberExpression = function( property, computed ){
         new Node.StaticMemberExpression( object, property );
 };
 
-Builder.prototype.parse = function( input ){
+builderPrototype.parse = function( input ){
     this.tokens = this.lexer.lex( input );
     return this.build( this.tokens );
 };
@@ -375,7 +370,7 @@ Builder.prototype.parse = function( input ){
  * @param {external:string} [fourth] The fourth comparison value
  * @returns {Lexer~Token} The next token in the list or `undefined` if it did not exist
  */
-Builder.prototype.peek = function( first, second, third, fourth ){
+builderPrototype.peek = function( first, second, third, fourth ){
     return this.peekAt( 0, first, second, third, fourth );
 };
 
@@ -389,7 +384,7 @@ Builder.prototype.peek = function( first, second, third, fourth ){
  * @param {external:string} [fourth] The fourth comparison value
  * @returns {Lexer~Token} The token at the requested position or `undefined` if it did not exist
  */
-Builder.prototype.peekAt = function( position, first, second, third, fourth ){
+builderPrototype.peekAt = function( position, first, second, third, fourth ){
     var length = this.tokens.length,
         index, token, value;
 
@@ -414,7 +409,7 @@ Builder.prototype.peekAt = function( position, first, second, third, fourth ){
  * @function
  * @returns {Program} A program node
  */
-Builder.prototype.program = function(){
+builderPrototype.program = function(){
     var body = [];
     //console.log( 'PROGRAM' );
     while( true ){
@@ -426,7 +421,7 @@ Builder.prototype.program = function(){
     }
 };
 
-Builder.prototype.rangeExpression = function( right ){
+builderPrototype.rangeExpression = function( right ){
     var left;
 
     this.expect( '.' );
@@ -439,20 +434,11 @@ Builder.prototype.rangeExpression = function( right ){
     return new KeypathNode.RangeExpression( left, right );
 };
 
-Builder.prototype.rootExpression = function( key ){
+builderPrototype.rootExpression = function( key ){
     this.consume( '~' );
     return new KeypathNode.RootExpression( key );
 };
 
-Builder.prototype.sequenceExpression = function( list ){
+builderPrototype.sequenceExpression = function( list ){
     return new Node.SequenceExpression( list );
-};
-
-/**
- * @function
- * @param {external:string} message The error message
- * @throws {external:SyntaxError} When it executes
- */
-Builder.prototype.throwError = function( message ){
-    throw new SyntaxError( message );
 };
