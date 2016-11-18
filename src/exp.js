@@ -10,7 +10,7 @@ var lexer = new Lexer(),
     builder = new Builder( lexer ),
     intrepreter = new Interpreter( builder ),
 
-    cache;
+    cache = new Null();
 
 /**
  * @class KeypathExp
@@ -22,18 +22,9 @@ export default function KeypathExp( pattern, flags ){
     typeof pattern !== 'string' && ( pattern = '' );
     typeof flags !== 'string' && ( flags = '' );
 
-    var tokens;
-
-    if( flags.indexOf( 'c' ) !== -1 ){
-        if( !cache ){
-            cache = new Null();
-        }
-        tokens = hasOwnProperty( cache, pattern ) ?
-            cache[ pattern ] :
-            cache[ pattern ] = lexer.lex( pattern );
-    } else {
-        tokens = lexer.lex( pattern );
-    }
+    var tokens = hasOwnProperty( cache, pattern ) ?
+        cache[ pattern ] :
+        cache[ pattern ] = lexer.lex( pattern );
 
     Object.defineProperties( this, {
         'flags': {
