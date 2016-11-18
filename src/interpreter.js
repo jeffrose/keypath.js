@@ -4,9 +4,7 @@ import map from './map';
 import * as Syntax from './syntax';
 import * as KeypathSyntax from './keypath-syntax';
 
-var noop = function(){},
-
-    cache = new Null();
+var noop = function(){};
 
 /**
  * @function Interpreter~getter
@@ -113,10 +111,7 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
 Interpreter.prototype.blockExpression = function( tokens, context, assign ){
     //console.log( 'Composing BLOCK', tokens.join( '' ) );
     var interpreter = this,
-        text = tokens.join( '' ),
-        program = hasOwnProperty( cache, text ) ?
-            cache[ text ] :
-            cache[ text ] = interpreter.builder.build( tokens ),
+        program = interpreter.builder.build( tokens ),
         expression = interpreter.recurse( program.body[ 0 ].expression, false, assign );
 
     return function executeBlockExpression( scope, assignment, lookup ){
@@ -165,11 +160,9 @@ Interpreter.prototype.callExpression = function( callee, args, context, assign )
  * @param {external:string} expression
  */
 Interpreter.prototype.compile = function( expression, create ){
-    var program = hasOwnProperty( cache, expression ) ?
-            cache[ expression ] :
-            cache[ expression ] = this.builder.build( expression ),
+    var interpreter = this,
+        program = interpreter.builder.build( expression ),
         body = program.body,
-        interpreter = this,
 
         assign, expressions;
 
@@ -393,7 +386,6 @@ Interpreter.prototype.lookupExpression = function( key, resolve, context, assign
             break;
         default:
             left = interpreter.recurse( key, true, assign );
-            break;
     }
 
     return function executeLookupExpression( scope, assignment, lookup ){
