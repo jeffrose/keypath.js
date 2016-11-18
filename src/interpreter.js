@@ -5,9 +5,7 @@ import * as KeypathSyntax from './keypath-syntax';
 
 var noop = function(){},
 
-    cache = new Null(),
-    getter = new Null(),
-    setter = new Null();
+    cache = new Null();
 
 function executeList( list, scope, value, lookup ){
     var index = list.length,
@@ -42,49 +40,15 @@ function executeList( list, scope, value, lookup ){
     return result;
 }
 
-getter.value = function( object, key ){
+/**
+ * @function Interpreter~getter
+ * @param {external:Object} object
+ * @param {external:string} key
+ * @returns {*} The value of the `key` property on `object`.
+ */
+function getter( object, key ){
     return object[ key ];
-};
-
-getter.list = function( object, key ){
-    var index = object.length,
-        result = new Array( index );
-
-    switch( index ){
-        case 0:
-            return result;
-        case 1:
-            result[ 0 ] = object[ 0 ][ key ];
-            return result;
-        case 2:
-            result[ 0 ] = object[ 0 ][ key ];
-            result[ 1 ] = object[ 1 ][ key ];
-            return result;
-        case 3:
-            result[ 0 ] = object[ 0 ][ key ];
-            result[ 1 ] = object[ 1 ][ key ];
-            result[ 2 ] = object[ 2 ][ key ];
-            return result;
-        case 4:
-            result[ 0 ] = object[ 0 ][ key ];
-            result[ 1 ] = object[ 1 ][ key ];
-            result[ 2 ] = object[ 2 ][ key ];
-            result[ 3 ] = object[ 3 ][ key ];
-            return result;
-        default:
-            while( index-- ){
-                result[ index ] = object[ index ][ key ];
-            }
-            return result;
-    }
-};
-
-setter.value = function( object, key, value ){
-    if( !hasOwnProperty( object, key ) ){
-        object[ key ] = value || {};
-    }
-    return getter.value( object, key );
-};
+}
 
 /**
  * @function Interpreter~returnZero
@@ -92,6 +56,20 @@ setter.value = function( object, key, value ){
  */
 function returnZero(){
     return 0;
+}
+
+/**
+ * @function Interpreter~setter
+ * @param {external:Object} object
+ * @param {external:string} key
+ * @param {*} value
+ * @returns {*} The value of the `key` property on `object`.
+ */
+function setter( object, key, value ){
+    if( !hasOwnProperty( object, key ) ){
+        object[ key ] = value || {};
+    }
+    return getter( object, key );
 }
 
 /**
@@ -205,7 +183,7 @@ Interpreter.prototype.callExpression = function( callee, args, context, assign )
     //console.log( '- DEPTH', this.depth );
     var interpreter = this,
         depth = this.depth,
-        isSetting = assign === setter.value,
+        isSetting = assign === setter,
         left = this.recurse( callee, true, assign ),
         list = this.listExpression( args, false, assign ),
         fn;
@@ -247,11 +225,9 @@ Interpreter.prototype.compile = function( expression, create ){
     this.depth = -1;
     this.isLeftList = false;
     this.isRightList = false;
-    this.assigner = create ?
+    assign = create ?
         setter :
         getter;
-
-    assign = this.assigner.value;
 
     /**
      * @member {external:string}
