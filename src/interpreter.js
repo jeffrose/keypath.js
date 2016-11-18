@@ -4,7 +4,9 @@ import map from './map';
 import * as Syntax from './syntax';
 import * as KeypathSyntax from './keypath-syntax';
 
-var noop = function(){};
+var noop = function(){},
+
+    interpreterPrototype;
 
 /**
  * @function Interpreter~getter
@@ -58,11 +60,11 @@ export default function Interpreter( builder ){
     this.builder = builder;
 }
 
-Interpreter.prototype = new Null();
+interpreterPrototype = Interpreter.prototype = new Null();
 
-Interpreter.prototype.constructor = Interpreter;
+interpreterPrototype.constructor = Interpreter;
 
-Interpreter.prototype.arrayExpression = function( elements, context, assign ){
+interpreterPrototype.arrayExpression = function( elements, context, assign ){
     //console.log( 'Composing ARRAY EXPRESSION', elements.length );
     var interpreter = this,
         depth = interpreter.depth,
@@ -108,7 +110,7 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
     return fn;
 };
 
-Interpreter.prototype.blockExpression = function( tokens, context, assign ){
+interpreterPrototype.blockExpression = function( tokens, context, assign ){
     //console.log( 'Composing BLOCK', tokens.join( '' ) );
     var interpreter = this,
         program = interpreter.builder.build( tokens ),
@@ -126,7 +128,7 @@ Interpreter.prototype.blockExpression = function( tokens, context, assign ){
     };
 };
 
-Interpreter.prototype.callExpression = function( callee, args, context, assign ){
+interpreterPrototype.callExpression = function( callee, args, context, assign ){
     //console.log( 'Composing CALL EXPRESSION' );
     var interpreter = this,
         isSetting = assign === setter,
@@ -159,7 +161,7 @@ Interpreter.prototype.callExpression = function( callee, args, context, assign )
  * @function
  * @param {external:string} expression
  */
-Interpreter.prototype.compile = function( expression, create ){
+interpreterPrototype.compile = function( expression, create ){
     var interpreter = this,
         program = interpreter.builder.build( expression ),
         body = program.body,
@@ -203,7 +205,7 @@ Interpreter.prototype.compile = function( expression, create ){
     }
 };
 
-Interpreter.prototype.computedMemberExpression = function( object, property, context, assign ){
+interpreterPrototype.computedMemberExpression = function( object, property, context, assign ){
     //console.log( 'Composing COMPUTED MEMBER EXPRESSION', object.type, property.type );
     var interpreter = this,
         depth = interpreter.depth,
@@ -302,7 +304,7 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
     }
 };
 
-Interpreter.prototype.existentialExpression = function( expression, context, assign ){
+interpreterPrototype.existentialExpression = function( expression, context, assign ){
     //console.log( 'Composing EXISTENTIAL EXPRESSION', expression.type );
     var left = this.recurse( expression, false, assign );
 
@@ -324,7 +326,7 @@ Interpreter.prototype.existentialExpression = function( expression, context, ass
     };
 };
 
-Interpreter.prototype.identifier = function( name, context, assign ){
+interpreterPrototype.identifier = function( name, context, assign ){
     //console.log( 'Composing IDENTIFIER', name );
     var depth = this.depth;
 
@@ -341,7 +343,7 @@ Interpreter.prototype.identifier = function( name, context, assign ){
     };
 };
 
-Interpreter.prototype.listExpressionElement = function( element, context, assign ){
+interpreterPrototype.listExpressionElement = function( element, context, assign ){
     var interpreter = this;
 
     switch( element.type ){
@@ -358,7 +360,7 @@ Interpreter.prototype.listExpressionElement = function( element, context, assign
     }
 };
 
-Interpreter.prototype.literal = function( value, context ){
+interpreterPrototype.literal = function( value, context ){
     //console.log( 'Composing LITERAL', value );
     return function executeLiteral(){
         //console.log( 'Executing LITERAL' );
@@ -369,7 +371,7 @@ Interpreter.prototype.literal = function( value, context ){
     };
 };
 
-Interpreter.prototype.lookupExpression = function( key, resolve, context, assign ){
+interpreterPrototype.lookupExpression = function( key, resolve, context, assign ){
     //console.log( 'Composing LOOKUP EXPRESSION', key );
     var interpreter = this,
         isComputed = false,
@@ -410,7 +412,7 @@ Interpreter.prototype.lookupExpression = function( key, resolve, context, assign
     };
 };
 
-Interpreter.prototype.rangeExpression = function( nl, nr, context, assign ){
+interpreterPrototype.rangeExpression = function( nl, nr, context, assign ){
     //console.log( 'Composing RANGE EXPRESSION' );
     var interpreter = this,
         left = nl !== null ?
@@ -454,7 +456,7 @@ Interpreter.prototype.rangeExpression = function( nl, nr, context, assign ){
 /**
  * @function
  */
-Interpreter.prototype.recurse = function( node, context, assign ){
+interpreterPrototype.recurse = function( node, context, assign ){
     //console.log( 'Recursing', node.type );
     var interpreter = this,
         expression = null;
@@ -508,7 +510,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
     return expression;
 };
 
-Interpreter.prototype.rootExpression = function( key, context, assign ){
+interpreterPrototype.rootExpression = function( key, context, assign ){
     //console.log( 'Composing ROOT EXPRESSION' );
     var left = this.recurse( key, false, assign );
 
@@ -526,7 +528,7 @@ Interpreter.prototype.rootExpression = function( key, context, assign ){
     };
 };
 
-Interpreter.prototype.sequenceExpression = function( expressions, context, assign ){
+interpreterPrototype.sequenceExpression = function( expressions, context, assign ){
     var interpreter = this,
         fn, list;
     //console.log( 'Composing SEQUENCE EXPRESSION' );
@@ -563,7 +565,7 @@ Interpreter.prototype.sequenceExpression = function( expressions, context, assig
     return fn;
 };
 
-Interpreter.prototype.staticMemberExpression = function( object, property, context, assign ){
+interpreterPrototype.staticMemberExpression = function( object, property, context, assign ){
     //console.log( 'Composing STATIC MEMBER EXPRESSION', object.type, property.type );
     var interpreter = this,
         depth = interpreter.depth,
