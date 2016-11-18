@@ -18,6 +18,10 @@ function getter( object, key ){
     return object[ key ];
 }
 
+function returnValue( value, depth ){
+    return !depth ? value : {};
+}
+
 /**
  * @function Interpreter~returnZero
  * @returns {external:number} zero
@@ -231,56 +235,101 @@ Interpreter.prototype.compile = function( expression, create ){
 
 Interpreter.prototype.computedMemberExpression = function( object, property, context, assign ){
     //console.log( 'Composing COMPUTED MEMBER EXPRESSION', object.type, property.type );
-    var depth = this.depth,
-        interpreter = this,
+    var interpreter = this,
+        depth = interpreter.depth,
         isSafe = object.type === KeypathSyntax.ExistentialExpression,
-        left = this.recurse( object, false, assign ),
-        right = this.recurse( property, false, assign );
+        left = interpreter.recurse( object, false, assign ),
+        right = interpreter.recurse( property, false, assign );
 
-    return function executeComputedMemberExpression( scope, value, lookup ){
-        //console.log( 'Executing COMPUTED MEMBER EXPRESSION' );
-        //console.log( '- executeComputedMemberExpression LEFT ', left.name );
-        //console.log( '- executeComputedMemberExpression RIGHT', right.name );
-        var lhs = left( scope, value, lookup ),
-            index, length, position, result, rhs;
-        if( !isSafe || lhs ){
-            rhs = right( scope, value, lookup );
-            //console.log( '- executeComputedMemberExpression DEPTH', depth );
-            //console.log( '- executeComputedMemberExpression LHS', lhs );
-            //console.log( '- executeComputedMemberExpression RHS', rhs );
-            if( Array.isArray( rhs ) ){
-                if( ( interpreter.isLeftSplit ) && Array.isArray( lhs ) ){
-                    length = rhs.length;
-                    index = lhs.length;
-                    result = new Array( index );
-                    while( index-- ){
-                        result[ index ] = new Array( length );
-                        for( position = 0; position < length; position++ ){
-                            result[ index ][ position ] = assign( lhs[ index ], rhs[ position ], !depth ? value : {} );
-                        }
-                    }
-                } else {
-                    index = rhs.length;
-                    result = new Array( index );
-                    while( index-- ){
-                        result[ index ] = assign( lhs, rhs[ index ], !depth ? value : {} );
-                    }
-                }
-            } else if( interpreter.isSplit && Array.isArray( lhs ) ){
-                index = lhs.length;
-                result = new Array( index );
-                while( index-- ){
-                    result[ index ] = assign( lhs[ index ], rhs, !depth ? value : {} );
-                }
-            } else {
-                result = assign( lhs, rhs, !depth ? value : {} );
+    if( !interpreter.isSplit ){
+        return function executeComputedMemberExpression( scope, assignment, lookup ){
+            //console.log( 'Executing COMPUTED MEMBER EXPRESSION' );
+            //console.log( `- executeComputedMemberExpression LEFT `, left.name );
+            //console.log( `- executeComputedMemberExpression RIGHT`, right.name );
+            var lhs = left( scope, assignment, lookup ),
+                value = returnValue( assignment, depth ),
+                result, rhs;
+            if( !isSafe || lhs ){
+                rhs = right( scope, assignment, lookup );
+                //console.log( `- executeComputedMemberExpression DEPTH`, depth );
+                //console.log( `- executeComputedMemberExpression LHS`, lhs );
+                //console.log( `- executeComputedMemberExpression RHS`, rhs );
+                result = assign( lhs, rhs, value );
             }
-        }
-        //console.log( '- executeComputedMemberExpression RESULT', result );
-        return context ?
-            { context: lhs, name: rhs, value: result } :
-            result;
-    };
+            //console.log( `- executeComputedMemberExpression RESULT`, result );
+            return context ?
+                { context: lhs, name: rhs, value: result } :
+                result;
+        };
+    } else if( interpreter.isLeftSplit && !interpreter.isRightSplit ){
+        return function executeComputedMemberExpression( scope, assignment, lookup ){
+            //console.log( 'Executing COMPUTED MEMBER EXPRESSION' );
+            //console.log( `- executeComputedMemberExpression LEFT `, left.name );
+            //console.log( `- executeComputedMemberExpression RIGHT`, right.name );
+            var lhs = left( scope, assignment, lookup ),
+                value = returnValue( assignment, depth ),
+                result, rhs;
+            if( !isSafe || lhs ){
+                rhs = right( scope, assignment, lookup );
+                //console.log( `- executeComputedMemberExpression DEPTH`, depth );
+                //console.log( `- executeComputedMemberExpression LHS`, lhs );
+                //console.log( `- executeComputedMemberExpression RHS`, rhs );
+                result = map( lhs, function( object ){
+                    return assign( object, rhs, value );
+                } );
+            }
+            //console.log( `- executeComputedMemberExpression RESULT`, result );
+            return context ?
+                { context: lhs, name: rhs, value: result } :
+                result;
+        };
+    } else if( !interpreter.isLeftSplit && interpreter.isRightSplit ){
+        return function executeComputedMemberExpression( scope, assignment, lookup ){
+            //console.log( 'Executing COMPUTED MEMBER EXPRESSION' );
+            //console.log( `- executeComputedMemberExpression LEFT `, left.name );
+            //console.log( `- executeComputedMemberExpression RIGHT`, right.name );
+            var lhs = left( scope, assignment, lookup ),
+                value = returnValue( assignment, depth ),
+                result, rhs;
+            if( !isSafe || lhs ){
+                rhs = right( scope, assignment, lookup );
+                //console.log( `- executeComputedMemberExpression DEPTH`, depth );
+                //console.log( `- executeComputedMemberExpression LHS`, lhs );
+                //console.log( `- executeComputedMemberExpression RHS`, rhs );
+                result = map( rhs, function( key ){
+                    return assign( lhs, key, value );
+                } );
+            }
+            //console.log( `- executeComputedMemberExpression RESULT`, result );
+            return context ?
+                { context: lhs, name: rhs, value: result } :
+                result;
+        };
+    } else {
+        return function executeComputedMemberExpression( scope, assignment, lookup ){
+            //console.log( 'Executing COMPUTED MEMBER EXPRESSION' );
+            //console.log( `- executeComputedMemberExpression LEFT `, left.name );
+            //console.log( `- executeComputedMemberExpression RIGHT`, right.name );
+            var lhs = left( scope, assignment, lookup ),
+                value = returnValue( assignment, depth ),
+                result, rhs;
+            if( !isSafe || lhs ){
+                rhs = right( scope, assignment, lookup );
+                //console.log( `- executeComputedMemberExpression DEPTH`, depth );
+                //console.log( `- executeComputedMemberExpression LHS`, lhs );
+                //console.log( `- executeComputedMemberExpression RHS`, rhs );
+                result = map( lhs, function( object ){
+                    return map( rhs, function( key ){
+                        return assign( object, key, value );
+                    } );
+                } );
+            }
+            //console.log( `- executeComputedMemberExpression RESULT`, result );
+            return context ?
+                { context: lhs, name: rhs, value: result } :
+                result;
+        };
+    }
 };
 
 Interpreter.prototype.existentialExpression = function( expression, context, assign ){
@@ -559,19 +608,19 @@ Interpreter.prototype.sequenceExpression = function( expressions, context, assig
 Interpreter.prototype.staticMemberExpression = function( object, property, context, assign ){
     //console.log( 'Composing STATIC MEMBER EXPRESSION', object.type, property.type );
     var interpreter = this,
-        depth = this.depth,
+        depth = interpreter.depth,
         isComputed = false,
         isSafe = false,
         left, rhs, right;
 
     switch( object.type ){
         case KeypathSyntax.LookupExpression:
-            left = this.lookupExpression( object.key, true, false, assign );
+            left = interpreter.lookupExpression( object.key, true, false, assign );
             break;
         case KeypathSyntax.ExistentialExpression:
             isSafe = true;
         default:
-            left = this.recurse( object, false, assign );
+            left = interpreter.recurse( object, false, assign );
     }
 
     switch( property.type ){
@@ -580,35 +629,54 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
             rhs = right = property.name;
             break;
         default:
-            right = this.recurse( property, false, assign );
+            right = interpreter.recurse( property, false, assign );
     }
 
-    return function executeStaticMemberExpression( scope, assignment, lookup ){
-        //console.log( 'Executing STATIC MEMBER EXPRESSION' );
-        //console.log( '- executeStaticMemberExpression LEFT', left.name );
-        //console.log( '- executeStaticMemberExpression RIGHT', rhs || right.name );
-        var lhs = left( scope, assignment, lookup ),
-            value = !depth ? assignment : {},
-            result;
+    return interpreter.isSplit ?
+        function executeStaticMemberExpression( scope, assignment, lookup ){
+            //console.log( 'Executing STATIC MEMBER EXPRESSION' );
+            //console.log( '- executeStaticMemberExpression LEFT', left.name );
+            //console.log( '- executeStaticMemberExpression RIGHT', rhs || right.name );
+            var lhs = left( scope, assignment, lookup ),
+                value = returnValue( assignment, depth ),
+                result;
 
-        if( !isSafe || lhs ){
-            if( !isComputed ){
-                rhs = right( property.type === KeypathSyntax.RootExpression ? scope : lhs, assignment, lookup );
-            }
-            //console.log( '- executeStaticMemberExpression LHS', lhs );
-            //console.log( '- executeStaticMemberExpression RHS', rhs );
-            //console.log( '- executeStaticMemberExpression DEPTH', depth );
-            if( interpreter.isSplit && Array.isArray( lhs ) ){
+            if( !isSafe || lhs ){
+                if( !isComputed ){
+                    rhs = right( property.type === KeypathSyntax.RootExpression ? scope : lhs, assignment, lookup );
+                }
+                //console.log( '- executeStaticMemberExpression LHS', lhs );
+                //console.log( '- executeStaticMemberExpression RHS', rhs );
+                //console.log( '- executeStaticMemberExpression DEPTH', depth );
                 result = map( lhs, function( object ){
                     return assign( object, rhs, value );
                 } );
-            } else {
+            }
+            //console.log( '- executeStaticMemberExpression RESULT', result );
+            return context ?
+                { context: lhs, name: rhs, value: result } :
+                result;
+        } :
+        function executeStaticMemberExpression( scope, assignment, lookup ){
+            //console.log( 'Executing STATIC MEMBER EXPRESSION' );
+            //console.log( '- executeStaticMemberExpression LEFT', left.name );
+            //console.log( '- executeStaticMemberExpression RIGHT', rhs || right.name );
+            var lhs = left( scope, assignment, lookup ),
+                value = returnValue( assignment, depth ),
+                result;
+
+            if( !isSafe || lhs ){
+                if( !isComputed ){
+                    rhs = right( property.type === KeypathSyntax.RootExpression ? scope : lhs, assignment, lookup );
+                }
+                //console.log( '- executeStaticMemberExpression LHS', lhs );
+                //console.log( '- executeStaticMemberExpression RHS', rhs );
+                //console.log( '- executeStaticMemberExpression DEPTH', depth );
                 result = assign( lhs, rhs, value );
             }
-        }
-        //console.log( '- executeStaticMemberExpression RESULT', result );
-        return context ?
-            { context: lhs, name: rhs, value: result } :
-            result;
-    };
+            //console.log( '- executeStaticMemberExpression RESULT', result );
+            return context ?
+                { context: lhs, name: rhs, value: result } :
+                result;
+        };
 };
