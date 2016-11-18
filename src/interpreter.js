@@ -243,7 +243,7 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
         //console.log( '- executeComputedMemberExpression RIGHT', right.name );
         var lhs = left( scope, value, lookup ),
             index, length, position, result, rhs;
-        if( !isSafe || ( lhs !== void 0 && lhs !== null ) ){
+        if( !isSafe || lhs ){
             rhs = right( scope, value, lookup );
             //console.log( '- executeComputedMemberExpression DEPTH', depth );
             //console.log( '- executeComputedMemberExpression LHS', lhs );
@@ -291,7 +291,7 @@ Interpreter.prototype.existentialExpression = function( expression, context, ass
         var result;
         //console.log( 'Executing EXISTENTIAL EXPRESSION' );
         //console.log( '- executeExistentialExpression LEFT', left.name );
-        if( scope !== void 0 && scope !== null ){
+        if( scope ){
             try {
                 result = left( scope, value, lookup );
             } catch( e ){
@@ -562,13 +562,15 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
     var interpreter = this,
         depth = this.depth,
         isRightFunction = false,
-        isSafe = object.type === KeypathSyntax.ExistentialExpression,
+        isSafe = false,
         left, rhs, right;
 
     switch( object.type ){
         case KeypathSyntax.LookupExpression:
             left = this.lookupExpression( object.key, true, false, assign );
             break;
+        case KeypathSyntax.ExistentialExpression:
+            isSafe = true;
         default:
             left = this.recurse( object, false, assign );
     }
@@ -578,8 +580,8 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
             rhs = right = property.name;
             break;
         default:
-            right = this.recurse( property, false, assign );
             isRightFunction = true;
+            right = this.recurse( property, false, assign );
     }
 
     return function executeStaticMemberExpression( scope, value, lookup ){
@@ -589,7 +591,7 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
         var lhs = left( scope, value, lookup ),
             index, result;
 
-        if( !isSafe || ( lhs !== void 0 && lhs !== null ) ){
+        if( !isSafe || lhs ){
             if( isRightFunction ){
                 rhs = right( property.type === KeypathSyntax.RootExpression ? scope : lhs, value, lookup );
             }
