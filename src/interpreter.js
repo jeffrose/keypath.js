@@ -78,26 +78,11 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
             //console.log( 'Executing ARRAY EXPRESSION' );
             //console.log( '- executeArrayExpression LIST', list );
             //console.log( '- executeArrayExpression DEPTH', depth );
-            var index = list.length,
-                value = returnValue( assignment, depth ),
-                keys, result;
-            switch( index ){
-                case 0:
-                    break;
-                case 1:
-                    keys = list[ 0 ]( scope, assignment, lookup );
-                    result = assign( scope, keys, value );
-                    break;
-                default:
-                    keys = new Array( index );
-                    result = new Array( index );
-                    while( index-- ){
-                        keys[ index ] = list[ index ]( scope, assignment, lookup );
-                        result[ index ] = assign( scope, keys[ index ], value );
-                    }
-                    break;
-            }
-            //console.log( '- executeArrayExpression KEYS', keys );
+            var value = returnValue( assignment, depth ),
+                result = map( list, function( expression ){
+                    return assign( scope, expression( scope, assignment, lookup ), value );
+                } );
+            result.length === 1 && ( result = result[ 0 ] );
             //console.log( '- executeArrayExpression RESULT', result );
             return context ?
                 { value: result } :
@@ -112,15 +97,9 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
             //console.log( '- executeArrayExpressionWithElementRange DEPTH', depth );
             var keys = list( scope, assignment, lookup ),
                 value = returnValue( assignment, depth ),
-                index = keys.length,
-                result = new Array( index );
-            if( index === 1 ){
-                result[ 0 ] = assign( scope, keys[ 0 ], value );
-            } else {
-                while( index-- ){
-                    result[ index ] = assign( scope, keys[ index ], value );
-                }
-            }
+                result = map( keys, function( key ){
+                    return assign( scope, key, value );
+                } );
             //console.log( '- executeArrayExpressionWithElementRange RESULT', result );
             return context ?
                 { value: result } :
@@ -133,11 +112,12 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
 
 Interpreter.prototype.blockExpression = function( tokens, context, assign ){
     //console.log( 'Composing BLOCK', tokens.join( '' ) );
-    var text = tokens.join( '' ),
+    var interpreter = this,
+        text = tokens.join( '' ),
         program = hasOwnProperty( cache, text ) ?
             cache[ text ] :
-            cache[ text ] = this.builder.build( tokens ),
-        expression = this.recurse( program.body[ 0 ].expression, false, assign );
+            cache[ text ] = interpreter.builder.build( tokens ),
+        expression = interpreter.recurse( program.body[ 0 ].expression, false, assign );
 
     return function executeBlockExpression( scope, assignment, lookup ){
         //console.log( 'Executing BLOCK' );
