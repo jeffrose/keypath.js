@@ -62,7 +62,6 @@ Interpreter.prototype.constructor = Interpreter;
 
 Interpreter.prototype.arrayExpression = function( elements, context, assign ){
     //console.log( 'Composing ARRAY EXPRESSION', elements.length );
-    //console.log( '- DEPTH', this.depth );
     var depth = this.depth,
         fn, list;
     if( Array.isArray( elements ) ){
@@ -70,8 +69,8 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
 
         fn = function executeArrayExpression( scope, value, lookup ){
             //console.log( 'Executing ARRAY EXPRESSION' );
-            //console.log( '- ${ fn.name } LIST', list );
-            //console.log( '- ${ fn.name } DEPTH', depth );
+            //console.log( '- executeArrayExpression LIST', list );
+            //console.log( '- executeArrayExpression DEPTH', depth );
             var index = list.length,
                 keys, result;
             switch( index ){
@@ -90,8 +89,8 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
                     }
                     break;
             }
-            //console.log( '- ${ fn.name } KEYS', keys );
-            //console.log( '- ${ fn.name } RESULT', result );
+            //console.log( '- executeArrayExpression KEYS', keys );
+            //console.log( '- executeArrayExpression RESULT', result );
             return context ?
                 { value: result } :
                 result;
@@ -101,8 +100,8 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
 
         fn = function executeArrayExpressionWithElementRange( scope, value, lookup ){
             //console.log( 'Executing ARRAY EXPRESSION' );
-            //console.log( '- ${ fn.name } LIST', list.name );
-            //console.log( '- ${ fn.name } DEPTH', depth );
+            //console.log( '- executeArrayExpressionWithElementRange LIST', list.name );
+            //console.log( '- executeArrayExpressionWithElementRange DEPTH', depth );
             var keys = list( scope, value, lookup ),
                 index = keys.length,
                 result = new Array( index );
@@ -113,7 +112,7 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
                     result[ index ] = assign( scope, keys[ index ], !depth ? value : {} );
                 }
             }
-            //console.log( '- ${ fn.name } RESULT', result );
+            //console.log( '- executeArrayExpressionWithElementRange RESULT', result );
             return context ?
                 { value: result } :
                 result;
@@ -125,21 +124,18 @@ Interpreter.prototype.arrayExpression = function( elements, context, assign ){
 
 Interpreter.prototype.blockExpression = function( tokens, context, assign ){
     //console.log( 'Composing BLOCK', tokens.join( '' ) );
-    //console.log( '- DEPTH', this.depth );
-    var depth = this.depth,
-        text = tokens.join( '' ),
+    var text = tokens.join( '' ),
         program = hasOwnProperty( cache, text ) ?
             cache[ text ] :
             cache[ text ] = this.builder.build( tokens ),
-        expression = this.recurse( program.body[ 0 ].expression, false, assign ),
-        fn;
-    return fn = function executeBlockExpression( scope, value, lookup ){
+        expression = this.recurse( program.body[ 0 ].expression, false, assign );
+
+    return function executeBlockExpression( scope, value, lookup ){
         //console.log( 'Executing BLOCK' );
-        //console.log( '- ${ fn.name } SCOPE', scope );
-        //console.log( '- ${ fn.name } EXPRESSION', expression.name );
-        //console.log( '- ${ fn.name } DEPTH', depth );
+        //console.log( '- executeBlockExpression SCOPE', scope );
+        //console.log( '- executeBlockExpression EXPRESSION', expression.name );
         var result = expression( scope, value, lookup );
-        //console.log( '- ${ fn.name } RESULT', result );
+        //console.log( '- executeBlockExpression RESULT', result );
         return context ?
             { context: scope, name: void 0, value: result } :
             result;
@@ -184,12 +180,13 @@ Interpreter.prototype.compile = function( expression, create ){
         interpreter = this,
         assign, expressions, fn, index;
 
+    this.depth = -1;
+    this.isSplit = this.isLeftSplit = this.isRightSplit = false;
+
     if( typeof create !== 'boolean' ){
         create = false;
     }
-    this.depth = -1;
-    this.isLeftList = false;
-    this.isRightList = false;
+
     assign = create ?
         setter :
         getter;
@@ -252,7 +249,7 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
             //console.log( '- executeComputedMemberExpression LHS', lhs );
             //console.log( '- executeComputedMemberExpression RHS', rhs );
             if( Array.isArray( rhs ) ){
-                if( ( interpreter.isLeftList ) && Array.isArray( lhs ) ){
+                if( ( interpreter.isLeftSplit ) && Array.isArray( lhs ) ){
                     length = rhs.length;
                     index = lhs.length;
                     result = new Array( index );
@@ -269,7 +266,7 @@ Interpreter.prototype.computedMemberExpression = function( object, property, con
                         result[ index ] = assign( lhs, rhs[ index ], !depth ? value : {} );
                     }
                 }
-            } else if( ( interpreter.isLeftList || interpreter.isRightList ) && Array.isArray( lhs ) ){
+            } else if( interpreter.isSplit && Array.isArray( lhs ) ){
                 index = lhs.length;
                 result = new Array( index );
                 while( index-- ){
@@ -464,7 +461,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
     switch( node.type ){
         case Syntax.ArrayExpression:
             expression = this.arrayExpression( node.elements, context, assign );
-            this.isLeftList = node.elements.length > 1;
+            this.isSplit = this.isLeftSplit = node.elements.length > 1;
             break;
         case Syntax.CallExpression:
             expression = this.callExpression( node.callee, node.arguments, context, assign );
@@ -497,7 +494,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
             break;
         case Syntax.SequenceExpression:
             expression = this.sequenceExpression( node.expressions, context, assign );
-            this.isRightList = true;
+            this.isSplit = this.isRightSplit = true;
             break;
         default:
             throw new SyntaxError( 'Unknown node type: ' + node.type );
@@ -599,7 +596,7 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
             //console.log( '- executeStaticMemberExpression LHS', lhs );
             //console.log( '- executeStaticMemberExpression RHS', rhs );
             //console.log( '- executeStaticMemberExpression DEPTH', depth );
-            if( ( interpreter.isLeftList || interpreter.isRightList ) && Array.isArray( lhs ) ){
+            if( interpreter.isSplit && Array.isArray( lhs ) ){
                 index = lhs.length;
                 result = new Array( index );
                 while( index-- ){
