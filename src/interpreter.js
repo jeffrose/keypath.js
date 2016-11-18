@@ -79,7 +79,7 @@ function setter( object, key, value ){
  */
 export default function Interpreter( builder ){
     if( !arguments.length ){
-        this.throwError( 'builder cannot be undefined', TypeError );
+        throw new TypeError( 'builder cannot be undefined' );
     }
 
     /**
@@ -198,7 +198,7 @@ Interpreter.prototype.callExpression = function( callee, args, context, assign )
         //console.log( `- ${ fn.name } DEPTH`, depth );
         result = lhs.value.apply( lhs.context, values );
         if( isSetting && typeof lhs.value === 'undefined' ){
-            interpreter.throwError( 'cannot create call expressions' );
+            throw new Error( 'cannot create call expressions' );
         }
         //console.log( `- ${ fn.name } RESULT`, result );
         return context ?
@@ -394,7 +394,7 @@ Interpreter.prototype.listExpressionElement = function( element, context, assign
         case KeypathSyntax.BlockExpression:
             return this.blockExpression( element.body, context, assign );
         default:
-            this.throwError( 'Unexpected list element type', element.type );
+            throw new SyntaxError( 'Unexpected list element type: ' + element.type );
     }
 };
 
@@ -549,7 +549,7 @@ Interpreter.prototype.recurse = function( node, context, assign ){
             this.isRightList = true;
             break;
         default:
-            this.throwError( 'Unknown node type ' + node.type );
+            throw new SyntaxError( 'Unknown node type: ' + node.type );
     }
     this.depth--;
     return expression;
@@ -669,11 +669,4 @@ Interpreter.prototype.staticMemberExpression = function( object, property, conte
             { context: lhs, name: rhs, value: result } :
             result;
     };
-};
-
-Interpreter.prototype.throwError = function( message ){
-    var e = new Error( message );
-    e.columnNumber = this.column;
-    throw e;
-    //throw new Error( message );
 };
