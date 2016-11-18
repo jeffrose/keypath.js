@@ -95,17 +95,6 @@ function returnZero(){
 }
 
 /**
- * @class InterpreterError
- * @extends external:SyntaxError
- * @param {external:string} message
- */
-function InterpreterError( message ){
-    SyntaxError.call( this, message );
-}
-
-Interpreter.prototype = Object.create( SyntaxError.prototype );
-
-/**
  * @class Interpreter
  * @extends Null
  * @param {Builder} builder
