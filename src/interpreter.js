@@ -171,7 +171,7 @@ Interpreter.prototype.compile = function( expression, create ){
         body = program.body,
         interpreter = this,
 
-        assign, expressions, fn, index;
+        assign, expressions;
 
     interpreter.depth = -1;
     interpreter.isSplit = interpreter.isLeftSplit = interpreter.isRightSplit = false;
@@ -189,37 +189,25 @@ Interpreter.prototype.compile = function( expression, create ){
      */
     interpreter.expression = interpreter.builder.text;
     //console.log( '-------------------------------------------------' );
-    //console.log( 'Interpreting ', expression );
+    //console.log( 'Interpreting' );
     //console.log( '-------------------------------------------------' );
     //console.log( 'Program', program.range );
-
     switch( body.length ){
         case 0:
-            fn = noop;
-            break;
+            return noop;
         case 1:
-            fn = interpreter.recurse( body[ 0 ].expression, false, assign );
-            break;
+            return interpreter.recurse( body[ 0 ].expression, false, assign );
         default:
-            index = body.length;
-            expressions = new Array( index );
-            while( index-- ){
-                expressions[ index ] = interpreter.recurse( body[ index ].expression, false, assign );
-            }
-            fn = function executeProgram( scope, assignment, lookup ){
-                var length = expressions.length,
-                    lastValue;
-
-                for( index = 0; index < length; index++ ){
-                    lastValue = expressions[ index ]( scope, assignment, lookup );
-                }
-
-                return lastValue;
+            expressions = map( body, function( statement ){
+                return interpreter.recurse( statement.expression, false, assign );
+            } );
+            return function executeProgram( scope, assignment, lookup ){
+                var values = map( expressions, function( expression ){
+                        return expression( scope, assignment, lookup );
+                    } );
+                return values[ values.length - 1 ];
             };
-            break;
     }
-    //console.log( 'FN', fn.name );
-    return fn;
 };
 
 Interpreter.prototype.computedMemberExpression = function( object, property, context, assign ){
