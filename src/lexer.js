@@ -1,6 +1,8 @@
 import Null from './null';
-import * as Character from './character';
-import * as Token from './token';
+import map from './map';
+import Scanner from './scanner';
+import toJSON from './to-json';
+import toString from './to-string';
 
 var lexerPrototype;
 
@@ -10,18 +12,9 @@ var lexerPrototype;
  */
 export default function Lexer(){
     /**
-     * @member {external:string}
-     * @default ''
+     * @member {Scanner}
      */
-    this.source = '';
-    /**
-     * @member {external:number}
-     */
-    this.index = 0;
-    /**
-     * @member {external:number}
-     */
-    this.length = 0;
+    this.scanner = null;
     /**
      * @member {Array<Lexer~Token>}
      */
@@ -37,73 +30,16 @@ lexerPrototype.constructor = Lexer;
  * @param {external:string} text
  */
 lexerPrototype.lex = function( text ){
-    // Reset the index and tokens
-    if( this.index ){
-        this.index = 0;
-        this.tokens = [];
-    }
+    this.scanner = new Scanner( text );
+    this.tokens = [];
 
-    this.source = text;
-    this.length = text.length;
+    var token;
 
-    var word = '',
-        char, token, quote;
-
-    while( !this.eol() ){
-        char = this.source[ this.index ];
-
-        // Identifier
-        if( Character.isIdentifierStart( char ) ){
-            word = this.read( function( char ){
-                return !Character.isIdentifierPart( char );
-            } );
-
-            token = word === 'null' ?
-                new Token.NullLiteral( word ) :
-                new Token.Identifier( word );
-            this.tokens.push( token );
-
-        // Punctuator
-        } else if( Character.isPunctuator( char ) ){
-            token = new Token.Punctuator( char );
-            this.tokens.push( token );
-
-            this.index++;
-
-        // Quoted String
-        } else if( Character.isQuote( char ) ){
-            quote = char;
-
-            this.index++;
-
-            word = this.read( function( char ){
-                return char === quote;
-            } );
-
-            token = new Token.StringLiteral( quote + word + quote );
-            this.tokens.push( token );
-
-            this.index++;
-
-        // Numeric
-        } else if( Character.isNumeric( char ) ){
-            word = this.read( function( char ){
-                return !Character.isNumeric( char );
-            } );
-
-            token = new Token.NumericLiteral( word );
-            this.tokens.push( token );
-
-        // Whitespace
-        } else if( Character.isWhitespace( char ) ){
-            this.index++;
-
-        // Error
-        } else {
-            throw new SyntaxError( '"' + char + '" is an invalid character' );
+    while( !this.scanner.eol() ){
+        token = this.scanner.lex();
+        if( token ){
+            this.tokens[ this.tokens.length ] = token;
         }
-
-        word = '';
     }
 
     return this.tokens;
@@ -146,10 +82,8 @@ lexerPrototype.read = function( until ){
 lexerPrototype.toJSON = function(){
     var json = new Null();
 
-    json.source = this.source;
-    json.tokens = this.tokens.map( function( token ){
-        return token.toJSON();
-    } );
+    json.scanner = this.scanner && this.scanner.toJSON();
+    json.tokens = map( this.tokens, toJSON );
 
     return json;
 };
@@ -159,5 +93,5 @@ lexerPrototype.toJSON = function(){
  * @returns {external:string} A string representation of the lexer
  */
 lexerPrototype.toString = function(){
-    return this.source;
+    return map( this.tokens, toString ).join( '' );
 };
