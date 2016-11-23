@@ -84,11 +84,8 @@ interpreterPrototype.arrayExpression = function( elements, context, assign ){
             //console.log( 'Executing ARRAY EXPRESSION' );
             //console.log( '- executeArrayExpression LIST', list );
             //console.log( '- executeArrayExpression DEPTH', depth );
-            //console.log( '= SCOPE', scope );
             var value = returnValue( assignment, depth ),
                 result = map( list, function( expression ){
-                    //console.log( '== EXPRESSION', expression( scope, assignment, lookup ) );
-                    //console.log( '== ASSIGNED', assign( scope, expression( scope, assignment, lookup ), value ) );
                     return assign( scope, expression( scope, assignment, lookup ), value );
                 } );
             result.length === 1 && ( result = result[ 0 ] );
@@ -548,11 +545,8 @@ interpreterPrototype.sequenceExpression = function( expressions, context, assign
             //console.log( 'Executing SEQUENCE EXPRESSION' );
             //console.log( '- executeSequenceExpression LIST', list );
             //console.log( '- executeSequenceExpression DEPTH', depth );
-            //console.log( '= SCOPE', scope );
             var value = returnValue( assignment, depth ),
                 result = map( list, function( expression ){
-                    //console.log( '== EXPRESSION', expression( scope, assignment, lookup ) );
-                    //console.log( '== ASSIGNED', assign( scope, expression( scope, assignment, lookup ), value ) );
                     return expression( scope, value, lookup );
                 } );
             //console.log( '- executeSequenceExpression RESULT', result );

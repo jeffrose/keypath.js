@@ -132,7 +132,6 @@ describe( 'Lexer', function(){
 
         const json = lexer.toJSON();
 
-        expect( json ).to.have.property( 'scanner' );
         expect( json ).to.have.property( 'tokens' );
     } );
 
