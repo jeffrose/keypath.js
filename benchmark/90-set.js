@@ -6,7 +6,7 @@ var KeypathExp = require( '../dist/exp' ),
     tk = new PathToolkit(),
     loset = require( 'lodash.set' ),
     keypather = require( 'keypather' )(),
-    
+
     path = 'foo.bar.qux.baz',
     data = {},
 
@@ -21,7 +21,7 @@ module.exports = {
             kpex.set( data, 123 );
         },
         'kp': function(){
-            kp`foo.bar.qux.baz`( data, 123 );
+            kp`foo.bar.qux.baz`.set( data, 123 );
         },
         'tk#set': function(){
             tk.set( data, path, 123 );

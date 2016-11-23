@@ -1,12 +1,11 @@
 'use strict';
 
 var KeypathExp = require( '../dist/exp' ),
-    kp = require( '../dist/tag' ),
     PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
-    
+
     path = '[2][0][1][0]',
     data = [ 'a', 'b',
         [

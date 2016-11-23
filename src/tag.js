@@ -18,7 +18,7 @@ var cache = new Null();
  * @returns {KeypathCallback}
  * @example
  * const object = { foo: { bar: { qux: { baz: 'fuz' } } } },
- *  getBaz = ( target ) => kp`foo.bar.qux.baz`( target );
+ *  getBaz = ( target ) => kp`foo.bar.qux.baz`.get( target );
  *
  * console.log( getBaz( object ) ); // "fuz"
  */
@@ -47,9 +47,5 @@ export default function kp( literals/*, ...values*/ ){
         cache[ keypath ] :
         cache[ keypath ] = new KeypathExp( keypath );
 
-    return function( target, value, lookup ){
-        return arguments.length > 1 ?
-            kpex.set( target, value, lookup ) :
-            kpex.get( target, lookup );
-    };
+    return kpex;
 }

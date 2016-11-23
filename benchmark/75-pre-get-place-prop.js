@@ -1,12 +1,9 @@
 'use strict';
 
 var KeypathExp = require( '../dist/exp' ),
-    kp = require( '../dist/tag' ),
     PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
-    loget = require( 'lodash.get' ),
-    keypather = require( 'keypather' )(),
-    
+
     data = {
         foo: {
             bar: {
@@ -19,7 +16,7 @@ var KeypathExp = require( '../dist/exp' ),
 
     kpex = new KeypathExp( 'foo.%1.qux.%0' ),
     tkTokens = tk.getTokens( 'foo.%2.qux.%1' );
-    
+
 module.exports = {
     name: 'Precompiled:Get:Placeholder:Property',
     maxTime: 5,

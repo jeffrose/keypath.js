@@ -10,10 +10,10 @@ describe( 'kp', function(){
 
     it( 'should work as a string tag', function(){
         var foo = 'foo', bar = 'bar';
-        expect( kp`foo.bar`( data ) ).to.equal( 123 );
-        expect( kp`foo.qux`( data ) ).to.equal( 456 );
-        expect( kp`foo.baz`( data ) ).to.equal( 789 );
-        expect( kp`${ foo }.${ bar }`( data ) ).to.equal( 123 );
+        expect( kp`foo.bar`.get( data ) ).to.equal( 123 );
+        expect( kp`foo.qux`.get( data ) ).to.equal( 456 );
+        expect( kp`foo.baz`.get( data ) ).to.equal( 789 );
+        expect( kp`${ foo }.${ bar }`.get( data ) ).to.equal( 123 );
     } );
 
 } );

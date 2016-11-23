@@ -1,12 +1,11 @@
 'use strict';
 
-var KeypathExp = require( '../dist/exp' ),
-    kp = require( '../dist/tag' ),
+var kp = require( '../dist/tag' ),
     PathToolkit = require( '../dist/path-toolkit' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
-    
+
     path = '["foo"]["bar"]["qux"]["baz"]',
     data = {
         foo: {
@@ -23,7 +22,7 @@ module.exports = {
     maxTime: 5,
     tests: {
         'kp': function(){
-            kp`["foo"]["bar"]["qux"]["baz"]`( data );
+            kp`["foo"]["bar"]["qux"]["baz"]`.get( data );
         },
         'tk#get': function(){
             tk.get( data, path );

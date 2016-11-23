@@ -23,7 +23,7 @@ module.exports = {
     maxTime: 5,
     tests: {
         'kp': function(){
-            kp`["foo"]["bar","qux"]["baz"]`( data );
+            kp`["foo"]["bar","qux"]["baz"]`.get( data );
         },
         'tk#get': function(){
             tk.get( data, tkpath );

@@ -19,7 +19,7 @@ module.exports = {
     maxTime: 5,
     tests: {
         'kp': function(){
-            kp`[2][0,1][0]`( data );
+            kp`[2][0,1][0]`.get( data );
         },
         'tk#get': function(){
             tk.get( data, tkpath );

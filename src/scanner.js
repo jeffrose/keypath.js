@@ -12,12 +12,16 @@ function isNotNumeric( char ){
     return !Character.isNumeric( char );
 }
 
+/**
+ * @class Scanner
+ * @extends Null
+ */
 export default function Scanner( text ){
     /**
      * @member {external:string}
      * @default ''
      */
-    this.source = text;
+    this.source = text || '';
     /**
      * @member {external:number}
      */
