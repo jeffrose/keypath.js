@@ -32,7 +32,7 @@ lexerPrototype.lex = function( text ){
     this.tokens = [];
 
     while( !scanner.eol() ){
-        token = scanner.lex();
+        token = scanner.scan();
         if( token ){
             this.tokens[ this.tokens.length ] = token;
         }

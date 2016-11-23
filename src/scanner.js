@@ -40,7 +40,7 @@ scannerPrototype.eol = function(){
     return this.index >= this.length;
 };
 
-scannerPrototype.lex = function(){
+scannerPrototype.scan = function(){
     if( this.eol() ){
         return new Token.EndOfLine();
     }
@@ -50,7 +50,7 @@ scannerPrototype.lex = function(){
 
     // Identifier
     if( Character.isIdentifierStart( char ) ){
-        word = this.scan( isNotIdentifier );
+        word = this.scanUntil( isNotIdentifier );
 
         return word === 'null' ?
             new Token.NullLiteral( word ) :
@@ -66,8 +66,8 @@ scannerPrototype.lex = function(){
         this.index++;
 
         word = Character.isDoubleQuote( char ) ?
-            this.scan( Character.isDoubleQuote ) :
-            this.scan( Character.isSingleQuote );
+            this.scanUntil( Character.isDoubleQuote ) :
+            this.scanUntil( Character.isSingleQuote );
 
         this.index++;
 
@@ -75,7 +75,7 @@ scannerPrototype.lex = function(){
 
     // Numeric
     } else if( Character.isNumeric( char ) ){
-        word = this.scan( isNotNumeric );
+        word = this.scanUntil( isNotNumeric );
 
         return new Token.NumericLiteral( word );
 
@@ -94,7 +94,7 @@ scannerPrototype.lex = function(){
  * @param {external:function} until A condition that when met will stop the scanning of the source
  * @returns {external:string} The portion of the source scanned
  */
-scannerPrototype.scan = function( until ){
+scannerPrototype.scanUntil = function( until ){
     var start = this.index,
         char;
 
