@@ -1,7 +1,9 @@
 import Null from './null';
 import * as Grammar from './grammar';
 
-var tokenId = 0;
+var tokenId = 0,
+
+    tokenPrototype;
 
 /**
  * @class Lexer~Token
@@ -24,15 +26,15 @@ function Token( type, value ){
     this.value = value;
 }
 
-Token.prototype = new Null();
+tokenPrototype = Token.prototype = new Null();
 
-Token.prototype.constructor = Token;
+tokenPrototype.constructor = Token;
 
 /**
  * @function
  * @returns {external:Object} A JSON representation of the token
  */
-Token.prototype.toJSON = function(){
+tokenPrototype.toJSON = function(){
     var json = new Null();
 
     json.type = this.type;
@@ -45,15 +47,28 @@ Token.prototype.toJSON = function(){
  * @function
  * @returns {external:string} A string representation of the token
  */
-Token.prototype.toString = function(){
+tokenPrototype.toString = function(){
     return String( this.value );
 };
+
+/**
+ * @class Lexer~BooleanLiteral
+ * @extends Lexer~Token
+ * @param {external:string} value
+ */
+export function BooleanLiteral( value ){
+    Token.call( this, Grammar.BooleanLiteral, value );
+}
+
+BooleanLiteral.prototype = Object.create( tokenPrototype );
+
+BooleanLiteral.prototype.constructor = BooleanLiteral;
 
 export function EndOfLine(){
     Token.call( this, Grammar.EndOfLine, '' );
 }
 
-EndOfLine.prototype = Object.create( Token.prototype );
+EndOfLine.prototype = Object.create( tokenPrototype );
 
 EndOfLine.prototype.constructor = EndOfLine;
 
@@ -66,7 +81,7 @@ export function Identifier( value ){
     Token.call( this, Grammar.Identifier, value );
 }
 
-Identifier.prototype = Object.create( Token.prototype );
+Identifier.prototype = Object.create( tokenPrototype );
 
 Identifier.prototype.constructor = Identifier;
 
@@ -79,20 +94,19 @@ export function NumericLiteral( value ){
     Token.call( this, Grammar.NumericLiteral, value );
 }
 
-NumericLiteral.prototype = Object.create( Token.prototype );
+NumericLiteral.prototype = Object.create( tokenPrototype );
 
 NumericLiteral.prototype.constructor = NumericLiteral;
 
 /**
  * @class Lexer~NullLiteral
  * @extends Lexer~Token
- * @param {external:string} value
  */
-export function NullLiteral( value ){
-    Token.call( this, Grammar.NullLiteral, value );
+export function NullLiteral(){
+    Token.call( this, Grammar.NullLiteral, 'null' );
 }
 
-NullLiteral.prototype = Object.create( Token.prototype );
+NullLiteral.prototype = Object.create( tokenPrototype );
 
 NullLiteral.prototype.constructor = NullLiteral;
 
@@ -105,7 +119,7 @@ export function Punctuator( value ){
     Token.call( this, Grammar.Punctuator, value );
 }
 
-Punctuator.prototype = Object.create( Token.prototype );
+Punctuator.prototype = Object.create( tokenPrototype );
 
 Punctuator.prototype.constructor = Punctuator;
 
@@ -118,6 +132,6 @@ export function StringLiteral( value ){
     Token.call( this, Grammar.StringLiteral, value );
 }
 
-StringLiteral.prototype = Object.create( Token.prototype );
+StringLiteral.prototype = Object.create( tokenPrototype );
 
 StringLiteral.prototype.constructor = StringLiteral;

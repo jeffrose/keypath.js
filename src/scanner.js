@@ -52,9 +52,15 @@ scannerPrototype.scan = function(){
     if( Character.isIdentifierStart( char ) ){
         word = this.scanUntil( isNotIdentifier );
 
-        return word === 'null' ?
-            new Token.NullLiteral( word ) :
-            new Token.Identifier( word );
+        switch( word ){
+            case 'null':
+                return new Token.NullLiteral();
+            case 'true':
+            case 'false':
+                return new Token.BooleanLiteral( word );
+            default:
+                return new Token.Identifier( word );
+        }
 
     // Punctuator
     } else if( Character.isPunctuator( char ) ){

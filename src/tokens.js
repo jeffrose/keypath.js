@@ -23,7 +23,7 @@ export default function Tokens( text ){
         token;
 
     while( !scanner.eol() ){
-        token = scanner.lex();
+        token = scanner.scan();
         if( token ){
             this[ this.length++ ] = token;
         }
