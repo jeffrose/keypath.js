@@ -1,3 +1,7 @@
+export function isDoubleQuote( char ){
+    return char === '"';
+}
+
 export function isIdentifierPart( char ){
     return isIdentifierStart( char ) || isNumeric( char );
 }
@@ -15,7 +19,11 @@ export function isPunctuator( char ){
 }
 
 export function isQuote( char ){
-    return char === '"' || char === "'";
+    return isDoubleQuote( char ) || isSingleQuote( char );
+}
+
+export function isSingleQuote( char ){
+    return char === "'";
 }
 
 export function isWhitespace( char ){

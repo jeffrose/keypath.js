@@ -1,5 +1,3 @@
-'use strict';
-
 import Null from './null';
 import Lexer from './lexer';
 import Builder from './builder';
@@ -10,7 +8,9 @@ var lexer = new Lexer(),
     builder = new Builder( lexer ),
     intrepreter = new Interpreter( builder ),
 
-    cache = new Null();
+    cache = new Null(),
+
+    expPrototype;
 
 /**
  * @class KeypathExp
@@ -23,8 +23,8 @@ export default function KeypathExp( pattern, flags ){
     typeof flags !== 'string' && ( flags = '' );
 
     var tokens = hasOwnProperty( cache, pattern ) ?
-        cache[ pattern ] :
-        cache[ pattern ] = lexer.lex( pattern );
+            cache[ pattern ] :
+            cache[ pattern ] = lexer.lex( pattern );
 
     Object.defineProperties( this, {
         'flags': {
@@ -54,21 +54,21 @@ export default function KeypathExp( pattern, flags ){
     } );
 }
 
-KeypathExp.prototype = new Null();
+expPrototype = KeypathExp.prototype = new Null();
 
-KeypathExp.prototype.constructor = KeypathExp;
+expPrototype.constructor = KeypathExp;
 
 /**
  * @function
  */
-KeypathExp.prototype.get = function( target, lookup ){
+expPrototype.get = function( target, lookup ){
     return this.getter( target, undefined, lookup );
 };
 
 /**
  * @function
  */
-KeypathExp.prototype.has = function( target, lookup ){
+expPrototype.has = function( target, lookup ){
     var result = this.getter( target, undefined, lookup );
     return typeof result !== 'undefined';
 };
@@ -76,14 +76,14 @@ KeypathExp.prototype.has = function( target, lookup ){
 /**
  * @function
  */
-KeypathExp.prototype.set = function( target, value, lookup ){
+expPrototype.set = function( target, value, lookup ){
     return this.setter( target, value, lookup );
 };
 
 /**
  * @function
  */
-KeypathExp.prototype.toJSON = function(){
+expPrototype.toJSON = function(){
     var json = new Null();
 
     json.flags = this.flags;
@@ -95,6 +95,6 @@ KeypathExp.prototype.toJSON = function(){
 /**
  * @function
  */
-KeypathExp.prototype.toString = function(){
+expPrototype.toString = function(){
     return this.source;
 };

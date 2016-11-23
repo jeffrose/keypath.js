@@ -132,7 +132,15 @@ describe( 'Lexer', function(){
 
         const json = lexer.toJSON();
 
-        expect( json ).to.have.property( 'source', 'abc' );
+        expect( json ).to.have.property( 'scanner' );
         expect( json ).to.have.property( 'tokens' );
+    } );
+
+    it( 'should provide a string representation', function(){
+        tokens = lexer.lex( 'abc' );
+
+        const string = lexer.toString();
+
+        expect( string ).to.equal( 'abc' );
     } );
 } );

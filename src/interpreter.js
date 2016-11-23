@@ -18,6 +18,12 @@ function getter( object, key ){
     return object[ key ];
 }
 
+/**
+ * @function Interpreter~returnValue
+ * @param {*} value
+ * @param {external:number} depth
+ * @returns {*|external:Object} The decided value
+ */
 function returnValue( value, depth ){
     return !depth ? value : {};
 }
@@ -68,18 +74,21 @@ interpreterPrototype.arrayExpression = function( elements, context, assign ){
     //console.log( 'Composing ARRAY EXPRESSION', elements.length );
     var interpreter = this,
         depth = interpreter.depth,
-        fn, list;
+        list;
     if( Array.isArray( elements ) ){
         list = map( elements, function( element ){
             return interpreter.listExpressionElement( element, false, assign );
         } );
 
-        fn = function executeArrayExpression( scope, assignment, lookup ){
+        return function executeArrayExpression( scope, assignment, lookup ){
             //console.log( 'Executing ARRAY EXPRESSION' );
             //console.log( '- executeArrayExpression LIST', list );
             //console.log( '- executeArrayExpression DEPTH', depth );
+            //console.log( '= SCOPE', scope );
             var value = returnValue( assignment, depth ),
                 result = map( list, function( expression ){
+                    //console.log( '== EXPRESSION', expression( scope, assignment, lookup ) );
+                    //console.log( '== ASSIGNED', assign( scope, expression( scope, assignment, lookup ), value ) );
                     return assign( scope, expression( scope, assignment, lookup ), value );
                 } );
             result.length === 1 && ( result = result[ 0 ] );
@@ -91,23 +100,21 @@ interpreterPrototype.arrayExpression = function( elements, context, assign ){
     } else {
         list = interpreter.recurse( elements, false, assign );
 
-        fn = function executeArrayExpressionWithElementRange( scope, assignment, lookup ){
+        return function executeArrayExpression( scope, assignment, lookup ){
             //console.log( 'Executing ARRAY EXPRESSION' );
-            //console.log( '- executeArrayExpressionWithElementRange LIST', list.name );
-            //console.log( '- executeArrayExpressionWithElementRange DEPTH', depth );
+            //console.log( '- executeArrayExpression LIST', list.name );
+            //console.log( '- executeArrayExpression DEPTH', depth );
             var keys = list( scope, assignment, lookup ),
                 value = returnValue( assignment, depth ),
                 result = map( keys, function( key ){
                     return assign( scope, key, value );
                 } );
-            //console.log( '- executeArrayExpressionWithElementRange RESULT', result );
+            //console.log( '- executeArrayExpression RESULT', result );
             return context ?
                 { value: result } :
                 result;
         };
     }
-
-    return fn;
 };
 
 interpreterPrototype.blockExpression = function( tokens, context, assign ){
@@ -412,14 +419,14 @@ interpreterPrototype.lookupExpression = function( key, resolve, context, assign 
     };
 };
 
-interpreterPrototype.rangeExpression = function( nl, nr, context, assign ){
+interpreterPrototype.rangeExpression = function( lowerBound, upperBound, context, assign ){
     //console.log( 'Composing RANGE EXPRESSION' );
     var interpreter = this,
-        left = nl !== null ?
-            interpreter.recurse( nl, false, assign ) :
+        left = lowerBound !== null ?
+            interpreter.recurse( lowerBound, false, assign ) :
             returnZero,
-        right = nr !== null ?
-            interpreter.recurse( nr, false, assign ) :
+        right = upperBound !== null ?
+            interpreter.recurse( upperBound, false, assign ) :
             returnZero,
         index, lhs, middle, result, rhs;
 
@@ -518,30 +525,35 @@ interpreterPrototype.rootExpression = function( key, context, assign ){
         //console.log( 'Executing ROOT EXPRESSION' );
         //console.log( '- executeRootExpression LEFT', left.name || left );
         //console.log( '- executeRootExpression SCOPE', scope );
-        var lhs, result;
-        result = lhs = left( scope, assignment, lookup );
+        var result = left( scope, assignment, lookup );
         //console.log( '- executeRootExpression LHS', lhs );
         //console.log( '- executeRootExpression RESULT', result  );
         return context ?
-            { context: lookup, name: lhs.value, value: result } :
+            { context: lookup, name: result.value, value: result } :
             result;
     };
 };
 
 interpreterPrototype.sequenceExpression = function( expressions, context, assign ){
+    //console.log( 'Composing SEQUENCE EXPRESSION', expressions.length );
     var interpreter = this,
-        fn, list;
-    //console.log( 'Composing SEQUENCE EXPRESSION' );
+        depth = interpreter.depth,
+        list;
     if( Array.isArray( expressions ) ){
         list = map( expressions, function( expression ){
             return interpreter.listExpressionElement( expression, false, assign );
         } );
 
-        fn = function executeSequenceExpression( scope, assignment, lookup ){
+        return function executeSequenceExpression( scope, assignment, lookup ){
             //console.log( 'Executing SEQUENCE EXPRESSION' );
             //console.log( '- executeSequenceExpression LIST', list );
-            var result = map( list, function( expression ){
-                    return expression( scope, assignment, lookup );
+            //console.log( '- executeSequenceExpression DEPTH', depth );
+            //console.log( '= SCOPE', scope );
+            var value = returnValue( assignment, depth ),
+                result = map( list, function( expression ){
+                    //console.log( '== EXPRESSION', expression( scope, assignment, lookup ) );
+                    //console.log( '== ASSIGNED', assign( scope, expression( scope, assignment, lookup ), value ) );
+                    return expression( scope, value, lookup );
                 } );
             //console.log( '- executeSequenceExpression RESULT', result );
             return context ?
@@ -549,20 +561,20 @@ interpreterPrototype.sequenceExpression = function( expressions, context, assign
                 result;
         };
     } else {
-        list = this.recurse( expressions, false, assign );
+        list = interpreter.recurse( expressions, false, assign );
 
-        fn = function executeSequenceExpressionWithExpressionRange( scope, assignment, lookup ){
+        return function executeSequenceExpression( scope, assignment, lookup ){
             //console.log( 'Executing SEQUENCE EXPRESSION' );
-            //console.log( '- executeSequenceExpressionWithExpressionRange LIST', list.name );
-            var result = list( scope, assignment, lookup );
-            //console.log( '- executeSequenceExpressionWithExpressionRange RESULT', result );
+            //console.log( '- executeSequenceExpression LIST', list.name );
+            //console.log( '- executeSequenceExpression DEPTH', depth );
+            var value = returnValue( assignment, depth ),
+                result = list( scope, value, lookup );
+            //console.log( '- executeSequenceExpression RESULT', result );
             return context ?
                 { value: result } :
                 result;
         };
     }
-
-    return fn;
 };
 
 interpreterPrototype.staticMemberExpression = function( object, property, context, assign ){

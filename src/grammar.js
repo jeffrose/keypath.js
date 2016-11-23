@@ -1,3 +1,4 @@
+export var EndOfLine       = 'EndOfLine';
 export var Identifier      = 'Identifier';
 export var NumericLiteral  = 'Numeric';
 export var NullLiteral     = 'Null';

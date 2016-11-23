@@ -1,5 +1,8 @@
-import Null from './null';
+import * as Character from './character';
 import * as Syntax from './syntax';
+import Null from './null';
+import map from './map';
+import toJSON from './to-json';
 
 var nodeId = 0,
     literalTypes = 'boolean number string'.split( ' ' );
@@ -12,7 +15,7 @@ var nodeId = 0,
 export function Node( type ){
 
     if( typeof type !== 'string' ){
-        this.throwError( 'type must be a string', TypeError );
+        throw new TypeError( 'type must be a string' );
     }
 
     /**
@@ -28,11 +31,6 @@ export function Node( type ){
 Node.prototype = new Null();
 
 Node.prototype.constructor = Node;
-
-Node.prototype.throwError = function( message, ErrorClass ){
-    typeof ErrorClass === 'undefined' && ( ErrorClass = Error );
-    throw new ErrorClass( message );
-};
 
 /**
  * @function
@@ -80,7 +78,7 @@ export function Literal( value, raw ){
     Expression.call( this, Syntax.Literal );
 
     if( literalTypes.indexOf( typeof value ) === -1 && value !== null ){
-        this.throwError( 'value must be a boolean, number, string, or null', TypeError );
+        throw new TypeError( 'value must be a boolean, number, string, or null' );
     }
 
     /**
@@ -191,9 +189,7 @@ Program.prototype.constructor = Program;
 Program.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
 
-    json.body = this.body.map( function( node ){
-        return node.toJSON();
-    } );
+    json.body = map( this.body, toJSON );
     json.sourceType = this.sourceType;
 
     return json;
@@ -257,13 +253,9 @@ ArrayExpression.prototype.constructor = ArrayExpression;
 ArrayExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
 
-    if( Array.isArray( this.elements ) ){
-        json.elements = this.elements.map( function( element ){
-            return element.toJSON();
-        } );
-    } else {
-        json.elements = this.elements.toJSON();
-    }
+    json.elements = Array.isArray( this.elements ) ?
+        map( this.elements, toJSON ) :
+        this.elements.toJSON();
 
     return json;
 };
@@ -303,9 +295,7 @@ CallExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
 
     json.callee    = this.callee.toJSON();
-    json.arguments = this.arguments.map( function( node ){
-        return node.toJSON();
-    } );
+    json.arguments = map( this.arguments, toJSON );
 
     return json;
 };
@@ -470,13 +460,9 @@ SequenceExpression.prototype.constructor = SequenceExpression;
 SequenceExpression.prototype.toJSON = function(){
     var json = Node.prototype.toJSON.call( this );
 
-    if( Array.isArray( this.expressions ) ){
-        json.expressions = this.expressions.map( function( expression ){
-            return expression.toJSON();
-        } );
-    } else {
-        json.expressions = this.expressions.toJSON();
-    }
+    json.expressions = Array.isArray( this.expressions ) ?
+        map( this.expressions, toJSON ) :
+        this.expressions.toJSON();
 
     return json;
 };
@@ -504,7 +490,7 @@ StaticMemberExpression.prototype = Object.create( MemberExpression.prototype );
 StaticMemberExpression.prototype.constructor = StaticMemberExpression;
 
 export function StringLiteral( raw ){
-    if( raw[ 0 ] !== '"' && raw[ 0 ] !== "'" ){
+    if( !Character.isQuote( raw[ 0 ] ) ){
         throw new TypeError( 'raw is not a string literal' );
     }
 

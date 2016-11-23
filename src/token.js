@@ -49,6 +49,14 @@ Token.prototype.toString = function(){
     return String( this.value );
 };
 
+export function EndOfLine(){
+    Token.call( this, Grammar.EndOfLine, '' );
+}
+
+EndOfLine.prototype = Object.create( Token.prototype );
+
+EndOfLine.prototype.constructor = EndOfLine;
+
 /**
  * @class Lexer~Identifier
  * @extends Lexer~Token
